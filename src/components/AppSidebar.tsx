@@ -2,12 +2,13 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Home, Flame, Thermometer, UserPlus, Clock, AlertTriangle,
-  ChevronLeft, ChevronRight,
+  ChevronLeft, ChevronRight, Sprout,
 } from "lucide-react";
 
 const navItems = [
   { icon: Home, label: "Impactos Ambientais", id: "hero" },
   { icon: Flame, label: "Escassez", id: "scarcity" },
+  { icon: Sprout, label: "Boas Práticas", id: "practices" },
   { icon: Thermometer, label: "Mudanças Climáticas", id: "climate" },
   { icon: Clock, label: "Linha do Tempo", id: "timeline" },
   { icon: AlertTriangle, label: "Contradições", id: "contradictions" },
@@ -45,7 +46,7 @@ export function AppSidebar() {
       <div className="flex items-center justify-between p-3">
         {!collapsed && (
           <span className="text-sm font-bold text-sidebar-foreground tracking-wide">
-            EcoVida
+            Eco'S
           </span>
         )}
         <button
