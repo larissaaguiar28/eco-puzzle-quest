@@ -20,9 +20,9 @@ const Index = () => {
           <HeroSection />
           <ScarcitySection />
           <ClimateSection />
-          <CTASection />
           <TimelineSection />
           <ContradictionsSection />
+          <CTASection />
           <FAQSection />
 
           {/* Footer */}

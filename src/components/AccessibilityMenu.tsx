@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Accessibility, Volume2, ZoomIn, ZoomOut, Eye, Moon, Sun, X
+  Settings2, Volume2, ZoomIn, ZoomOut, Eye, Moon, Sun, X, RotateCcw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -64,7 +64,7 @@ export function AccessibilityMenu() {
         className="fixed top-4 right-4 z-50 rounded-full bg-primary p-3 text-primary-foreground shadow hover:bg-primary/90 transition-colors"
         aria-label="Menu de acessibilidade"
       >
-        <Accessibility className="h-5 w-5" />
+        <Settings2 className="h-5 w-5" />
       </button>
 
       <AnimatePresence>
@@ -99,6 +99,9 @@ export function AccessibilityMenu() {
                 <div className="row gap-1">
                   <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => setFontSize(Math.max(80, fontSize - 10))}>
                     <ZoomOut className="h-3 w-3" />
+                  </Button>
+                  <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => setFontSize(100)}>
+                    <RotateCcw className="h-3 w-3" />
                   </Button>
                   <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => setFontSize(Math.min(150, fontSize + 10))}>
                     <ZoomIn className="h-3 w-3" />
