@@ -16,7 +16,7 @@ const Index = () => {
     <QuizProvider>
       <div className="flex w-full">
         <AppSidebar />
-        <main className="ml-14 flex-1 max-w-[1366px]">
+        <main className="ml-14 flex-1 w-full">
           <HeroSection />
           <ScarcitySection />
           <ClimateSection />
