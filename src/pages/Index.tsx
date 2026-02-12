@@ -5,6 +5,7 @@ import { AccessibilityMenu } from "@/components/AccessibilityMenu";
 import { PuzzlePanel } from "@/components/PuzzlePanel";
 import { HeroSection } from "@/components/sections/HeroSection";
 import { ScarcitySection } from "@/components/sections/ScarcitySection";
+import { PracticesSection } from "@/components/sections/PracticesSection";
 import { ClimateSection } from "@/components/sections/ClimateSection";
 import { CTASection } from "@/components/sections/CTASection";
 import { TimelineSection } from "@/components/sections/TimelineSection";
@@ -16,9 +17,10 @@ const Index = () => {
     <QuizProvider>
       <div className="flex w-full">
         <AppSidebar />
-        <main className="ml-14 flex-1  w-full">
+        <main className="ml-14 flex-1 w-full">
           <HeroSection />
           <ScarcitySection />
+          <PracticesSection />
           <ClimateSection />
           <TimelineSection />
           <ContradictionsSection />
@@ -28,7 +30,7 @@ const Index = () => {
           {/* Footer */}
           <footer className="bg-primary py-8 text-center text-primary-foreground">
             <p className="text-sm opacity-80">
-              © 2026 EcoVida — Plataforma de Sustentabilidade. Todos os direitos reservados.
+              © 2026 Eco'S — Ecoando Sustentabilidade. Todos os direitos reservados.
             </p>
           </footer>
         </main>
