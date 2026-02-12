@@ -9,9 +9,9 @@ const navItems = [
   { icon: Home, label: "Impactos Ambientais", id: "hero" },
   { icon: Flame, label: "Escassez", id: "scarcity" },
   { icon: Thermometer, label: "Mudanças Climáticas", id: "climate" },
-  { icon: UserPlus, label: "Cadastro", id: "cta" },
   { icon: Clock, label: "Linha do Tempo", id: "timeline" },
   { icon: AlertTriangle, label: "Contradições", id: "contradictions" },
+  { icon: UserPlus, label: "Cadastro", id: "cta" },
 ];
 
 export function AppSidebar() {
@@ -45,7 +45,7 @@ export function AppSidebar() {
       <div className="flex items-center justify-between p-3">
         {!collapsed && (
           <span className="text-sm font-bold text-sidebar-foreground tracking-wide">
-            🌿 EcoVida
+            EcoVida
           </span>
         )}
         <button
