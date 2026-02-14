@@ -1,136 +1,176 @@
 import React, { useState } from "react";
-import { motion } from "framer-motion";
-import { Puzzle, Skull, Bug } from "lucide-react";
-import { AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { Puzzle, Skull, Bug, AlertTriangle, TrendingDown, Info, ArrowRight } from "lucide-react";
 import { QuizModal } from "@/components/QuizModal";
 import { useQuiz } from "@/contexts/QuizContext";
 import { Button } from "@/components/ui/button";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 const donutData = [
-  { name: "Pecuária", value: 41, color: "hsl(0 60% 50%)" },
-  { name: "Agricultura", value: 28, color: "hsl(45 75% 47%)" },
-  { name: "Desmatamento", value: 18, color: "hsl(150 50% 30%)" },
-  { name: "Outros", value: 13, color: "hsl(200 30% 50%)" },
+  { name: "Pecuária", value: 41, color: "#EF4444" }, // Red-500
+  { name: "Agricultura", value: 28, color: "#F59E0B" }, // Amber-500
+  { name: "Desmatamento", value: 18, color: "#10B981" }, // Emerald-500
+  { name: "Outros", value: 13, color: "#3B82F6" }, // Blue-500
 ];
 
 export function ContradictionsSection() {
   const [showQuiz, setShowQuiz] = useState(false);
   const { isCompleted } = useQuiz();
+  const [hoveredIndex, setHoveredIndex] = useState(null);
 
   return (
-    <section id="contradictions" className="section-height bg-background py-16 flex items-center">
-      <div className="mx-auto max-w-5xl px-6 w-full">
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-4xl font-extrabold text-foreground mb-2"
-        >
-          Problemas que Ninguém Fala
-        </motion.h2>
-        <motion.p
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.2 }}
-          className="text-muted-foreground mb-10 max-w-2xl text-lg"
-        >
-          Verdades incômodas sobre agrotóxicos e agropecuária predatória que afetam sua saúde e o meio ambiente.
-        </motion.p>
+    <section id="contradictions" className="relative py-24 bg-[#F1F3EC] overflow-hidden">
+      {/* Elementos Decorativos de Fundo */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-red-50 rounded-full blur-[120px] -z-10 opacity-50" />
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-50 rounded-full blur-[120px] -z-10 opacity-50" />
 
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-          {/* Agrotoxics info */}
-          <div className="space-y-6">
+      <div className="mx-auto max-w-6xl px-6 w-full relative">
+        {/* Header Centralizado e Robusto */}
+        <div className="text-center mb-16">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-red-100 text-red-700 text-xs font-black uppercase tracking-widest mb-6"
+          >
+            <AlertTriangle className="h-3 w-3" /> Verdades Ocultas
+          </motion.div>
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-4xl md:text-5xl font-black text-slate-900 mb-4 tracking-tight"
+          >
+            Problemas que <span className="text-red-600 underline decoration-red-200 underline-offset-8">Ninguém Fala</span>
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            className="text-slate-500 max-w-2xl mx-auto text-lg font-medium"
+          >
+            Abaixo da superfície do progresso, existem impactos que moldam o futuro do nosso ecossistema e saúde.
+          </motion.p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 items-start">
+          {/* Lado Esquerdo: Cards de Texto Interativos */}
+          <div className="lg:col-span-5 space-y-8">
             <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              className="shadow rounded-xl bg-card p-6 border border-border"
+              whileHover={{ x: 10 }}
+              className="group relative bg-white rounded-[2rem] p-8 shadow-xl shadow-slate-200/50 border border-slate-100 transition-all"
             >
-              <div className="row mb-3">
-                <Skull className="h-8 w-8 text-destructive" />
-                <h3 className="text-xl font-bold text-foreground">Agrotóxicos</h3>
+              <div className="flex items-center gap-4 mb-6">
+                <div className="p-4 bg-red-50 rounded-2xl text-red-600 group-hover:rotate-12 transition-transform">
+                  <Skull className="h-8 w-8" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-black text-slate-800">Agrotóxicos</h3>
+                  <p className="text-xs font-bold text-red-400 uppercase tracking-tighter">Brasil: Recordista Mundial</p>
+                </div>
               </div>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                O Brasil é o maior consumidor de agrotóxicos do mundo, usando mais de{" "}
-                <strong className="text-foreground">500 mil toneladas por ano</strong>. Muitos desses produtos são
-                proibidos na Europa e causam câncer, problemas neurológicos e contaminação de rios e solos.
+              <p className="text-slate-600 leading-relaxed mb-6 font-medium">
+                O Brasil consome mais de <span className="text-red-600 font-black px-1">500 mil toneladas</span> anuais de venenos proibidos globalmente, contaminando nossa cadeia alimentar.
               </p>
-              <ul className="mt-3 space-y-1 text-sm text-muted-foreground">
-                <li>• 30% dos alimentos possuem resíduos de agrotóxicos acima do permitido</li>
-                <li>• Trabalhadores rurais são os mais afetados</li>
-                <li>• Contaminação da água atinge comunidades inteiras</li>
-              </ul>
+              <div className="grid grid-cols-1 gap-3">
+                {["30% dos alimentos acima do limite", "Contaminação sistêmica de lençóis"].map((item, i) => (
+                  <div key={i} className="flex items-center gap-2 text-sm text-slate-500 font-semibold bg-slate-50 p-3 rounded-xl border border-slate-100">
+                    <TrendingDown className="h-4 w-4 text-red-400" /> {item}
+                  </div>
+                ))}
+              </div>
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 }}
-              className="shadow rounded-xl bg-card p-6 border border-border"
+              whileHover={{ x: 10 }}
+              className="group relative bg-[#0D3B2E] rounded-[2.5rem] p-8 shadow-2xl border border-[#164D3D] text-white overflow-hidden"
             >
-              <div className="row mb-3">
-                <Bug className="h-8 w-8 text-accent" />
-                <h3 className="text-xl font-bold text-foreground">Agropecuária Predatória</h3>
+              <div className="absolute top-0 right-0 p-4 opacity-10"><Bug className="h-16 w-16" /></div>
+              <div className="flex items-center gap-4 mb-6">
+                <div className="p-4 bg-emerald-500/20 rounded-2xl text-emerald-400">
+                  <Bug className="h-8 w-8" />
+                </div>
+                <h3 className="text-2xl font-black">Pecuária Predatória</h3>
               </div>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                A pecuária extensiva é responsável por <strong className="text-foreground">80% do desmatamento</strong>{" "}
-                na Amazônia. A produção de carne bovina gera mais emissões de gases de efeito estufa do que todo o
-                setor de transportes mundial.
+              <p className="text-emerald-100/80 leading-relaxed font-medium">
+                A pecuária extensiva é o motor por trás de <span className="text-emerald-400 font-black underline underline-offset-4">80% do desmatamento</span> na Amazônia, gerando mais emissões que o setor de transporte global.
               </p>
             </motion.div>
           </div>
 
-          {/* Donut chart */}
+          {/* Lado Direito: Gráfico Moderno */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
+            initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.3 }}
-            className="shadow rounded-xl bg-card p-6 border border-border"
+            className="lg:col-span-7 bg-white rounded-[3rem] p-10 shadow-2xl shadow-slate-200 border border-slate-100 flex flex-col items-center justify-center min-h-[500px]"
           >
-            <h3 className="text-lg font-bold text-foreground mb-4 text-center">
-              Uso do Solo no Brasil (%)
-            </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={donutData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={70}
-                  outerRadius={110}
-                  paddingAngle={3}
-                  dataKey="value"
-                  label={({ name, value }) => `${name} ${value}%`}
-                >
-                  {donutData.map((entry, i) => (
-                    <Cell key={i} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
+            <div className="flex items-center gap-2 mb-8 bg-slate-100 px-6 py-2 rounded-full">
+              <Info className="h-4 w-4 text-slate-400" />
+              <h3 className="text-sm font-black text-slate-600 uppercase tracking-widest">Ocupação de Solo (%)</h3>
+            </div>
+            
+            <div className="w-full h-[400px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={donutData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={90}
+                    outerRadius={140}
+                    paddingAngle={8}
+                    dataKey="value"
+                    onMouseEnter={(_, index) => setHoveredIndex(index)}
+                    onMouseLeave={() => setHoveredIndex(null)}
+                  >
+                    {donutData.map((entry, index) => (
+                      <Cell 
+                        key={index} 
+                        fill={entry.color} 
+                        stroke="none"
+                        style={{
+                          filter: hoveredIndex === index ? `drop-shadow(0 0 12px ${entry.color}80)` : 'none',
+                          cursor: 'pointer',
+                          opacity: hoveredIndex === null || hoveredIndex === index ? 1 : 0.6,
+                        }}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 10px 20px rgba(0,0,0,0.1)', fontWeight: 'bold' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            
+            <div className="flex flex-wrap justify-center gap-6 mt-4">
+              {donutData.map((item, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+                  <span className="text-xs font-black text-slate-600 uppercase tracking-tighter">{item.name}</span>
+                </div>
+              ))}
+            </div>
           </motion.div>
         </div>
 
+        {/* Botão de Quiz - Estilo Premium */}
         <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.8 }}
-          className="mt-8 text-center"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          className="mt-20 flex justify-center"
         >
           <Button
             onClick={() => setShowQuiz(true)}
-            className={`shadow row gap-2 ${isCompleted(5) ? "bg-gold text-foreground hover:bg-gold/90" : ""}`}
-            size="lg"
+            className={`group relative h-16 px-12 rounded-2xl text-lg font-black transition-all duration-500 overflow-hidden shadow-2xl
+              ${isCompleted(5) 
+                ? "bg-amber-400 text-slate-900 hover:bg-amber-500" 
+                : "bg-slate-950 text-white hover:bg-red-600 hover:shadow-red-500/30"
+              }`}
           >
-            <Puzzle className="h-5 w-5" />
-            {isCompleted(5) ? "Quiz Completo ✓" : "Responder Quiz"}
+            <span className="relative z-10 flex items-center gap-4">
+              {isCompleted(5) ? "Conhecimento Provado ✓" : "Enfrentar o Desafio"}
+              <ArrowRight className="h-5 w-5 group-hover:translate-x-2 transition-transform" />
+            </span>
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
           </Button>
         </motion.div>
       </div>
