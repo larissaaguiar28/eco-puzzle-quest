@@ -8,7 +8,35 @@ import { useQuiz } from "@/contexts/QuizContext";
 export function CTASection() {
   const [formMode, setFormMode] = useState<"login" | "register">("login");
   const { isCompleted } = useQuiz();
+  
+  const [tentativa, setTentativa] = useState(0);
 
+  const [email, setEmail] = useState('');
+  const [pass, setPass] = useState('');
+
+  const [user, setUser] = useState({
+    email: "usuario@.com",
+    password: "senha1234"
+  });
+
+  function checkLogin(){
+    if(tentativa < 3){
+      setTentativa(tentativa + 1);
+      
+      
+
+    }else{
+      alert('volte mais tarde');
+      return;
+    }
+    if(email == user.email && pass == user.password){
+
+    }
+
+  
+    }
+  
+  
   const quizSections = [
     "Energias Renováveis", "Escassez & Florestas", "Clima & Saúde",
     "Práticas Sustentáveis", "História Ambiental", "Impactos da Agro",
@@ -104,6 +132,8 @@ export function CTASection() {
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-emerald-400/80 ml-2 uppercase tracking-widest">E-mail</label>
                   <Input 
+                    type="email"
+                    onChange={(e)=>setEmail(e.target.value)}
                     placeholder="seu@email.com" 
                     className="bg-white/5 border-white/10 text-white placeholder:text-gray-600 h-14 rounded-2xl focus:ring-[#4ADE80] transition-all" 
                   />
@@ -112,7 +142,8 @@ export function CTASection() {
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-emerald-400/80 ml-2 uppercase tracking-widest">Senha</label>
                   <Input 
-                    type="password" 
+                    type="password"
+                    onChange={(e)=>setPass(e.target.value)} 
                     placeholder="••••••••" 
                     className="bg-white/5 border-white/10 text-white placeholder:text-gray-600 h-14 rounded-2xl focus:ring-[#4ADE80] transition-all" 
                   />
