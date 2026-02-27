@@ -4,6 +4,9 @@ import { LogIn, UserPlus, Trophy, Check, Sparkles, GraduationCap, ArrowRight, Lo
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useQuiz } from "@/contexts/QuizContext";
+import { Navigate, useNavigate } from "react-router-dom";
+
+
 
 export type User = {
   email?: string;
@@ -11,6 +14,8 @@ export type User = {
 }
 
 export function CTASection() {
+
+  const nav = useNavigate();
   const [formMode, setFormMode] = useState<"login" | "register">("login");
   const { isCompleted } = useQuiz();
 
@@ -32,6 +37,7 @@ export function CTASection() {
     let loged = users.find(u => u.email == user?.email && u.pass === user?.pass);
     if (loged) {
       alert('Login realizado com sucesso!');
+      nav('/home');
 
     } else {
       alert('Email ou senha invalidos');
