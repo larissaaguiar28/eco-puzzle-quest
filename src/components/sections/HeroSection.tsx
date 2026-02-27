@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sun, Wind, Droplets, Puzzle, CheckCircle2 } from "lucide-react";
+import { Sun, Wind, Droplets, Puzzle, CheckCircle2, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import { QuizModal } from "@/components/QuizModal";
 import { useQuiz } from "@/contexts/QuizContext";
 import { Button } from "@/components/ui/button";
@@ -95,7 +96,21 @@ export function HeroSection(): JSX.Element {
           ))}
         </div>
 
-        {/* CTA - O Botão Magnético/Chamativo */}
+        {/* Link para a Home */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.8 }}
+          className="mt-10"
+        >
+          <Link to="/home">
+            <Button size="lg" className="gap-2 rounded-full bg-gold text-gold-foreground hover:bg-gold/90 px-8 py-6 text-lg font-bold">
+              Acessar Plataforma <ArrowRight size={20} />
+            </Button>
+          </Link>
+        </motion.div>
+
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           whileInView={{ opacity: 1, scale: 1 }}
