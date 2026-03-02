@@ -33,7 +33,10 @@ export default function Profile() {
   };
 
   return (
-    <div className="p-8 max-w-3xl mx-auto space-y-6">
+    <div
+      className="p-8 max-w-3xl mx-auto space-y-6 min-h-screen"
+      style={{ background: "linear-gradient(to bottom, #d4a373, #87CEEB, #c8e6c9)" }}
+    >
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-2xl font-bold text-foreground">Personalizar Perfil</h1>
         <p className="text-sm text-muted-foreground mt-1">Atualize suas informações pessoais</p>
