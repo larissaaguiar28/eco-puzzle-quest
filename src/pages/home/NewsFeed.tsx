@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ThumbsUp, Heart, Lightbulb, MessageCircle, Share2, Send, X,
-  Zap, CloudRain, Landmark, Sparkles, TreePine
+  ThumbsUp, Heart, Lightbulb, MessageCircle, Share2, Send,
+  Zap, CloudRain, Landmark, Sparkles, TreePine, MapPin, Search, ImageIcon
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -31,11 +31,11 @@ interface Comment {
 interface NewsItem {
   id: number;
   title: string;
+  subtitle: string;
   summary: string;
   date: string;
+  location: string;
   category: Category;
-  author: string;
-  authorInitials: string;
   reactions: Reaction[];
   comments: Comment[];
 }
@@ -49,20 +49,22 @@ const categories: { id: Category; label: string; icon: React.ElementType }[] = [
   { id: "conservacao", label: "Conservação Ambiental", icon: TreePine },
 ];
 
+const makeReactions = (l: number, h: number, i: number): Reaction[] => [
+  { type: "like", icon: ThumbsUp, label: "Curtir", count: l, active: false },
+  { type: "love", icon: Heart, label: "Apoiar", count: h, active: false },
+  { type: "insightful", icon: Lightbulb, label: "Interessante", count: i, active: false },
+];
+
 const initialNews: NewsItem[] = [
   {
     id: 1,
     title: "Brasil ultrapassa 200 GW de capacidade em energia solar",
+    subtitle: "País consolida liderança na América Latina em geração fotovoltaica",
     summary: "O país atingiu um marco histórico ao superar 200 gigawatts de capacidade instalada em energia solar fotovoltaica, consolidando-se como líder na América Latina em geração de energia limpa.",
     date: "27 de fevereiro de 2026",
+    location: "Brasília, DF",
     category: "energia",
-    author: "Ana Rodrigues",
-    authorInitials: "AR",
-    reactions: [
-      { type: "like", icon: ThumbsUp, label: "Curtir", count: 142, active: false },
-      { type: "love", icon: Heart, label: "Apoiar", count: 87, active: false },
-      { type: "insightful", icon: Lightbulb, label: "Interessante", count: 54, active: false },
-    ],
+    reactions: makeReactions(142, 87, 54),
     comments: [
       { id: 1, author: "Carlos M.", text: "Incrível avanço! O Brasil tem um potencial enorme.", date: "27/02/2026" },
     ],
@@ -70,31 +72,23 @@ const initialNews: NewsItem[] = [
   {
     id: 2,
     title: "ONU alerta: 2025 foi o ano mais quente da história",
+    subtitle: "Relatório reforça urgência de ações climáticas globais imediatas",
     summary: "Relatório da Organização das Nações Unidas confirma que 2025 bateu todos os recordes de temperatura média global, reforçando a urgência de ações climáticas imediatas.",
     date: "25 de fevereiro de 2026",
+    location: "Genebra, Suíça",
     category: "clima",
-    author: "Pedro Santos",
-    authorInitials: "PS",
-    reactions: [
-      { type: "like", icon: ThumbsUp, label: "Curtir", count: 230, active: false },
-      { type: "love", icon: Heart, label: "Apoiar", count: 45, active: false },
-      { type: "insightful", icon: Lightbulb, label: "Interessante", count: 198, active: false },
-    ],
+    reactions: makeReactions(230, 45, 198),
     comments: [],
   },
   {
     id: 3,
     title: "Nova lei proíbe microplásticos em cosméticos no Brasil",
+    subtitle: "Legislação protege ecossistemas aquáticos a partir de 2027",
     summary: "Legislação aprovada pelo Congresso Nacional proíbe o uso de microplásticos em produtos cosméticos e de higiene pessoal a partir de 2027, protegendo ecossistemas aquáticos.",
     date: "23 de fevereiro de 2026",
+    location: "Brasília, DF",
     category: "politicas",
-    author: "Mariana Lima",
-    authorInitials: "ML",
-    reactions: [
-      { type: "like", icon: ThumbsUp, label: "Curtir", count: 312, active: false },
-      { type: "love", icon: Heart, label: "Apoiar", count: 156, active: false },
-      { type: "insightful", icon: Lightbulb, label: "Interessante", count: 89, active: false },
-    ],
+    reactions: makeReactions(312, 156, 89),
     comments: [
       { id: 1, author: "Julia F.", text: "Finalmente! Já era hora de banir esses poluentes.", date: "23/02/2026" },
       { id: 2, author: "Ricardo P.", text: "Ótima notícia para nossos rios e oceanos.", date: "24/02/2026" },
@@ -103,31 +97,23 @@ const initialNews: NewsItem[] = [
   {
     id: 4,
     title: "Startup brasileira cria embalagem 100% compostável a partir de algas",
+    subtitle: "Biotecnologia nacional substitui plásticos convencionais em larga escala",
     summary: "Empresa de biotecnologia desenvolveu embalagens feitas inteiramente de algas marinhas, que se decompõem em até 60 dias, substituindo plásticos convencionais em larga escala.",
     date: "20 de fevereiro de 2026",
+    location: "São Paulo, SP",
     category: "inovacao",
-    author: "Lucas Oliveira",
-    authorInitials: "LO",
-    reactions: [
-      { type: "like", icon: ThumbsUp, label: "Curtir", count: 445, active: false },
-      { type: "love", icon: Heart, label: "Apoiar", count: 267, active: false },
-      { type: "insightful", icon: Lightbulb, label: "Interessante", count: 178, active: false },
-    ],
+    reactions: makeReactions(445, 267, 178),
     comments: [],
   },
   {
     id: 5,
     title: "Amazônia registra menor taxa de desmatamento em 10 anos",
+    subtitle: "Fiscalização intensificada e reflorestamento geram resultados positivos",
     summary: "Dados do INPE mostram que a floresta amazônica teve a menor taxa de desmatamento da última década, resultado de fiscalização intensificada e programas de reflorestamento.",
     date: "18 de fevereiro de 2026",
+    location: "Manaus, AM",
     category: "conservacao",
-    author: "Fernanda Costa",
-    authorInitials: "FC",
-    reactions: [
-      { type: "like", icon: ThumbsUp, label: "Curtir", count: 523, active: false },
-      { type: "love", icon: Heart, label: "Apoiar", count: 341, active: false },
-      { type: "insightful", icon: Lightbulb, label: "Interessante", count: 112, active: false },
-    ],
+    reactions: makeReactions(523, 341, 112),
     comments: [
       { id: 1, author: "André B.", text: "Que notícia maravilhosa! Continuemos nesse caminho.", date: "18/02/2026" },
     ],
@@ -135,16 +121,12 @@ const initialNews: NewsItem[] = [
   {
     id: 6,
     title: "Parques eólicos offshore começam a operar no litoral do Nordeste",
+    subtitle: "Ceará e Rio Grande do Norte inauguram primeiros parques do país",
     summary: "Os primeiros parques eólicos offshore do Brasil foram inaugurados no litoral do Ceará e Rio Grande do Norte, com capacidade combinada de 3 GW de energia limpa.",
     date: "15 de fevereiro de 2026",
+    location: "Fortaleza, CE",
     category: "energia",
-    author: "Thiago Mendes",
-    authorInitials: "TM",
-    reactions: [
-      { type: "like", icon: ThumbsUp, label: "Curtir", count: 189, active: false },
-      { type: "love", icon: Heart, label: "Apoiar", count: 94, active: false },
-      { type: "insightful", icon: Lightbulb, label: "Interessante", count: 67, active: false },
-    ],
+    reactions: makeReactions(189, 94, 67),
     comments: [],
   },
 ];
@@ -154,8 +136,21 @@ export default function NewsFeed() {
   const [news, setNews] = useState<NewsItem[]>(initialNews);
   const [openComments, setOpenComments] = useState<number | null>(null);
   const [commentTexts, setCommentTexts] = useState<Record<number, string>>({});
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const filtered = activeCategory === "all" ? news : news.filter((n) => n.category === activeCategory);
+  const filtered = useMemo(() => {
+    let items = activeCategory === "all" ? news : news.filter((n) => n.category === activeCategory);
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      items = items.filter(
+        (n) =>
+          n.title.toLowerCase().includes(q) ||
+          n.subtitle.toLowerCase().includes(q) ||
+          n.summary.toLowerCase().includes(q)
+      );
+    }
+    return items;
+  }, [news, activeCategory, searchQuery]);
 
   const toggleReaction = (newsId: number, reactionType: string) => {
     setNews((prev) =>
@@ -182,7 +177,7 @@ export default function NewsFeed() {
         n.id === newsId
           ? {
               ...n,
-              comments: [...n.comments, { id: Date.now(), author: "Você", text, date: "27/02/2026" }],
+              comments: [...n.comments, { id: Date.now(), author: "Você", text, date: "02/03/2026" }],
             }
           : n
       )
@@ -221,6 +216,17 @@ export default function NewsFeed() {
           <Badge variant="outline" className="text-xs">{filtered.length} notícias</Badge>
         </div>
 
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+          <Input
+            placeholder="Buscar por palavras-chave..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+
         {/* Mobile category pills */}
         <div className="flex gap-2 overflow-x-auto pb-2 lg:hidden">
           {categories.map((cat) => (
@@ -251,28 +257,38 @@ export default function NewsFeed() {
               transition={{ duration: 0.25 }}
             >
               <Card className="border-border overflow-hidden">
-                <CardContent className="p-5 space-y-4">
-                  {/* Author row */}
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10">
-                      <AvatarFallback className="bg-primary/10 text-primary text-sm font-bold">
-                        {item.authorInitials}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold text-foreground">{item.author}</p>
-                      <p className="text-xs text-muted-foreground">{item.date}</p>
-                    </div>
-                    <Badge variant="secondary" className="text-[10px]">
-                      {categories.find((c) => c.id === item.category)?.label}
-                    </Badge>
+                {/* Image placeholder */}
+                <div className="relative h-[200px] bg-muted flex items-center justify-center">
+                  <ImageIcon className="text-muted-foreground/40" size={48} />
+                  <Badge className="absolute top-3 right-3 text-[10px]">
+                    {categories.find((c) => c.id === item.category)?.label}
+                  </Badge>
+                </div>
+
+                <CardContent className="p-5 space-y-3">
+                  {/* Title & Subtitle */}
+                  <div>
+                    <h3 className="text-lg font-bold text-foreground leading-tight">{item.title}</h3>
+                    <p className="text-sm text-muted-foreground mt-1">{item.subtitle}</p>
                   </div>
 
-                  {/* Content */}
-                  <div>
-                    <h3 className="text-lg font-bold text-foreground leading-tight mb-2">{item.title}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{item.summary}</p>
+                  {/* Author + Date + Location */}
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <Avatar className="h-7 w-7">
+                      <AvatarFallback className="bg-primary/10 text-primary text-[10px] font-bold">ES</AvatarFallback>
+                    </Avatar>
+                    <span className="font-semibold text-foreground">Eco'S</span>
+                    <span>•</span>
+                    <span>{item.date}</span>
+                    <span>•</span>
+                    <span className="flex items-center gap-1">
+                      <MapPin size={12} />
+                      {item.location}
+                    </span>
                   </div>
+
+                  {/* Summary */}
+                  <p className="text-sm text-muted-foreground leading-relaxed">{item.summary}</p>
 
                   {/* Reactions */}
                   <div className="flex items-center gap-1 border-t border-border pt-3">
