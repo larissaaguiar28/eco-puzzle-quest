@@ -1,95 +1,78 @@
 
-# 🌍 Landing Page de Sustentabilidade - Plano de Implementação
+# Atualização de 3 Páginas: Feed, Jogos e Perfil
 
-## Visão Geral
-Site educativo, interativo e dinâmico sobre sustentabilidade, com sistema de quizzes que recompensa o usuário com peças de um quebra-cabeça do planeta Terra. Layout com sidebar fixa à esquerda, largura máxima de 1366px, seções de 768px de altura, paleta em tons de verde natural com detalhes dourados/bege.
+## 1. Feed de Noticias - Redesign Completo
 
----
+**Mudancas na estrutura de dados:**
+- Adicionar campos: `subtitle`, `location`, `imageUrl` (placeholder) a cada noticia
+- Todos os autores passam a ser "Eco'S" com iniciais "ES"
+- Manter campos existentes: title, summary, date, category, reactions, comments
 
-## 🎨 Design & Layout
-- **Paleta**: Verde escuro (#1a4d2e), verde floresta (#2d6a4f), bege (#d4a373), dourado (#c9a227), fundo claro (#f5f5dc)
-- **Sidebar**: Fixa à esquerda com fundo verde escuro semi-transparente, links para cada seção, ícones temáticos
-- **Largura máxima**: 1366px | Altura por seção: 768px
-- **Classes utilitárias**: `.row` (flex, align-center, gap), `.shadow` com efeitos hover/active
+**Novo layout de cada card de noticia:**
+- Area de imagem placeholder no topo (fundo cinza com icone de imagem, altura fixa ~200px)
+- Badge de categoria no canto da imagem
+- Abaixo da imagem: titulo em destaque (font-bold, text-lg)
+- Subtitulo em texto medio (text-sm, muted)
+- Linha com autor "Eco'S" + data + localizacao (com icone MapPin)
+- Resumo/descricao do conteudo
+- Barra de reacoes e comentarios (manter logica existente)
 
----
+**Filtro por palavras-chave:**
+- Adicionar campo de busca (Input com icone Search) acima do feed
+- Filtrar dinamicamente por titulo, subtitulo e resumo
+- Combinar com filtro de categoria existente
+- Responsivo: funciona em mobile e desktop
 
-## 📋 Sidebar Interativa (lado esquerdo)
-- Navegação com ícones para cada seção do site
-- Indicador visual da seção ativa ao scrollar
-- Fundo verde escuro com opacidade que combina com o tema
-- Botão de colapsar/expandir
+**Dados das noticias atualizados:**
+- Adicionar subtitulo e localizacao a todas as 6 noticias existentes
 
----
+## 2. Pagina de Jogos - Redesign Gamer Premium
 
-## 🧩 Sistema de Quizzes & Quebra-Cabeça
-- **1 pergunta de múltipla escolha por seção** (6 seções = 6 quizzes)
-- Perguntas relacionadas ao conteúdo de cada seção
-- Ao acertar, o usuário ganha 1 peça do quebra-cabeça do **planeta Terra**
-- Painel flutuante mostrando progresso (peças coletadas)
-- Ao completar as 6 peças, animação de montagem do planeta com mensagem de parabéns
+**Secao Hero com Carrossel (topo):**
+- Carrossel ocupando ~60% da largura (lado esquerdo) com jogos ficticios
+- Cada slide: imagem placeholder com overlay escuro em degrade, titulo e descricao do jogo
+- Indicadores de slide (bolinhas) abaixo do carrossel
+- Transicao suave automatica + manual
+- Lado direito (~40%): card de "jogo em destaque" ou informacao adicional
 
----
+**Secao de Perfil do Jogador (abaixo):**
+- Avatar do usuario com nome da conta
+- Nivel da conta com barra de progresso visual (Progress component)
+- XP atual / XP necessario para proximo nivel
+- Layout em card com bordas arredondadas (rounded-2xl)
 
-## 📄 Seções do Site
+**Insignias do Jogador:**
+- Icones circulares em linha horizontal
+- Cada insignia com icone, nome e tooltip (usando Tooltip component existente)
+- Scroll lateral se necessario (overflow-x-auto)
+- Insignias tematicas de sustentabilidade (ex: Guardiao da Floresta, Mestre da Reciclagem)
 
-### 1. Hero - "Impactos Ambientais"
-- Imagem de fundo: floresta saudável (floresta_bom.jpeg) em tela cheia
-- Headline: "Impactos Ambientais" + subtítulo sobre sustentabilidade como necessidade
-- Cards animados sobre energias renováveis (solar, eólica, hidrelétrica)
-- Transição parallax alinhando com a imagem da seção 2
-- **Quiz**: 1 pergunta sobre impactos ambientais
+**Design geral:**
+- Bordas arredondadas (16px), sombras suaves
+- Estetica gamer premium com animacoes framer-motion
+- Efeitos hover elegantes nos cards
+- Responsivo desktop-first
 
-### 2. Escassez & Desmatamento
-- Imagem de fundo: floresta em chamas (floresta_ruim.jpeg) com efeito parallax alinhado à seção anterior
-- Dados estatísticos com porcentagens animadas (counters)
-- Informações sobre escassez de recursos, consumo excessivo, desmatamento
-- Demonstrar por que a plataforma é importante com dados comprobatórios
-- **Quiz**: 1 pergunta sobre desmatamento/escassez
+## 3. Pagina de Perfil - Fundo Gradiente
 
-### 3. Mudanças Climáticas & Saúde
-- Foco nas dores: riscos à saúde humana e impacto na vida marinha
-- Cards com animações mostrando efeitos das mudanças climáticas
-- Dados sobre aumento de temperatura, nível do mar, extinção de espécies
-- **Quiz**: 1 pergunta sobre mudanças climáticas
+**Fundo da pagina:**
+- Gradiente vertical de 3 cores:
+  - Topo: bege (#d4a373 / beige-start)
+  - Meio: azul celeste (#87CEEB / light sky blue)
+  - Baixo: verde fantasma (~#c8e6c9 / ghost green)
+- Aplicado como background no container principal
+- Cards mantem fundo branco/card para contraste e legibilidade
 
-### 4. CTA - Cadastro & Boas Práticas
-- Formulário de login/registro animado (apenas frontend, sem backend)
-- Seção com boas práticas: replantio, consumo eficiente, reciclagem
-- Cards interativos com dicas práticas
-- **Quiz**: 1 pergunta sobre boas práticas sustentáveis
+## Detalhes Tecnicos
 
-### 5. Prova Social & Linha do Tempo
-- Linha do tempo interativa sobre mineração excessiva e desmatamento ao longo dos anos
-- Marcos históricos de impacto ambiental com animações ao scrollar
-- **Quiz**: 1 pergunta sobre história do impacto ambiental
+**Arquivos modificados:**
+- `src/pages/home/NewsFeed.tsx` - Redesign completo com busca, novos campos, layout profissional
+- `src/pages/home/Games.tsx` - Reescrita total com carrossel, perfil gamer, insignias
+- `src/pages/home/Profile.tsx` - Adicionar gradiente de fundo tricolor
 
-### 6. Problemas Contraditórios
-- Conteúdo sobre agrotóxicos e seus malefícios
-- Agropecuária predatória com **gráfico de rosca interativo** (Recharts)
-- Assuntos impactantes e pouco divulgados para engajar o usuário
-- **Quiz**: 1 pergunta sobre agrotóxicos/agropecuária
-
----
-
-## ♿ Menu de Acessibilidade
-- **Leitura em voz alta**: Usar Web Speech API para ler texto selecionado
-- **Zoom**: Botões para aumentar/diminuir o tamanho da fonte na página
-- **Modo daltônico**: Filtros CSS para diferentes tipos de daltonismo
-- **Modo noturno**: Alternância dark/light mode
-- Menu flutuante acessível em todas as seções
-
----
-
-## ❓ Dúvidas Frequentes (FAQ)
-- Accordion no final da página com perguntas e respostas sobre sustentabilidade e uso da plataforma
-
----
-
-## 🎬 Animações & Interações
-- Parallax entre seções 1 e 2 (floresta boa → floresta em chamas)
-- Cards com hover effects e animações de entrada (fade-in, scale)
-- Contadores animados para estatísticas
-- Linha do tempo com scroll-triggered animations
-- Gráfico de rosca interativo com Recharts
-- Efeitos `.shadow`, `.shadow:hover`, `.shadow:hover:active` nos elementos interativos
+**Dependencias utilizadas (ja instaladas):**
+- framer-motion (animacoes e carrossel)
+- lucide-react (icones)
+- recharts (nao necessario aqui)
+- Radix UI Tooltip, Progress (ja disponiveis)
+- embla-carousel-react (disponivel mas usarei framer-motion para simplicidade)
