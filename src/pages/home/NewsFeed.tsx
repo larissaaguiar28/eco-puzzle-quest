@@ -1,156 +1,265 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, ChangeEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ThumbsUp, Heart, Lightbulb, MessageCircle, Share2, Send,
-  Zap, CloudRain, Landmark, Sparkles, TreePine, MapPin, Search, Leaf
+  ThumbsUp, Heart, Lightbulb, MessageCircle, Share2,
+  CloudRain, Landmark, TreePine, MapPin, Search, Leaf, Sun, LucideIcon, Send
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 
+// --- INTERFACES ---
+interface NewsItem {
+  id: number;
+  title: string;
+  summary: string;
+  content: string;
+  category: string;
+  author: string;
+  date: string;
+  location: string;
+  likes: number;
+  gradient: string;
+}
 
-// Tema visual sustentável:
-// - Gradientes verdes suaves
-// - Tons terrosos
-// - Sombras leves e orgânicas
-// - Elementos arredondados (2xl)
+interface SidebarItem {
+  label: string;
+  icon: LucideIcon;
+  color: string;
+  bg: string;
+}
 
-export default function SustainableNewsFeed() {
-  const [searchQuery, setSearchQuery] = useState("");
+// --- DADOS ---
+const newsData: NewsItem[] = [
+  {
+    id: 1,
+    title: "Brasil bate recorde histórico em geração de energia solar e eólica",
+    summary: "O país alcançou a marca de 90% da matriz elétrica renovável neste mês, impulsionando a economia verde.",
+    content: "Com novos parques eólicos no Nordeste e fazendas solares no Sudeste, o Brasil não apenas reduziu suas emissões de carbono em 15% no último trimestre, mas também gerou mais de 50 mil novos empregos diretos no setor.",
+    category: "Energia",
+    author: "EcoS",
+    date: "05 Mar 2026",
+    location: "Nordeste, BR",
+    likes: 342,
+    gradient: "from-yellow-400 via-amber-400 to-orange-500" 
+  },
+  {
+    id: 2,
+    title: "Startup desenvolve bioplástico a partir de algas marinhas",
+    summary: "Nova embalagem 100% biodegradável se dissolve na água em semanas e já atrai gigantes do varejo.",
+    content: "Pesquisadores em parceria com uma startup de biotecnologia criaram um material revolucionário que substitui o plástico de uso único. Feito de sargaço e resíduos da indústria pesqueira.",
+    category: "Inovação",
+    author: "EcoS",
+    date: "04 Mar 2026",
+    location: "Rio de Janeiro, BR",
+    likes: 289,
+    gradient: "from-cyan-400 to-teal-500" 
+  },
+  {
+    id: 3,
+    title: "Hortas urbanas verticais transformam telhados em São Paulo",
+    summary: "Projeto de agricultura urbana reduz a temperatura dos prédios e fornece alimentos frescos para a comunidade.",
+    content: "Uma iniciativa comunitária mapeou e transformou mais de 200 telhados ociosos no centro da capital paulista em fazendas urbanas produtivas. Além de mitigar as ilhas de calor.",
+    category: "Conservação",
+    author: "EcoS",
+    date: "02 Mar 2026",
+    location: "São Paulo, BR",
+    likes: 512,
+    gradient: "from-lime-400 to-green-500" 
+  }
+];
+
+const sidebarItems: SidebarItem[] = [
+  { label: "Energia Solar", icon: Sun, color: "text-amber-500", bg: "hover:bg-amber-50" },
+  { label: "Clima", icon: CloudRain, color: "text-cyan-500", bg: "hover:bg-cyan-50" },
+  { label: "Políticas", icon: Landmark, color: "text-indigo-500", bg: "hover:bg-indigo-50" },
+  { label: "Inovação", icon: Lightbulb, color: "text-yellow-500", bg: "hover:bg-yellow-50" },
+  { label: "Conservação", icon: TreePine, color: "text-green-500", bg: "hover:bg-green-50" },
+];
+
+// --- COMPONENTE DE NOTÍCIA INDIVIDUAL (Lógica de Reações e Comentários) ---
+const NewsCard = ({ item }: { item: NewsItem }) => {
+  const [likes, setLikes] = useState(item.likes);
+  const [hearts, setHearts] = useState(Math.floor(item.likes / 3));
+  const [ideas, setIdeas] = useState(Math.floor(item.likes / 5));
+  
+  const [showComments, setShowComments] = useState(false);
+  const [comments, setComments] = useState<{id: number, text: string}[]>([]);
+  const [newComment, setNewComment] = useState("");
+
+  const handleAddComment = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newComment.trim()) {
+      setComments([...comments, { id: Date.now(), text: newComment }]);
+      setNewComment("");
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-lime-100 text-foreground">
-      {/* Header */}
-      <header className="sticky top-0 z-40 backdrop-blur-md bg-white/70 border-b border-emerald-100">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+    <Card className="rounded-3xl overflow-hidden border-none shadow-sm hover:shadow-xl transition-all duration-300 bg-white">
+      <div className={`h-48 bg-gradient-to-r ${item.gradient} relative`}>
+        <Badge className="absolute top-4 left-4 bg-white/90 text-teal-900 rounded-full px-4 py-1 font-bold shadow-sm backdrop-blur-md border-none">
+          {item.category}
+        </Badge>
+      </div>
+
+      <CardContent className="p-8 space-y-5">
+        <div>
+          <h3 className="text-2xl font-extrabold text-gray-800 leading-tight hover:text-teal-600 transition-colors cursor-pointer">
+            {item.title}
+          </h3>
+          <p className="text-base font-medium text-teal-600 mt-2">{item.summary}</p>
+        </div>
+
+        <div className="flex items-center gap-4 text-xs text-gray-500 font-medium">
+          <div className="flex items-center gap-2">
+            <Avatar className="h-8 w-8 ring-2 ring-teal-100">
+              <AvatarFallback className="bg-teal-100 text-teal-800 text-xs font-extrabold">
+                {item.author.substring(0,2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-gray-700">{item.author}</span>
+          </div>
+          <span className="w-1 h-1 rounded-full bg-gray-300"></span>
+          <span>{item.date}</span>
+          <span className="w-1 h-1 rounded-full bg-gray-300"></span>
+          <span className="flex items-center gap-1 text-teal-600 bg-teal-50 px-2 py-1 rounded-md">
+            <MapPin size={14} /> {item.location}
+          </span>
+        </div>
+
+        <p className="text-gray-600 leading-relaxed text-sm">{item.content}</p>
+
+        {/* Botões de Reação Funcionais */}
+        <div className="flex items-center gap-3 pt-5 border-t border-gray-100">
+          <button 
+            onClick={() => setLikes(likes + 1)}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-transform active:scale-90"
+          >
+            <ThumbsUp size={16} /> {likes}
+          </button>
+          <button 
+            onClick={() => setHearts(hearts + 1)}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-full bg-rose-50 text-rose-500 hover:bg-rose-100 transition-transform active:scale-90"
+          >
+            <Heart size={16} /> {hearts}
+          </button>
+          <button 
+            onClick={() => setIdeas(ideas + 1)}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-full bg-yellow-50 text-yellow-600 hover:bg-yellow-100 transition-transform active:scale-90"
+          >
+            <Lightbulb size={16} /> {ideas}
+          </button>
+          
+          <div className="flex-1" />
+          
+          <button 
+            onClick={() => setShowComments(!showComments)}
+            className={`p-2.5 rounded-full transition-colors ${showComments ? 'bg-teal-100 text-teal-600' : 'text-gray-400 hover:text-teal-600 hover:bg-teal-50'}`}
+          >
+            <MessageCircle size={20} />
+          </button>
+          <button className="p-2.5 rounded-full text-gray-400 hover:text-teal-600 hover:bg-teal-50 transition-colors">
+            <Share2 size={20} />
+          </button>
+        </div>
+
+        {/* Seção de Comentários Funcional */}
+        <AnimatePresence>
+          {showComments && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="space-y-4 pt-4 border-t border-gray-50"
+            >
+              <form onSubmit={handleAddComment} className="flex gap-2">
+                <Input 
+                  placeholder="Deixe um comentário positivo..." 
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  className="rounded-full border-teal-100 focus-visible:ring-teal-500 text-sm"
+                />
+                <Button size="icon" type="submit" className="rounded-full bg-teal-600 hover:bg-teal-700 shrink-0">
+                  <Send size={16} />
+                </Button>
+              </form>
+              
+              <div className="max-h-40 overflow-y-auto space-y-2 pr-1">
+                {comments.map((c) => (
+                  <div key={c.id} className="bg-gray-50 p-3 rounded-2xl text-xs text-gray-700 border border-gray-100">
+                    <span className="font-bold text-teal-700">Você: </span>{c.text}
+                  </div>
+                ))}
+                {comments.length === 0 && (
+                  <p className="text-center text-gray-400 text-xs py-2">Inicie a conversa!</p>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </CardContent>
+    </Card>
+  );
+};
+
+// --- COMPONENTE PRINCIPAL ---
+export default function SustainableNewsFeed() {
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-green-50 to-yellow-50 text-foreground">
+      <header className="sticky top-0 z-40 backdrop-blur-md bg-white/70 border-b border-green-200">
+        <div className="max-w-9xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="bg-emerald-600 text-white p-2 rounded-2xl shadow-md">
-              <Leaf size={22} />
+            <div className="bg-gradient-to-tr from-green-500 to-teal-400 text-white p-2.5 rounded-2xl shadow-lg shadow-green-200">
+              <Leaf size={24} />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-emerald-800">EcoSphere</h1>
-              <p className="text-xs text-emerald-600">Notícias para um futuro sustentável</p>
+              <h1 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-teal-700 to-green-600">Eco'S</h1>
+              <p className="text-xs font-medium text-teal-600">Notícias para um futuro brilhante</p>
             </div>
           </div>
 
           <div className="relative w-72 hidden md:block">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-400" size={16} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-teal-400" size={16} />
             <Input
-              placeholder="Buscar notícias..."
+              placeholder="Buscar boas notícias..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 rounded-full border-emerald-200 focus-visible:ring-emerald-500"
+              className="pl-9 rounded-full border-teal-200 bg-white/80 focus-visible:ring-teal-500 shadow-sm"
             />
           </div>
         </div>
       </header>
 
-      {/* Layout */}
-      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8 px-6 py-8">
-        {/* Sidebar */}
+      <div className="max-w-9xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8 px-6 py-8">
         <aside className="hidden lg:block col-span-1">
-          <Card className="rounded-2xl border-emerald-100 shadow-sm">
-            <CardContent className="p-5 space-y-4">
-              <h2 className="text-sm font-semibold text-emerald-700 uppercase tracking-wide">Categorias</h2>
-
-              {[
-                { label: "Energia", icon: Zap },
-                { label: "Clima", icon: CloudRain },
-                { label: "Políticas", icon: Landmark },
-                { label: "Inovação", icon: Lightbulb },
-                { label: "Conservação", icon: TreePine },
-              ].map((item) => (
-                <button
-                  key={item.label}
-                  className="flex items-center gap-3 w-full px-3 py-2 rounded-xl text-sm font-medium text-emerald-700 hover:bg-emerald-50 transition"
-                >
-                  <item.icon size={18} />
-                  {item.label}
-                </button>
-              ))}
-            </CardContent>
-          </Card>
-
-          {/* Sustainability Score */}
-          <Card className="mt-6 rounded-2xl border-emerald-100 shadow-sm bg-emerald-600 text-white">
-            <CardContent className="p-5 space-y-2">
-              <h3 className="text-sm font-semibold">Impacto Positivo</h3>
-              <p className="text-3xl font-bold">+32%</p>
-              <p className="text-xs text-emerald-100">Crescimento em ações sustentáveis este mês</p>
+          <Card className="rounded-3xl border-none shadow-sm bg-white/80 backdrop-blur-sm">
+            <CardContent className="p-6 space-y-4">
+              <h2 className="text-sm font-bold text-teal-800 uppercase tracking-wider">Explorar</h2>
+              {sidebarItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <button key={item.label} className={`flex items-center gap-3 w-full px-4 py-3 rounded-2xl text-sm font-semibold text-gray-700 transition-all duration-200 ${item.bg}`}>
+                    <Icon size={20} className={item.color} />
+                    {item.label}
+                  </button>
+                );
+              })}
             </CardContent>
           </Card>
         </aside>
 
-        {/* Feed */}
-        <main className="col-span-1 lg:col-span-3 space-y-6">
-          {[1, 2, 3].map((item) => (
-            <motion.div
-              key={item}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Card className="rounded-2xl overflow-hidden border-emerald-100 shadow-sm hover:shadow-lg transition-all">
-                {/* Image */}
-                <div className="h-56 bg-gradient-to-r from-emerald-400 to-green-500 relative">
-                  <Badge className="absolute top-4 left-4 bg-white text-emerald-700 rounded-full px-3">
-                    Sustentabilidade
-                  </Badge>
-                </div>
-
-                <CardContent className="p-6 space-y-4">
-                  <div>
-                    <h3 className="text-xl font-bold text-emerald-900 leading-tight">
-                      Brasil avança em energia limpa e reduz emissões
-                    </h3>
-                    <p className="text-sm text-emerald-700 mt-1">
-                      País registra crescimento recorde em geração renovável e redução de carbono.
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-3 text-xs text-emerald-600">
-                    <Avatar className="h-7 w-7">
-                      <AvatarFallback className="bg-emerald-100 text-emerald-700 text-xs font-bold">
-                        ES
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="font-medium">EcoSphere</span>
-                    <span>•</span>
-                    <span>02 Mar 2026</span>
-                    <span>•</span>
-                    <span className="flex items-center gap-1">
-                      <MapPin size={12} />
-                      Brasil
-                    </span>
-                  </div>
-
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    O país atingiu metas importantes no setor energético, ampliando investimentos em energia solar e eólica.
-                  </p>
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-2 pt-3 border-t border-emerald-100">
-                    {[ThumbsUp, Heart, Lightbulb].map((Icon, i) => (
-                      <button
-                        key={i}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition"
-                      >
-                        <Icon size={14} />
-                        120
-                      </button>
-                    ))}
-                    <div className="flex-1" />
-                    <button className="p-2 rounded-full hover:bg-emerald-50 transition">
-                      <MessageCircle size={16} />
-                    </button>
-                    <button className="p-2 rounded-full hover:bg-emerald-50 transition">
-                      <Share2 size={16} />
-                    </button>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+        <main className="col-span-1 lg:col-span-3 space-y-8">
+          {newsData
+            .filter(n => n.title.toLowerCase().includes(searchQuery.toLowerCase()))
+            .map((item) => (
+              <motion.div key={item.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+                <NewsCard item={item} />
+              </motion.div>
           ))}
         </main>
       </div>
