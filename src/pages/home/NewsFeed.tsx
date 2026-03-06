@@ -285,7 +285,7 @@ export default function SustainableNewsFeed() {
                <Button variant="link" onClick={() => setSelectedCategory(null)} className="text-teal-600">Ver todas as notícias</Button>
             </div>
           )}
-        </main>
+''        </main>
       </div>
     </div>
   );
