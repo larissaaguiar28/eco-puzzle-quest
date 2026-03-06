@@ -1,140 +1,262 @@
-import React, { useState } from "react";
-import { motion } from "framer-motion";
-import { Camera, Save, User, Mail, MapPin, Heart, Check } from "lucide-react";
+"use client";
+
+import React, { useState, useRef, ChangeEvent } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Camera, Save, User, Mail, MapPin, Heart, Check, Loader2,
+  Leaf, Globe, Wind, Sparkles, ChevronRight
+} from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
-const interestOptions = [
+interface UserProfile {
+  name: string;
+  email: string;
+  location: string;
+  bio: string;
+  avatarUrl?: string;
+  interests: string[];
+}
+
+const INTEREST_OPTIONS = [
   "Energia Solar", "Reciclagem", "Biodiversidade", "Mudanças Climáticas",
   "Conservação Marinha", "Agricultura Sustentável", "Mobilidade Verde", "Economia Circular",
-];
+] as const;
 
 export default function Profile() {
-  const [name, setName] = useState("Usuário EcoS");
-  const [email, setEmail] = useState("usuario@ecos.com");
-  const [location, setLocation] = useState("São Paulo, BR");
-  const [bio, setBio] = useState("Apaixonado por sustentabilidade e preservação ambiental.");
-  const [interests, setInterests] = useState<string[]>(["Energia Solar", "Biodiversidade"]);
-  const [saved, setSaved] = useState(false);
+  const [profile, setProfile] = useState<UserProfile>({
+    name: "Eco Guardião",
+    email: "contato@ecos.com",
+    location: "São Paulo, BR",
+    bio: "Trabalhando por um futuro onde a tecnologia e a natureza coexistam em harmonia.",
+    interests: ["Energia Solar", "Biodiversidade"],
+  });
 
-  const toggleInterest = (interest: string) => {
-    setInterests((prev) =>
-      prev.includes(interest) ? prev.filter((i) => i !== interest) : [...prev, interest]
-    );
+  const [isSaving, setIsSaving] = useState(false);
+  const [savedStatus, setSavedStatus] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setProfile((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  const toggleInterest = (interest: string) => {
+    setProfile((prev) => ({
+      ...prev,
+      interests: prev.interests.includes(interest)
+        ? prev.interests.filter((i) => i !== interest)
+        : [...prev.interests, interest],
+    }));
+  };
+
+  const handleAvatarChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setProfile((prev) => ({ ...prev, avatarUrl: reader.result as string }));
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    setIsSaving(false);
+    setSavedStatus(true);
+    setTimeout(() => setSavedStatus(false), 3000);
   };
 
   return (
-    <div
-      className="p-8 max-w-3xl mx-auto space-y-6 min-h-screen"
-      style={{ background: "linear-gradient(to bottom, #d4a373, #87CEEB, #c8e6c9)" }}
-    >
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-bold text-foreground">Personalizar Perfil</h1>
-        <p className="text-sm text-muted-foreground mt-1">Atualize suas informações pessoais</p>
-      </motion.div>
+    // NOVO FUNDO: Degradê de Verde Escuro para Verde Claro
+    <div className="min-h-screen p-4 md:p-8 bg-gradient-to-b from-teal-950 via-emerald-900 to-emerald-500">
 
-      {/* Avatar Card */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-        <Card className="border-border">
-          <CardContent className="p-6 flex items-center gap-6">
-            <div className="relative group">
-              <Avatar className="h-20 w-20">
-                <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-bold">
-                  {name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+      <div className="max-w-3xl mx-auto space-y-8 relative z-10">
+
+        <header className="space-y-2 text-center md:text-left">
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center justify-center md:justify-start gap-2 text-emerald-200 font-bold tracking-widest uppercase text-xs"
+          >
+            <Sparkles size={14} /> Eco-Puzzle Quest
+          </motion.div>
+          <motion.h1
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="text-4xl font-extrabold text-white drop-shadow-md"
+          >
+            Configurações de <span className="text-emerald-300 underline decoration-emerald-400/50 underline-offset-8">Perfil</span>
+          </motion.h1>
+        </header>
+
+        {/* Card de Identidade */}
+        <Card className="border-none shadow-2xl bg-white/95 backdrop-blur-md overflow-hidden rounded-3xl">
+          <CardContent className="p-8 flex flex-col md:flex-row items-center gap-8">
+            <div className="relative group" onClick={() => fileInputRef.current?.click()}>
+              <Avatar className="h-32 w-32 border-4 border-emerald-100 shadow-2xl relative cursor-pointer group-hover:rotate-3 transition-all duration-300">
+                <AvatarImage src={profile.avatarUrl} className="object-cover" />
+                <AvatarFallback className="bg-emerald-600 text-white text-4xl font-bold">
+                  {profile.name.substring(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <div className="absolute inset-0 bg-foreground/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                <Camera className="h-6 w-6 text-background" />
+              <div className="absolute bottom-1 right-1 bg-emerald-500 p-2.5 rounded-full shadow-lg text-white border-2 border-white">
+                <Camera size={18} />
               </div>
+              <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleAvatarChange} />
             </div>
-            <div>
-              <h2 className="text-lg font-bold text-foreground">{name}</h2>
-              <p className="text-sm text-muted-foreground">{bio}</p>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
 
-      {/* Info Form */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-        <Card className="border-border">
-          <CardContent className="p-6 space-y-4">
-            <h3 className="font-semibold text-foreground">Informações Pessoais</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                  <User size={14} /> Nome
-                </label>
-                <Input value={name} onChange={(e) => setName(e.target.value)} />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                  <Mail size={14} /> Email
-                </label>
-                <Input value={email} onChange={(e) => setEmail(e.target.value)} />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                  <MapPin size={14} /> Localização
-                </label>
-                <Input value={location} onChange={(e) => setLocation(e.target.value)} />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                  <Heart size={14} /> Bio
-                </label>
-                <Input value={bio} onChange={(e) => setBio(e.target.value)} />
+            <div className="flex-1 text-center md:text-left space-y-3">
+              <h2 className="text-2xl font-black text-slate-800 flex items-center justify-center md:justify-start gap-2">
+                {profile.name} <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              </h2>
+              <p className="text-slate-500 italic text-sm leading-relaxed max-w-md">"{profile.bio}"</p>
+              <div className="flex flex-wrap justify-center md:justify-start gap-2 pt-1">
+                {profile.interests.map(i => (
+                  <span key={i} className="text-[10px] bg-emerald-50 text-emerald-600 border border-emerald-100 px-3 py-1 rounded-full font-bold uppercase tracking-tighter">
+                    {i}
+                  </span>
+                ))}
               </div>
             </div>
           </CardContent>
         </Card>
-      </motion.div>
 
-      {/* Interests */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-        <Card className="border-border">
-          <CardContent className="p-6 space-y-4">
-            <h3 className="font-semibold text-foreground">Interesses Ambientais</h3>
-            <div className="flex flex-wrap gap-2">
-              {interestOptions.map((interest) => {
-                const selected = interests.includes(interest);
-                return (
-                  <button
-                    key={interest}
-                    onClick={() => toggleInterest(interest)}
-                    className={cn(
-                      "rounded-full px-3 py-1.5 text-xs font-medium border transition-all",
-                      selected
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-transparent text-muted-foreground border-border hover:border-primary/40"
-                    )}
-                  >
-                    {selected && <Check size={12} className="inline mr-1" />}
-                    {interest}
-                  </button>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+        {/* Formulário e Interesses */}
+        <div className="grid grid-cols-1 gap-6">
+          <Card className="bg-white/95 border-none shadow-xl rounded-3xl">
+            <CardContent className="p-8 space-y-6">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div className="flex items-center gap-2">
+                  <User className="w-5 h-5 text-emerald-600" />
+                  <h3 className="font-bold text-lg text-slate-800">Dados Pessoais</h3>
+                </div>
+                <Leaf className="w-5 h-5 text-emerald-200" />
+              </div>
 
-      {/* Save */}
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
-        <Button onClick={handleSave} className="w-full gap-2" size="lg">
-          {saved ? <Check size={18} /> : <Save size={18} />}
-          {saved ? "Salvo com sucesso!" : "Salvar Alterações"}
-        </Button>
-      </motion.div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                <FormField label="Nome de Exibição" icon={<User size={14} />}>
+                  <Input
+                    name="name"
+                    value={profile.name}
+                    onChange={handleInputChange}
+                    className="h-12 bg-slate-50/50 border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20 text-slate-900 rounded-xl"
+                  />
+                </FormField>
+
+                <FormField label="E-mail" icon={<Mail size={14} />}>
+                  <Input
+                    name="email"
+                    value={profile.email}
+                    onChange={handleInputChange}
+                    className="h-12 bg-slate-50/50 border-slate-200 focus:border-emerald-500 text-slate-900 rounded-xl"
+                  />
+                </FormField>
+
+                <FormField label="Localização" icon={<MapPin size={14} />}>
+                  <Input
+                    name="location"
+                    value={profile.location}
+                    onChange={handleInputChange}
+                    className="h-12 bg-slate-50/50 border-slate-200 focus:border-emerald-500 text-slate-900 rounded-xl"
+                  />
+                </FormField>
+
+                <FormField label="Bio" icon={<Heart size={14} />}>
+                  <Input
+                    name="bio"
+                    value={profile.bio}
+                    onChange={handleInputChange}
+                    className="h-12 bg-slate-50/50 border-slate-200 focus:border-emerald-500 text-slate-900 rounded-xl"
+                  />
+                </FormField>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/95 border-none shadow-xl rounded-3xl">
+            <CardContent className="p-8 space-y-6">
+              <div className="flex items-center gap-2 border-b border-slate-100 pb-4">
+                <Globe className="w-5 h-5 text-emerald-600" />
+                <h3 className="font-bold text-lg text-slate-800">Interesses Ambientais</h3>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                {INTEREST_OPTIONS.map((interest) => {
+                  const isSelected = profile.interests.includes(interest);
+                  return (
+                    <button
+                      key={interest}
+                      onClick={() => toggleInterest(interest)}
+                      className={cn(
+                        "flex items-center gap-2 rounded-2xl px-5 py-2.5 text-sm font-bold transition-all duration-300 border-2",
+                        isSelected
+                          ? "bg-emerald-600 text-white border-emerald-600 shadow-lg shadow-emerald-200 scale-105"
+                          : "bg-white text-slate-500 border-slate-100 hover:border-emerald-300 hover:text-emerald-600"
+                      )}
+                    >
+                      {interest}
+                      {isSelected && <Check size={16} className="animate-in zoom-in" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* BOTÃO SALVAR: Centralizado e Moderno */}
+        <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }} className="flex justify-center">
+          <Button
+            onClick={handleSave}
+            disabled={isSaving}
+            className={cn(
+              "w-full h-16 text-xl font-black transition-all duration-500 rounded-2xl border-b-4 flex items-center justify-center gap-3",
+              savedStatus
+                ? "bg-emerald-100 text-emerald-700 border-emerald-300"
+                : "bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50 hover:border-emerald-400 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.3)]"
+            )}
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="h-7 w-7 animate-spin text-emerald-600" />
+                <span>Atualizando Ecossistema...</span>
+              </>
+            ) : savedStatus ? (
+              <motion.div
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="flex items-center gap-3"
+              >
+                <Check className="h-7 w-7" />
+                <span>Perfil Sincronizado!</span>
+              </motion.div>
+            ) : (
+              <>
+                <Save className="h-6 w-6 opacity-70" />
+                <span>Salvar Alterações</span>
+              </>
+            )}
+          </Button>
+        </motion.div>
+
+        <p className="text-center text-emerald-100/50 text-xs font-medium">
+          Eco-Puzzle Quest © 2026 - Protegendo o Planeta Digital
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function FormField({ label, icon, children }: { label: string; icon: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <div className="space-y-2">
+      <label className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em] flex items-center gap-2 ml-1">
+        {icon} {label}
+      </label>
+      {children}
     </div>
   );
 }
