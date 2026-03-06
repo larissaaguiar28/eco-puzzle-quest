@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useSpring, useTransform } from "framer-motion";
 import {
   TreePine, Recycle, Droplets, Wind, Leaf, Sun,
   ChevronLeft, ChevronRight, Shield, Zap, Award, Trophy, Star, Sprout
@@ -102,47 +102,112 @@ const XPCounter = ({ value }: { value: number }) => {
   );
 };
 
-// --- COMPONENTE DE PROGRESSO ---
+// --- NOVO COMPONENTE: XP PROGRESS DINÂMICO ---
 const XPProgress = ({ xp, xpNext, level }: { xp: number; xpNext: number; level: number }) => {
   const progress = (xp / xpNext) * 100;
+  
   return (
-    <Card className="relative overflow-hidden border border-emerald-500/30 bg-slate-900 p-8 rounded-[3rem] shadow-2xl h-full flex flex-col justify-center">
-      <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-emerald-500/10 blur-[80px] rounded-full" />
-      <div className="relative z-10 flex flex-col md:flex-row items-center gap-6">
-        <div className="relative shrink-0">
-          <svg className="w-24 h-24 transform -rotate-90">
-            <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-white/5" />
-            <motion.circle
-              cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent"
-              strokeDasharray="251.2"
-              initial={{ strokeDashoffset: 251.2 }}
-              animate={{ strokeDashoffset: 251.2 - (251.2 * progress) / 100 }}
-              transition={{ duration: 2, ease: "easeOut" }}
-              className="text-emerald-500"
+    <motion.div
+      whileHover={{ y: -5 }}
+      className="h-full"
+    >
+      <Card className="relative overflow-hidden border border-emerald-500/30 bg-slate-900 p-8 rounded-[3rem] shadow-2xl h-full flex flex-col justify-center group">
+        {/* Fundo Animado */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(16,185,129,0.1),transparent)] transition-opacity duration-500" />
+        <motion.div 
+          animate={{ 
+            scale: [1, 1.2, 1],
+            opacity: [0.1, 0.2, 0.1] 
+          }}
+          transition={{ duration: 4, repeat: Infinity }}
+          className="absolute -bottom-10 -left-10 w-40 h-40 bg-emerald-500/20 blur-[80px] rounded-full" 
+        />
+
+        <div className="relative z-10 flex flex-col md:flex-row items-center gap-6">
+          {/* Círculo de Progresso Animado */}
+          <div className="relative shrink-0">
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              className="absolute inset-0 rounded-full border border-dashed border-emerald-500/20"
             />
-          </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-2xl font-black text-white leading-none">{level}</span>
-            <span className="text-[10px] font-bold text-emerald-400 uppercase">Nível</span>
+            <svg className="w-24 h-24 transform -rotate-90 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]">
+              <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-white/5" />
+              <motion.circle
+                cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent"
+                strokeDasharray="251.2"
+                initial={{ strokeDashoffset: 251.2 }}
+                animate={{ strokeDashoffset: 251.2 - (251.2 * progress) / 100 }}
+                transition={{ duration: 1.5, ease: "backOut" }}
+                className="text-emerald-500"
+                strokeLinecap="round"
+              />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <motion.span 
+                key={level}
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="text-2xl font-black text-white leading-none"
+              >
+                {level}
+              </motion.span>
+              <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-tighter">Nível</span>
+            </div>
+          </div>
+
+          <div className="flex-1 space-y-4 text-center md:text-left w-full">
+            <div className="flex justify-between items-end">
+              <div className="flex flex-col">
+                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                  Semente de Herói 
+                  <motion.span
+                    animate={{ 
+                      y: [0, -4, 0],
+                      rotate: [0, 10, -10, 0]
+                    }}
+                    transition={{ duration: 3, repeat: Infinity }}
+                  >
+                    <Sprout size={22} className="text-emerald-400" />
+                  </motion.span>
+                </h3>
+                <span className="text-[10px] font-black text-emerald-500/60 uppercase tracking-widest">Evolução de Guardião</span>
+              </div>
+              
+              <div className="text-right tabular-nums">
+                <motion.span 
+                  key={xp}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-sm font-bold text-emerald-400 block"
+                >
+                  {xp} <span className="text-white/40 font-medium">/ {xpNext} XP</span>
+                </motion.span>
+              </div>
+            </div>
+
+            {/* Barra de Progresso com Glow e Partícula */}
+            <div className="h-5 w-full bg-white/5 rounded-full overflow-hidden border border-white/10 p-1 relative">
+              <motion.div 
+                initial={{ width: 0 }} 
+                animate={{ width: `${progress}%` }} 
+                transition={{ duration: 1.2, ease: "circOut" }}
+                className="relative h-full bg-gradient-to-r from-emerald-600 via-emerald-400 to-teal-300 rounded-full"
+              >
+                {/* Brilho na ponta da barra */}
+                <motion.div 
+                  animate={{ opacity: [0.4, 1, 0.4] }}
+                  transition={{ duration: 1, repeat: Infinity }}
+                  className="absolute right-0 top-0 h-full w-2 bg-white blur-[4px] rounded-full" 
+                />
+              </motion.div>
+            </div>
+            
+            <p className="text-[10px] text-white/30 font-medium italic">Faltam {xpNext - xp} XP para o próximo nível!</p>
           </div>
         </div>
-        <div className="flex-1 space-y-4 text-center md:text-left w-full">
-          <div className="flex justify-between items-end">
-            <h3 className="text-xl font-bold text-white flex items-center gap-2">
-              Semente de Herói <Sprout size={20} className="text-emerald-400" />
-            </h3>
-            <span className="text-sm font-bold text-emerald-400">{xp} / {xpNext} XP</span>
-          </div>
-          <div className="h-4 w-full bg-white/5 rounded-full overflow-hidden border border-white/10 p-0.5">
-            <motion.div 
-              initial={{ width: 0 }} 
-              animate={{ width: `${progress}%` }} 
-              className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full shadow-[0_0_15px_rgba(16,185,129,0.5)]" 
-            />
-          </div>
-        </div>
-      </div>
-    </Card>
+      </Card>
+    </motion.div>
   );
 };
 
@@ -153,7 +218,7 @@ export default function GamesPage() {
   const [totalXp, setTotalXp] = useState(2350);
   const featured = GAMES[index];
 
-  const REWARD_XP = 120; // Valor solicitado
+  const REWARD_XP = 120;
   const xpNextLevel = 3000;
   const currentLevel = Math.floor(totalXp / 400) + 1;
 
@@ -190,7 +255,7 @@ export default function GamesPage() {
     <div className="min-h-screen bg-[#F0F7F4] p-4 md:p-10 font-sans text-slate-900 overflow-x-hidden">
       <div className="max-w-7xl mx-auto space-y-12">
         
-        {/* HEADER COM XP INTERATIVO */}
+        {/* HEADER */}
         <header className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div>
             <h1 className="text-4xl font-black tracking-tighter text-emerald-950">ECO<span className="text-emerald-500">PLAY</span></h1>
@@ -240,7 +305,6 @@ export default function GamesPage() {
                       <div className="px-12 py-5 bg-emerald-500 group-hover:bg-emerald-400 text-emerald-950 font-black rounded-2xl transition-all shadow-[0_20px_50px_rgba(16,185,129,0.4)]">
                         INICIAR MISSÃO
                       </div>
-                      {/* Badge de Recompensa de XP */}
                       <div className="absolute -top-4 -right-4 bg-amber-400 text-amber-950 text-xs font-black px-3 py-1.5 rounded-full border-2 border-slate-900 shadow-xl animate-bounce">
                         +{REWARD_XP} XP
                       </div>
@@ -276,7 +340,7 @@ export default function GamesPage() {
           </div>
         </section>
 
-        {/* SEÇÃO INFERIOR */}
+        {/* SEÇÃO INFERIOR DINÂMICA */}
         <section className="grid lg:grid-cols-2 gap-8 items-stretch">
           <XPProgress xp={totalXp % xpNextLevel} xpNext={xpNextLevel} level={currentLevel} />
 
