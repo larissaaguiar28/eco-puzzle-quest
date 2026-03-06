@@ -217,7 +217,7 @@ export default function SustainableNewsFeed() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-green-50 to-yellow-50 text-foreground">
       <header className="sticky top-0 z-40 backdrop-blur-md bg-white/70 border-b border-green-200">
-        <div className="max-w-9xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => setSelectedCategory(null)}>
             <div className="bg-gradient-to-tr from-green-500 to-teal-400 text-white p-2.5 rounded-2xl shadow-lg shadow-green-200">
               <Leaf size={24} />
@@ -240,7 +240,7 @@ export default function SustainableNewsFeed() {
         </div>
       </header>
 
-      <div className="max-w-9xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8 px-6 py-8">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8 px-6 py-8">
         <aside className="hidden lg:block col-span-1">
           <Card className="rounded-3xl border-none shadow-sm bg-white/80 backdrop-blur-sm sticky top-24">
             <CardContent className="p-6 space-y-4">
