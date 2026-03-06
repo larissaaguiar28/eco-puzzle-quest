@@ -1,286 +1,335 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Gamepad2,
-  TreePine,
-  Recycle,
-  Droplets,
-  Wind,
-  Leaf,
-  Sun,
-  Star,
-  ChevronLeft,
-  ChevronRight,
-  Shield,
-  Zap,
-  Award,
-  LucideIcon,
-  Trophy
+  TreePine, Recycle, Droplets, Wind, Leaf, Sun,
+  ChevronLeft, ChevronRight, Shield, Zap, Award, Trophy, Star, Sprout
 } from "lucide-react";
 
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger
-} from "@/components/ui/tooltip";
-
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
-// --- TIPAGENS ---
-interface Game {
-  id: number;
-  title: string;
-  description: string;
-  icon: LucideIcon;
-  image: string;
-}
-
-interface BadgeItem {
-  icon: LucideIcon;
-  name: string;
-  description: string;
-}
-
-const games: Game[] = [
-  {
-    id: 1,
-    title: "Guardião da Floresta",
-    description: "Proteja a Amazônia de ameaças ambientais em um jogo de estratégia imersivo.",
-    icon: TreePine,
-    image: "https://images.unsplash.com/photo-1508780709619-79562169bc64"
-  },
-  {
-    id: 2,
-    title: "Recicla Quest",
-    description: "Separe e recicle materiais corretamente em desafios cronometrados.",
-    icon: Recycle,
-    image: "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b"
-  },
-  {
-    id: 3,
-    title: "Oceano Limpo",
-    description: "Navegue pelos oceanos removendo poluentes e salvando a vida marinha.",
-    icon: Droplets,
-    image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e"
-  },
-  {
-    id: 4,
-    title: "Energia Verde",
-    description: "Construa e gerencie uma cidade sustentável movida a energias renováveis.",
-    icon: Wind,
-    image: "https://images.unsplash.com/photo-1466611653911-95081537e5b7"
-  }
+// --- DADOS DE CONFIGURAÇÃO ---
+const GAMES = [
+  { id: 1, title: "Guardião da Floresta", description: "Proteja a biodiversidade e restaure biomas degradados.", icon: TreePine, color: "from-emerald-400 to-green-700", image: "https://images.unsplash.com/photo-1508780709619-79562169bc64?auto=format&fit=crop&q=80&w=1000" },
+  { id: 2, title: "Recicla Quest", description: "Domine a economia circular e transforme resíduos em recursos.", icon: Recycle, color: "from-blue-400 to-indigo-700", image: "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&q=80&w=1000" },
+  { id: 3, title: "Oceano Limpo", description: "Recupere recifes de coral e remova microplásticos dos mares.", icon: Droplets, color: "from-cyan-400 to-blue-700", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=1000" },
+  { id: 4, title: "Energia Verde", description: "Projete a rede elétrica do futuro com fontes 100% renováveis.", icon: Wind, color: "from-amber-400 to-orange-700", image: "https://images.unsplash.com/photo-1466611653911-95081537e5b7?auto=format&fit=crop&q=80&w=1000" }
 ];
 
-const badges: BadgeItem[] = [
-  { icon: TreePine, name: "Guardião da Floresta", description: "Completou 10 missões de reflorestamento" },
-  { icon: Recycle, name: "Mestre da Reciclagem", description: "Reciclou 500 itens corretamente" },
-  { icon: Droplets, name: "Protetor dos Oceanos", description: "Limpou 3 oceanos virtuais" },
-  { icon: Leaf, name: "Eco Iniciante", description: "Completou o tutorial inicial" },
-  { icon: Sun, name: "Solar Champion", description: "Instalou 100 painéis solares" },
-  { icon: Shield, name: "Defensor Ambiental", description: "Bloqueou 50 ameaças ambientais" },
-  { icon: Zap, name: "Energia Infinita", description: "Gerou 1GW de energia limpa" },
-  { icon: Award, name: "Veterano Eco", description: "Jogou por 30 dias consecutivos" }
+const INITIAL_BADGES = [
+  { icon: TreePine, name: "Guardião", description: "10 missões de reflorestamento" },
+  { icon: Recycle, name: "Mestre", description: "Reciclou 500 itens" },
+  { icon: Droplets, name: "Protetor", description: "Limpou 3 oceanos" },
+  { icon: Leaf, name: "Eco Iniciante", description: "Completou o tutorial" },
+  { icon: Sun, name: "Solar Champion", description: "100 painéis solares" },
+  { icon: Shield, name: "Defensor", description: "Bloqueou 50 ameaças" },
+  { icon: Zap, name: "Energia Viva", description: "Gerou 1GW limpo" },
+  { icon: Award, name: "Veterano", description: "30 dias seguidos" }
 ];
 
-export default function Games() {
-  const [currentSlide, setCurrentSlide] = useState<number>(0);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % games.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, []);
-
-  // Dados de Experiência
-  const xp = 2350;
-  const xpNext = 3000;
-  const level = 7;
-  const progressPercentage = (xp / xpNext) * 100;
-
-  const featuredGame = games[currentSlide];
+// --- COMPONENTE: CONTADOR DE XP INTERATIVO (HEADER) ---
+const XPCounter = ({ value }: { value: number }) => {
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-sky-50 text-gray-800 p-6 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
-        
-        {/* PARTE SUPERIOR: CAROUSEL E DESTAQUE */}
-        <div className="flex gap-8 flex-col lg:flex-row">
-          {/* CAROUSEL */}
-          <div className="lg:w-[70%] w-full">
-            <Card className="rounded-[2.5rem] overflow-hidden bg-white border border-emerald-100 shadow-xl">
-              <div className="relative h-[450px] md:h-[520px]">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={currentSlide}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.6 }}
-                    className="absolute inset-0"
-                  >
-                    <img
-                      src={games[currentSlide].image}
-                      alt={games[currentSlide].title}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute bottom-0 left-0 right-0 p-10 bg-gradient-to-t from-black/70 via-black/20 to-transparent">
-                      <motion.h2 
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        className="text-4xl font-black tracking-tight text-white mb-2"
-                      >
-                        {games[currentSlide].title}
-                      </motion.h2>
-                      <p className="text-emerald-50 text-sm max-w-xl opacity-90 leading-relaxed">
-                        {games[currentSlide].description}
-                      </p>
-                    </div>
-                  </motion.div>
-                </AnimatePresence>
+    <motion.div
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="relative group cursor-pointer"
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+    >
+      <AnimatePresence>
+        {isHovered && (
+          <>
+            {[...Array(8)].map((_, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, scale: 0, x: 0, y: 0 }}
+                animate={{ 
+                  opacity: [0, 1, 0], 
+                  scale: [0, 1.2, 0.2],
+                  x: (i % 2 === 0 ? 1 : -1) * (Math.random() * 60 + 20),
+                  y: (i < 4 ? 1 : -1) * (Math.random() * 60 + 20)
+                }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 1, repeat: Infinity, delay: i * 0.1 }}
+                className="absolute inset-0 m-auto w-2 h-2 bg-emerald-400 rounded-full blur-[1px] z-0"
+              />
+            ))}
+          </>
+        )}
+      </AnimatePresence>
 
-                <button
-                  onClick={() => setCurrentSlide((prev) => (prev - 1 + games.length) % games.length)}
-                  className="absolute left-6 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white rounded-full p-4 shadow-2xl z-10 transition-transform active:scale-90"
-                >
-                  <ChevronLeft size={24} />
-                </button>
+      <Badge 
+        className={cn(
+          "relative z-10 px-6 py-3 rounded-full shadow-lg text-lg font-bold flex items-center gap-2 transition-all duration-500 overflow-hidden",
+          isHovered 
+            ? "bg-emerald-500 text-white border-emerald-400 shadow-emerald-500/40" 
+            : "bg-white border-emerald-100 text-emerald-700"
+        )}
+      >
+        <motion.div
+          animate={isHovered ? { rotate: [0, -20, 20, 0], scale: 1.25 } : {}}
+          transition={{ repeat: Infinity, duration: 0.6 }}
+        >
+          <Zap size={18} className={cn("transition-colors", isHovered ? "fill-white text-white" : "fill-emerald-500 text-emerald-500")} />
+        </motion.div>
 
-                <button
-                  onClick={() => setCurrentSlide((prev) => (prev + 1) % games.length)}
-                  className="absolute right-6 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white rounded-full p-4 shadow-2xl z-10 transition-transform active:scale-90"
-                >
-                  <ChevronRight size={24} />
-                </button>
-              </div>
+        <motion.span
+          key={value}
+          initial={{ y: 10, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="tabular-nums relative z-10"
+        >
+          {value} XP
+        </motion.span>
 
-              {/* THUMBNAILS */}
-              <div className="flex gap-4 p-6 overflow-x-auto bg-emerald-50/30 backdrop-blur-sm">
-                {games.map((game, index) => (
-                  <div
-                    key={game.id}
-                    onClick={() => setCurrentSlide(index)}
-                    className={cn(
-                      "relative cursor-pointer rounded-2xl overflow-hidden min-w-[120px] h-[75px] transition-all duration-300",
-                      index === currentSlide
-                        ? "ring-4 ring-emerald-500 scale-105 shadow-lg"
-                        : "opacity-40 hover:opacity-100"
-                    )}
-                  >
-                    <img src={game.image} alt={game.title} className="w-full h-full object-cover" />
-                  </div>
-                ))}
-              </div>
-            </Card>
-          </div>
+        <motion.div 
+          className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full"
+          animate={isHovered ? { translateX: ["150%", "-150%"] } : {}}
+          transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }}
+        />
+      </Badge>
 
-          {/* FEATURED / SIDEBAR */}
-          <div className="lg:w-[30%] w-full">
-            <Card className="h-full rounded-[2.5rem] bg-white border border-emerald-100 shadow-xl p-8 flex flex-col justify-between">
-              <div>
-                <Badge className="bg-amber-100 text-amber-700 border-none px-4 py-1.5 rounded-full mb-6">
-                  <Star size={14} className="mr-2 fill-amber-500 text-amber-500" /> 
-                  Sugestão do Dia
-                </Badge>
+      <div className={cn(
+        "absolute inset-0 rounded-full blur-2xl transition-opacity duration-500 -z-10",
+        isHovered ? "bg-emerald-400/50 opacity-100" : "bg-emerald-400/10 opacity-0"
+      )} />
+    </motion.div>
+  );
+};
 
-                <div className="flex flex-col items-center text-center gap-6 py-4">
-                  <div className="bg-gradient-to-br from-emerald-100 to-teal-100 w-28 h-28 rounded-[2.5rem] flex items-center justify-center shadow-inner">
-                    {React.createElement(featuredGame.icon, {
-                      size: 48,
-                      className: "text-emerald-700"
-                    })}
-                  </div>
-                  <div className="space-y-2">
-                    <h3 className="text-2xl font-bold text-gray-900 tracking-tight">
-                      {featuredGame.title}
-                    </h3>
-                    <p className="text-sm text-gray-500 leading-relaxed px-4">
-                      {featuredGame.description}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <button className="w-full py-5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-[1.5rem] font-bold flex items-center justify-center gap-3 transition-all shadow-xl shadow-emerald-100 hover:-translate-y-1">
-                <Gamepad2 size={22} />
-                Jogar Agora
-              </button>
-            </Card>
+// --- COMPONENTE DE PROGRESSO ---
+const XPProgress = ({ xp, xpNext, level }: { xp: number; xpNext: number; level: number }) => {
+  const progress = (xp / xpNext) * 100;
+  return (
+    <Card className="relative overflow-hidden border border-emerald-500/30 bg-slate-900 p-8 rounded-[3rem] shadow-2xl h-full flex flex-col justify-center">
+      <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-emerald-500/10 blur-[80px] rounded-full" />
+      <div className="relative z-10 flex flex-col md:flex-row items-center gap-6">
+        <div className="relative shrink-0">
+          <svg className="w-24 h-24 transform -rotate-90">
+            <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-white/5" />
+            <motion.circle
+              cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent"
+              strokeDasharray="251.2"
+              initial={{ strokeDashoffset: 251.2 }}
+              animate={{ strokeDashoffset: 251.2 - (251.2 * progress) / 100 }}
+              transition={{ duration: 2, ease: "easeOut" }}
+              className="text-emerald-500"
+            />
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <span className="text-2xl font-black text-white leading-none">{level}</span>
+            <span className="text-[10px] font-bold text-emerald-400 uppercase">Nível</span>
           </div>
         </div>
+        <div className="flex-1 space-y-4 text-center md:text-left w-full">
+          <div className="flex justify-between items-end">
+            <h3 className="text-xl font-bold text-white flex items-center gap-2">
+              Semente de Herói <Sprout size={20} className="text-emerald-400" />
+            </h3>
+            <span className="text-sm font-bold text-emerald-400">{xp} / {xpNext} XP</span>
+          </div>
+          <div className="h-4 w-full bg-white/5 rounded-full overflow-hidden border border-white/10 p-0.5">
+            <motion.div 
+              initial={{ width: 0 }} 
+              animate={{ width: `${progress}%` }} 
+              className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full shadow-[0_0_15px_rgba(16,185,129,0.5)]" 
+            />
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
+};
 
-        {/* PARTE INFERIOR: DASHBOARD DE PROGRESSÃO (EXPERIÊNCIA E CONQUISTAS) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          
-          {/* BARRA DE EXPERIÊNCIA */}
-          <Card className="rounded-[2rem] bg-white border border-emerald-100 shadow-lg p-6 flex flex-col justify-center">
-            <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-4">
-                <div className="bg-emerald-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-black shadow-lg shadow-emerald-200">
-                  {level}
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-900 text-lg">Seu Nível</h3>
-                  <p className="text-sm text-emerald-600 font-medium">{xp} / {xpNext} XP</p>
-                </div>
-              </div>
-              <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 border-emerald-100">
-                Faltam {xpNext - xp} XP
-              </Badge>
-            </div>
-            <div className="relative h-5 w-full bg-gray-100 rounded-full overflow-hidden p-1 shadow-inner">
-              <motion.div 
-                initial={{ width: 0 }}
-                animate={{ width: `${progressPercentage}%` }}
-                transition={{ duration: 1.2, ease: "circOut" }}
-                className="absolute h-full top-0 left-0 bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full"
-              />
-            </div>
-          </Card>
+// --- COMPONENTE PRINCIPAL ---
+export default function GamesPage() {
+  const [index, setIndex] = useState(0);
+  const [badges, setBadges] = useState(INITIAL_BADGES);
+  const [totalXp, setTotalXp] = useState(2350);
+  const featured = GAMES[index];
 
-          {/* BARRA DE CONQUISTAS */}
-          <Card className="rounded-[2rem] bg-white border border-emerald-100 shadow-lg p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Trophy size={20} className="text-amber-500" />
-                <h3 className="font-bold text-gray-900 text-lg">Conquistas Recentes</h3>
+  const REWARD_XP = 120; // Valor solicitado
+  const xpNextLevel = 3000;
+  const currentLevel = Math.floor(totalXp / 400) + 1;
+
+  const handleStartMission = () => {
+    setTotalXp(prev => prev + REWARD_XP);
+  };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      handleNextBadge();
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [badges]);
+
+  const handleNextBadge = () => {
+    setBadges((prev) => {
+      const newArr = [...prev];
+      const first = newArr.shift();
+      if (first) newArr.push(first);
+      return newArr;
+    });
+  };
+
+  const handlePrevBadge = () => {
+    setBadges((prev) => {
+      const newArr = [...prev];
+      const last = newArr.pop();
+      if (last) newArr.unshift(last);
+      return newArr;
+    });
+  };
+
+  return (
+    <div className="min-h-screen bg-[#F0F7F4] p-4 md:p-10 font-sans text-slate-900 overflow-x-hidden">
+      <div className="max-w-7xl mx-auto space-y-12">
+        
+        {/* HEADER COM XP INTERATIVO */}
+        <header className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <div>
+            <h1 className="text-4xl font-black tracking-tighter text-emerald-950">ECO<span className="text-emerald-500">PLAY</span></h1>
+            <p className="text-slate-500 font-medium italic">Sua jornada sustentável começa aqui.</p>
+          </div>
+          <XPCounter value={totalXp} />
+        </header>
+
+        {/* HERO SECTION */}
+        <section className="grid lg:grid-cols-12 gap-8 relative">
+          <div className="lg:col-span-8 relative">
+            <Card className="h-[500px] md:h-[600px] rounded-[3.5rem] overflow-hidden border-none shadow-2xl bg-slate-900 relative">
+              <AnimatePresence mode="wait">
+                <motion.div 
+                  key={index} 
+                  initial={{ opacity: 0 }} 
+                  animate={{ opacity: 1 }} 
+                  exit={{ opacity: 0 }} 
+                  className="relative h-full w-full"
+                >
+                  <img src={featured.image} className="absolute inset-0 w-full h-full object-cover opacity-40" alt={featured.title} />
+                  <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-emerald-950/70 to-black/80" />
+                  
+                  <div className="absolute inset-0 flex flex-col items-center justify-center p-8 md:p-16 z-10 text-center">
+                    <motion.div 
+                      initial={{ y: -20, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      className={cn("inline-flex p-5 rounded-3xl bg-gradient-to-br mb-6 shadow-2xl border border-white/20", featured.color)}
+                    >
+                      <featured.icon size={42} className="text-white" />
+                    </motion.div>
+
+                    <h2 className="text-4xl md:text-7xl font-black text-white mb-6 leading-none tracking-tight max-w-2xl drop-shadow-2xl">
+                      {featured.title}
+                    </h2>
+
+                    <p className="text-emerald-50 text-lg md:text-xl max-w-lg mb-10 font-medium leading-relaxed drop-shadow-lg">
+                      {featured.description}
+                    </p>
+
+                    <motion.button 
+                      onClick={handleStartMission}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="group relative flex flex-col items-center gap-1"
+                    >
+                      <div className="px-12 py-5 bg-emerald-500 group-hover:bg-emerald-400 text-emerald-950 font-black rounded-2xl transition-all shadow-[0_20px_50px_rgba(16,185,129,0.4)]">
+                        INICIAR MISSÃO
+                      </div>
+                      {/* Badge de Recompensa de XP */}
+                      <div className="absolute -top-4 -right-4 bg-amber-400 text-amber-950 text-xs font-black px-3 py-1.5 rounded-full border-2 border-slate-900 shadow-xl animate-bounce">
+                        +{REWARD_XP} XP
+                      </div>
+                    </motion.button>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+
+              <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-4 md:px-6 pointer-events-none z-30">
+                <button onClick={() => setIndex((index - 1 + GAMES.length) % GAMES.length)} className="p-4 rounded-full bg-black/40 backdrop-blur-xl text-white pointer-events-auto hover:bg-emerald-500 transition-all border border-white/10">
+                  <ChevronLeft size={28} />
+                </button>
+                <button onClick={() => setIndex((index + 1) % GAMES.length)} className="p-4 rounded-full bg-black/40 backdrop-blur-xl text-white pointer-events-auto hover:bg-emerald-500 transition-all border border-white/10">
+                  <ChevronRight size={28} />
+                </button>
               </div>
-              <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
-                {badges.length} Desbloqueadas
-              </span>
+            </Card>
+          </div>
+
+          <div className="lg:col-span-4 flex flex-col gap-4">
+            <h3 className="text-xs font-black text-emerald-900/40 uppercase tracking-[0.2em] ml-4">Próximos Destinos</h3>
+            {GAMES.map((game, i) => (
+              <button key={game.id} onClick={() => setIndex(i)} className={cn("flex items-center gap-4 p-4 rounded-[2.5rem] transition-all border-2", i === index ? "bg-white border-emerald-500 shadow-xl" : "bg-emerald-50/50 border-transparent opacity-60 hover:opacity-100")}>
+                <div className={cn("p-3 rounded-2xl bg-gradient-to-br shadow-md", game.color)}>
+                    <game.icon size={20} className="text-white" />
+                </div>
+                <div className="text-left">
+                    <h4 className="font-bold text-slate-800 leading-none mb-1">{game.title}</h4>
+                    <span className="text-[10px] font-black text-emerald-600 uppercase">Explorar região</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* SEÇÃO INFERIOR */}
+        <section className="grid lg:grid-cols-2 gap-8 items-stretch">
+          <XPProgress xp={totalXp % xpNextLevel} xpNext={xpNextLevel} level={currentLevel} />
+
+          <Card className="bg-slate-900 border border-emerald-500/30 rounded-[3rem] p-8 shadow-2xl relative flex flex-col justify-center overflow-hidden min-h-[250px]">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 blur-[60px] rounded-full" />
+            <div className="flex items-center justify-between mb-8 z-10">
+              <h3 className="text-xl font-black text-white flex items-center gap-2">
+                Minhas Insígnias <Trophy className="text-amber-400 animate-bounce" size={20} />
+              </h3>
+              <div className="flex gap-2">
+                <button onClick={handlePrevBadge} className="p-2 rounded-xl bg-white/5 hover:bg-emerald-500 text-white transition-all">
+                  <ChevronLeft size={20} />
+                </button>
+                <button onClick={handleNextBadge} className="p-2 rounded-xl bg-white/5 hover:bg-emerald-500 text-white transition-all">
+                  <ChevronRight size={20} />
+                </button>
+              </div>
             </div>
             
-            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+            <div className="relative h-24 overflow-hidden">
               <TooltipProvider delayDuration={0}>
-                {badges.map((badge, index) => (
-                  <Tooltip key={index}>
-                    <TooltipTrigger asChild>
-                      <motion.div 
-                        whileHover={{ y: -5, scale: 1.1 }}
-                        className="flex-shrink-0 bg-emerald-50/50 border border-emerald-100 p-3 rounded-2xl cursor-help transition-colors hover:bg-emerald-100"
-                      >
-                        {React.createElement(badge.icon, {
-                          size: 26,
-                          className: "text-emerald-700"
-                        })}
-                      </motion.div>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="bg-gray-900 text-white border-none p-3 rounded-xl shadow-2xl max-w-[200px]">
-                      <p className="font-bold text-emerald-400">{badge.name}</p>
-                      <p className="text-xs leading-tight mt-1">{badge.description}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                ))}
+                <div className="flex gap-5 items-center justify-center">
+                  <AnimatePresence mode="popLayout">
+                    {badges.slice(0, 4).map((badge) => (
+                      <Tooltip key={badge.name}>
+                        <TooltipTrigger asChild>
+                          <motion.div 
+                            layout
+                            initial={{ opacity: 0, x: 50, scale: 0.8 }}
+                            animate={{ opacity: 1, x: 0, scale: 1 }}
+                            exit={{ opacity: 0, x: -50, scale: 0.8 }}
+                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                            whileHover={{ scale: 1.1, rotate: 5 }}
+                            className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-[2rem] bg-gradient-to-br from-white/10 to-white/5 border border-white/10 flex items-center justify-center cursor-pointer group hover:border-emerald-400 shadow-xl"
+                          >
+                            <badge.icon size={36} className="text-emerald-400 group-hover:text-white transition-colors" />
+                          </motion.div>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="bg-emerald-500 text-emerald-950 font-bold p-3 rounded-xl border-none shadow-2xl">
+                          <p className="uppercase text-[10px] tracking-wider">{badge.name}</p>
+                          <p className="text-[11px] font-medium opacity-80">{badge.description}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    ))}
+                  </AnimatePresence>
+                  <div className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-[2rem] border-2 border-dashed border-white/10 flex items-center justify-center bg-white/5">
+                    <Star size={24} className="text-white/20 animate-pulse" />
+                  </div>
+                </div>
               </TooltipProvider>
             </div>
           </Card>
-
-        </div>
-
+        </section>
       </div>
     </div>
   );
