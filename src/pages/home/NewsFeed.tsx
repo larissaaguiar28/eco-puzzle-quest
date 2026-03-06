@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ThumbsUp, Heart, Lightbulb, MessageCircle, Share2,
@@ -32,13 +32,14 @@ interface SidebarItem {
 }
 
 // --- DADOS ---
+// Ajustei as categorias para baterem exatamente com os nomes da Sidebar
 const newsData: NewsItem[] = [
   {
     id: 1,
     title: "Brasil bate recorde histórico em geração de energia solar e eólica",
     summary: "O país alcançou a marca de 90% da matriz elétrica renovável neste mês, impulsionando a economia verde.",
     content: "Com novos parques eólicos no Nordeste e fazendas solares no Sudeste, o Brasil não apenas reduziu suas emissões de carbono em 15% no último trimestre, mas também gerou mais de 50 mil novos empregos diretos no setor.",
-    category: "Energia",
+    category: "Energia Solar",
     author: "EcoS",
     date: "05 Mar 2026",
     location: "Nordeste, BR",
@@ -79,7 +80,7 @@ const sidebarItems: SidebarItem[] = [
   { label: "Conservação", icon: TreePine, color: "text-green-500", bg: "hover:bg-green-50" },
 ];
 
-// --- COMPONENTE DE NOTÍCIA INDIVIDUAL (Lógica de Reações e Comentários) ---
+// --- COMPONENTE DE NOTÍCIA INDIVIDUAL ---
 const NewsCard = ({ item }: { item: NewsItem }) => {
   const [likes, setLikes] = useState(item.likes);
   const [hearts, setHearts] = useState(Math.floor(item.likes / 3));
@@ -132,7 +133,6 @@ const NewsCard = ({ item }: { item: NewsItem }) => {
 
         <p className="text-gray-600 leading-relaxed text-sm">{item.content}</p>
 
-        {/* Botões de Reação Funcionais */}
         <div className="flex items-center gap-3 pt-5 border-t border-gray-100">
           <button 
             onClick={() => setLikes(likes + 1)}
@@ -166,7 +166,6 @@ const NewsCard = ({ item }: { item: NewsItem }) => {
           </button>
         </div>
 
-        {/* Seção de Comentários Funcional */}
         <AnimatePresence>
           {showComments && (
             <motion.div 
@@ -193,9 +192,6 @@ const NewsCard = ({ item }: { item: NewsItem }) => {
                     <span className="font-bold text-teal-700">Você: </span>{c.text}
                   </div>
                 ))}
-                {comments.length === 0 && (
-                  <p className="text-center text-gray-400 text-xs py-2">Inicie a conversa!</p>
-                )}
               </div>
             </motion.div>
           )}
@@ -208,12 +204,21 @@ const NewsCard = ({ item }: { item: NewsItem }) => {
 // --- COMPONENTE PRINCIPAL ---
 export default function SustainableNewsFeed() {
   const [searchQuery, setSearchQuery] = useState<string>("");
+  // Estado para a categoria ativa
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  // Filtro que une a busca por texto + a categoria clicada na sidebar
+  const filteredNews = newsData.filter((item) => {
+    const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory ? item.category === selectedCategory : true;
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-green-50 to-yellow-50 text-foreground">
       <header className="sticky top-0 z-40 backdrop-blur-md bg-white/70 border-b border-green-200">
         <div className="max-w-9xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => setSelectedCategory(null)}>
             <div className="bg-gradient-to-tr from-green-500 to-teal-400 text-white p-2.5 rounded-2xl shadow-lg shadow-green-200">
               <Leaf size={24} />
             </div>
@@ -237,13 +242,19 @@ export default function SustainableNewsFeed() {
 
       <div className="max-w-9xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8 px-6 py-8">
         <aside className="hidden lg:block col-span-1">
-          <Card className="rounded-3xl border-none shadow-sm bg-white/80 backdrop-blur-sm">
+          <Card className="rounded-3xl border-none shadow-sm bg-white/80 backdrop-blur-sm sticky top-24">
             <CardContent className="p-6 space-y-4">
               <h2 className="text-sm font-bold text-teal-800 uppercase tracking-wider">Explorar</h2>
               {sidebarItems.map((item) => {
                 const Icon = item.icon;
+                const isActive = selectedCategory === item.label;
                 return (
-                  <button key={item.label} className={`flex items-center gap-3 w-full px-4 py-3 rounded-2xl text-sm font-semibold text-gray-700 transition-all duration-200 ${item.bg}`}>
+                  <button 
+                    key={item.label} 
+                    onClick={() => setSelectedCategory(isActive ? null : item.label)}
+                    className={`flex items-center gap-3 w-full px-4 py-3 rounded-2xl text-sm font-semibold transition-all duration-200 
+                    ${isActive ? 'bg-teal-100 text-teal-800 shadow-inner' : `text-gray-700 ${item.bg}`}`}
+                  >
                     <Icon size={20} className={item.color} />
                     {item.label}
                   </button>
@@ -254,13 +265,26 @@ export default function SustainableNewsFeed() {
         </aside>
 
         <main className="col-span-1 lg:col-span-3 space-y-8">
-          {newsData
-            .filter(n => n.title.toLowerCase().includes(searchQuery.toLowerCase()))
-            .map((item) => (
-              <motion.div key={item.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          <AnimatePresence mode="popLayout">
+            {filteredNews.map((item) => (
+              <motion.div 
+                key={item.id} 
+                layout // Faz os cards deslizarem suavemente ao filtrar
+                initial={{ opacity: 0, y: 20 }} 
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+              >
                 <NewsCard item={item} />
               </motion.div>
-          ))}
+            ))}
+          </AnimatePresence>
+          
+          {filteredNews.length === 0 && (
+            <div className="text-center py-20 bg-white/50 rounded-3xl border-2 border-dashed border-teal-200">
+               <p className="text-teal-800 font-medium">Nenhuma notícia encontrada nesta categoria.</p>
+               <Button variant="link" onClick={() => setSelectedCategory(null)} className="text-teal-600">Ver todas as notícias</Button>
+            </div>
+          )}
         </main>
       </div>
     </div>
