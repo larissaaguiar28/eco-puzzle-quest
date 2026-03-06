@@ -133,7 +133,7 @@ export default function Dashboard() {
               icon={Megaphone} 
               label="Fazer Denúncia" 
               reward="+30 EcoS" 
-              to="/home/report" 
+              to="/home/feed" 
               color="text-rose-600" 
               bg="bg-rose-50" 
               isUrgent={true}
@@ -152,17 +152,19 @@ export default function Dashboard() {
           <motion.main variants={itemVariants} className="lg:col-span-8 space-y-8">
             <section className="bg-white/40 border-2 border-white p-2 rounded-[3rem] shadow-2xl backdrop-blur-xl">
               <div className="bg-white p-8 rounded-[2.5rem] space-y-8">
-                <div className="flex items-center justify-between border-b border-slate-50 pb-6">
-                  <div className="space-y-1">
-                    <h3 className="text-2xl font-black flex items-center gap-3 text-slate-900 italic uppercase tracking-tighter">
-                      <TrendingUp className="text-emerald-500" size={28} /> Comunidade EcoS
-                    </h3>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">O que está acontecendo agora</p>
+                <Link to="/home/feed" className="block">
+                  <div className="flex items-center justify-between border-b border-slate-50 pb-6">
+                    <div className="space-y-1">
+                      <h3 className="text-2xl font-black flex items-center gap-3 text-slate-900 italic uppercase tracking-tighter">
+                        <TrendingUp className="text-emerald-500" size={28} /> Comunidade EcoS
+                      </h3>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">O que está acontecendo agora</p>
+                    </div>
+                    <Button size="lg" className="rounded-2xl font-black px-8 bg-emerald-600 hover:bg-emerald-700 shadow-[0_15px_30px_-10px_rgba(16,185,129,0.4)] border-b-4 border-emerald-900 active:border-b-0 transition-all transform hover:-translate-y-1">
+                      NOVO POST <Plus size={18} className="ml-2" />
+                    </Button>
                   </div>
-                  <Button size="lg" className="rounded-2xl font-black px-8 bg-emerald-600 hover:bg-emerald-700 shadow-[0_15px_30px_-10px_rgba(16,185,129,0.4)] border-b-4 border-emerald-900 active:border-b-0 transition-all transform hover:-translate-y-1">
-                    NOVO POST <Plus size={18} className="ml-2" />
-                  </Button>
-                </div>
+                </Link>
 
                 <div className="grid grid-cols-1 gap-6">
                   <PostCard 
@@ -175,21 +177,22 @@ export default function Dashboard() {
               </div>
             </section>
 
-            {/* Banner Desafio Estilizado */}
             <motion.div 
               whileHover={{ scale: 1.01 }}
               className="bg-blue-600 rounded-[3rem] p-12 text-white relative overflow-hidden shadow-2xl shadow-blue-200 group border-b-8 border-blue-800"
             >
-              <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-10">
-                <div className="space-y-5 text-center md:text-left">
-                  <Badge className="bg-amber-400 text-blue-900 border-none font-black px-5 py-1.5 rounded-full text-xs">EVENTO ATIVO</Badge>
-                  <h4 className="text-4xl font-black leading-tight tracking-tighter">DESAFIO ECOBAG:<br/>ESTILO E CONSCIÊNCIA</h4>
-                  <p className="text-blue-100 font-medium text-lg opacity-80">Poste sua Ecobag favorita e ganhe bônus em dobro hoje.</p>
+              <Link to="/home/feed" className="block">
+                <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-10">
+                  <div className="space-y-5 text-center md:text-left">
+                    <Badge className="bg-amber-400 text-blue-900 border-none font-black px-5 py-1.5 rounded-full text-xs">EVENTO ATIVO</Badge>
+                    <h4 className="text-4xl font-black leading-tight tracking-tighter">DESAFIO ECOBAG:<br/>ESTILO E CONSCIÊNCIA</h4>
+                    <p className="text-blue-100 font-medium text-lg opacity-80">Poste sua Ecobag favorita e ganhe bônus em dobro hoje.</p>
+                  </div>
+                  <Button className="bg-white text-blue-700 hover:bg-blue-50 font-black px-12 h-20 rounded-3xl shadow-[0_20px_40px_-10px_rgba(255,255,255,0.3)] text-xl transition-all hover:scale-105 active:scale-95">
+                    ACEITAR +20 EcoS
+                  </Button>
                 </div>
-                <Button className="bg-white text-blue-700 hover:bg-blue-50 font-black px-12 h-20 rounded-3xl shadow-[0_20px_40px_-10px_rgba(255,255,255,0.3)] text-xl transition-all hover:scale-105 active:scale-95">
-                  ACEITAR +20 EcoS
-                </Button>
-              </div>
+              </Link>
               <Gift className="absolute -bottom-10 -right-10 h-72 w-72 text-white/10 -rotate-12 group-hover:rotate-0 transition-all duration-1000" />
             </motion.div>
           </motion.main>
@@ -240,13 +243,16 @@ export default function Dashboard() {
 
 // --- SUBCOMPONENTES ---
 
-function ReloadOption({ icon: Icon, label, reward, color, bg, isUrgent }: any) {
+function ReloadOption({ icon: Icon, label, reward, color, bg, isUrgent, to }: any) {
   return (
     <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-      <button className={cn(
-        "flex items-center justify-between w-full p-6 bg-white rounded-[2.2rem] transition-all shadow-lg border-2",
-        isUrgent ? "border-rose-100 hover:border-rose-400 animate-pulse-subtle" : "border-transparent hover:border-emerald-300"
-      )}>
+      <Link 
+        to={to} 
+        className={cn(
+          "flex items-center justify-between w-full p-6 bg-white rounded-[2.2rem] transition-all shadow-lg border-2",
+          isUrgent ? "border-rose-100 hover:border-rose-400 animate-pulse-subtle" : "border-transparent hover:border-emerald-300"
+        )}
+      >
         <div className="flex items-center gap-5">
           <div className={cn(bg, color, "p-4 rounded-2xl shadow-inner")}>
             <Icon size={24} strokeWidth={3}/>
@@ -256,7 +262,7 @@ function ReloadOption({ icon: Icon, label, reward, color, bg, isUrgent }: any) {
         <Badge className={cn("h-10 px-4 rounded-xl font-black text-xs border-none", isUrgent ? "bg-rose-500 text-white" : "bg-emerald-100 text-emerald-700")}>
           {reward}
         </Badge>
-      </button>
+      </Link>
     </motion.div>
   );
 }
