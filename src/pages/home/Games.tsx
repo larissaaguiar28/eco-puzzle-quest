@@ -32,14 +32,24 @@ const INITIAL_BADGES = [
 // --- COMPONENTE: CONTADOR DE XP INTERATIVO (HEADER) ---
 const XPCounter = ({ value }: { value: number }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [isChanging, setIsChanging] = useState(false);
+
+  // Dispara o feedback visual de "ganho" quando o valor muda
+  useEffect(() => {
+    setIsChanging(true);
+    const timer = setTimeout(() => setIsChanging(false), 400);
+    return () => clearTimeout(timer);
+  }, [value]);
+
+  const digits = Math.abs(value).toString().split("");
 
   return (
     <motion.div
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className="relative group cursor-pointer"
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
+      animate={isChanging ? { scale: [1, 1.15, 1] } : {}}
+      transition={{ duration: 0.4, ease: "easeOut" }}
     >
       <AnimatePresence>
         {isHovered && (
@@ -65,27 +75,49 @@ const XPCounter = ({ value }: { value: number }) => {
 
       <Badge 
         className={cn(
-          "relative z-10 px-6 py-3 rounded-full shadow-lg text-lg font-bold flex items-center gap-2 transition-all duration-500 overflow-hidden",
+          "relative z-10 px-6 py-3 rounded-full shadow-lg text-lg font-bold flex items-center gap-1 transition-all duration-500 overflow-hidden border-2",
           isHovered 
-            ? "bg-emerald-500 text-white border-emerald-400 shadow-emerald-500/40" 
-            : "bg-white border-emerald-100 text-emerald-700"
+            ? "bg-emerald-500 text-white border-emerald-300 shadow-emerald-500/40" 
+            : isChanging 
+              ? "bg-emerald-50 border-emerald-400 text-emerald-600 shadow-md"
+              : "bg-white border-emerald-100 text-emerald-700"
         )}
       >
         <motion.div
-          animate={isHovered ? { rotate: [0, -20, 20, 0], scale: 1.25 } : {}}
-          transition={{ repeat: Infinity, duration: 0.6 }}
+          animate={isHovered ? { rotate: [0, -20, 20, 0], scale: 1.25 } : isChanging ? { y: [0, -8, 0], scale: 1.2 } : {}}
+          transition={{ repeat: isHovered ? Infinity : 0, duration: 0.6 }}
         >
-          <Zap size={18} className={cn("transition-colors", isHovered ? "fill-white text-white" : "fill-emerald-500 text-emerald-500")} />
+          <Zap size={18} className={cn("transition-colors mr-1", isHovered ? "fill-white text-white" : "fill-emerald-500 text-emerald-500")} />
         </motion.div>
 
-        <motion.span
-          key={value}
-          initial={{ y: 10, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="tabular-nums relative z-10"
-        >
-          {value} XP
-        </motion.span>
+        {/* ANIMAÇÃO MELHORADA DOS DÍGITOS */}
+        <div className="flex h-[1.2em] items-center tabular-nums font-black overflow-hidden px-0.5">
+          <AnimatePresence mode="popLayout" initial={false}>
+            {digits.map((digit, index) => (
+              <motion.span
+                key={`${digits.length - index}-${digit}`}
+                initial={{ y: 25, opacity: 0, filter: "blur(4px)" }}
+                animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
+                exit={{ y: -25, opacity: 0, filter: "blur(4px)" }}
+                transition={{ 
+                  type: "spring", 
+                  stiffness: 500, 
+                  damping: 35,
+                  delay: (digits.length - index) * 0.04 
+                }}
+                className="inline-block"
+              >
+                {digit}
+              </motion.span>
+            ))}
+          </AnimatePresence>
+          <motion.span 
+            className="ml-1 text-xs opacity-70 uppercase tracking-widest"
+            animate={isChanging ? { opacity: [0.7, 1, 0.7], scale: [1, 1.1, 1] } : {}}
+          >
+            XP
+          </motion.span>
+        </div>
 
         <motion.div 
           className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full"
@@ -95,8 +127,8 @@ const XPCounter = ({ value }: { value: number }) => {
       </Badge>
 
       <div className={cn(
-        "absolute inset-0 rounded-full blur-2xl transition-opacity duration-500 -z-10",
-        isHovered ? "bg-emerald-400/50 opacity-100" : "bg-emerald-400/10 opacity-0"
+        "absolute inset-0 rounded-full blur-2xl transition-all duration-500 -z-10",
+        isHovered ? "bg-emerald-400/50 scale-125 opacity-100" : isChanging ? "bg-emerald-300/40 scale-110 opacity-100" : "bg-emerald-400/10 opacity-0"
       )} />
     </motion.div>
   );
@@ -153,7 +185,7 @@ export default function GamesPage() {
   const [totalXp, setTotalXp] = useState(2350);
   const featured = GAMES[index];
 
-  const REWARD_XP = 120; // Valor solicitado
+  const REWARD_XP = 120;
   const xpNextLevel = 3000;
   const currentLevel = Math.floor(totalXp / 400) + 1;
 
@@ -190,7 +222,6 @@ export default function GamesPage() {
     <div className="min-h-screen bg-[#F0F7F4] p-4 md:p-10 font-sans text-slate-900 overflow-x-hidden">
       <div className="max-w-7xl mx-auto space-y-12">
         
-        {/* HEADER COM XP INTERATIVO */}
         <header className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div>
             <h1 className="text-4xl font-black tracking-tighter text-emerald-950">ECO<span className="text-emerald-500">PLAY</span></h1>
@@ -199,7 +230,6 @@ export default function GamesPage() {
           <XPCounter value={totalXp} />
         </header>
 
-        {/* HERO SECTION */}
         <section className="grid lg:grid-cols-12 gap-8 relative">
           <div className="lg:col-span-8 relative">
             <Card className="h-[500px] md:h-[600px] rounded-[3.5rem] overflow-hidden border-none shadow-2xl bg-slate-900 relative">
@@ -240,7 +270,6 @@ export default function GamesPage() {
                       <div className="px-12 py-5 bg-emerald-500 group-hover:bg-emerald-400 text-emerald-950 font-black rounded-2xl transition-all shadow-[0_20px_50px_rgba(16,185,129,0.4)]">
                         INICIAR MISSÃO
                       </div>
-                      {/* Badge de Recompensa de XP */}
                       <div className="absolute -top-4 -right-4 bg-amber-400 text-amber-950 text-xs font-black px-3 py-1.5 rounded-full border-2 border-slate-900 shadow-xl animate-bounce">
                         +{REWARD_XP} XP
                       </div>
@@ -276,7 +305,6 @@ export default function GamesPage() {
           </div>
         </section>
 
-        {/* SEÇÃO INFERIOR */}
         <section className="grid lg:grid-cols-2 gap-8 items-stretch">
           <XPProgress xp={totalXp % xpNextLevel} xpNext={xpNextLevel} level={currentLevel} />
 
