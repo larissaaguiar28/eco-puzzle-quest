@@ -40,11 +40,11 @@ export function FloatingChatbot() {
   const [typing, setTyping] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  if (location.pathname === "/home/chatbot") return null;
-
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, typing]);
+
+  if (location.pathname === "/home/chatbot") return null;
 
   const send = () => {
     if (!input.trim() || typing) return;
