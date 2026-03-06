@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 import { Link } from "react-router-dom";
 import { 
   Trophy, Star, Users, MessageSquare, 
@@ -16,20 +16,31 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-// Animações
-const containerVariants = {
+// Definição das Variantes com Tipagem Explícita para evitar erros
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+  visible: { 
+    opacity: 1, 
+    transition: { 
+      staggerChildren: 0.15,
+      delayChildren: 0.2
+    } 
+  }
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { y: 20, opacity: 0 },
-  visible: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 100 } }
+  visible: { 
+    y: 0, 
+    opacity: 1, 
+    transition: { type: "spring", stiffness: 100, damping: 15 } 
+  }
 };
 
 export default function Dashboard() {
   return (
     <div className="min-h-screen bg-[#f0f4f8] bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-emerald-50 via-slate-50 to-blue-50 p-4 md:p-10 font-sans text-slate-900 overflow-x-hidden">
+      
       <motion.div 
         variants={containerVariants}
         initial="hidden"
@@ -65,7 +76,7 @@ export default function Dashboard() {
                   </div>
 
                   <div className="relative z-10 mt-12 space-y-3">
-                    <div className="flex items-center gap-2 bg-white/5 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/10 shadow-2xl">
+                    <div className="flex items-center gap-2 bg-white/5 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/10 shadow-2xl w-fit">
                       <Flame size={18} className="text-orange-500 animate-bounce" fill="currentColor" />
                       <span className="text-sm font-black italic tracking-tight">12 dias de ofensiva!</span>
                     </div>
@@ -92,7 +103,8 @@ export default function Dashboard() {
                         transition={{ duration: 2, ease: "circOut" }}
                         className="h-full bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-500 rounded-xl relative overflow-hidden"
                       >
-                        <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.2)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.2)_50%,rgba(255,255,255,0.2)_75%,transparent_75%,transparent)] bg-[length:20px_20px] animate-[shimmer_2s_linear_infinite]" />
+                        {/* Shimmer Effect */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-shimmer" />
                       </motion.div>
                     </div>
                   </div>
@@ -138,11 +150,15 @@ export default function Dashboard() {
               bg="bg-rose-50" 
               isUrgent={true}
             />
-            <button className="relative overflow-hidden flex items-center justify-center gap-3 w-full h-20 bg-gradient-to-r from-slate-900 to-slate-800 hover:to-black text-white rounded-[2rem] font-black transition-all shadow-2xl group border-b-4 border-slate-950 active:border-b-0 active:translate-y-1">
+            <motion.button 
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="relative overflow-hidden flex items-center justify-center gap-3 w-full h-20 bg-gradient-to-r from-slate-900 to-slate-800 hover:to-black text-white rounded-[2rem] font-black transition-all shadow-2xl group border-b-4 border-slate-950 active:border-b-0 active:translate-y-1"
+            >
               <div className="absolute inset-0 bg-gradient-to-t from-white/10 to-transparent pointer-events-none" />
               <RefreshCw size={24} className="group-hover:rotate-180 transition-transform duration-1000 text-emerald-400" /> 
               TROCAR XP POR SALDO
-            </button>
+            </motion.button>
           </motion.div>
         </section>
 
