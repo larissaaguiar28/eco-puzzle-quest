@@ -30,15 +30,23 @@ export function AccessibilityMenu() {
   const speakSelected = () => {
     const selection = window.getSelection()?.toString();
     if (selection && "speechSynthesis" in window) {
-      window.speechSynthesis.cancel(); // Para falas anteriores
+      window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(selection);
       utterance.lang = "pt-BR";
-      speechSynthesis.speak(utterance);
+      window.speechSynthesis.speak(utterance);
     }
   };
 
   return (
     <>
+      {/* CSS Integrado para os Filtros e Transições */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        .colorblind-protanopia { filter: url('#protanopia'); }
+        .colorblind-deuteranopia { filter: url('#deuteranopia'); }
+        .colorblind-tritanopia { filter: url('#tritanopia'); }
+        html { transition: filter 0.3s ease-in-out, font-size 0.2s ease-in-out; }
+      `}} />
+
       {/* Filtros SVG para Daltonismo */}
       <svg className="absolute h-0 w-0" aria-hidden="true">
         <defs>
@@ -54,26 +62,26 @@ export function AccessibilityMenu() {
         </defs>
       </svg>
 
-      {/* Botão de Ativação */}
+      {/* Botão de Ativação Centralizado à Direita */}
       <button
         onClick={() => setOpen(!open)}
-        className="fixed top-4 right-4 z-50 rounded-full bg-primary p-3 text-primary-foreground shadow-lg hover:bg-primary/90 transition-all active:scale-95"
+        className="fixed top-1/2 right-4 z-50 -translate-y-1/2 rounded-full bg-primary p-3 text-primary-foreground shadow-lg hover:bg-primary/90 transition-all active:scale-95"
         aria-label="Menu de acessibilidade"
       >
-        <Settings2 className={`h-5 w-5 transition-transform ${open ? 'rotate-90' : ''}`} />
+        <Settings2 className={`h-6 w-6 transition-transform duration-300 ${open ? 'rotate-90' : ''}`} />
       </button>
 
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, x: 50, scale: 0.9 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={{ opacity: 0, x: 50, scale: 0.9 }}
-            className="fixed top-16 right-4 z-50 w-72 rounded-xl bg-card p-4 shadow-2xl border border-border"
+            initial={{ opacity: 0, x: 20, y: "-50%", scale: 0.95 }}
+            animate={{ opacity: 1, x: -60, y: "-50%", scale: 1 }}
+            exit={{ opacity: 0, x: 20, y: "-50%", scale: 0.95 }}
+            className="fixed top-1/2 right-4 z-50 w-72 rounded-xl bg-card p-4 shadow-2xl border border-border"
           >
             <div className="flex items-center justify-between mb-4 border-b pb-2">
               <h3 className="font-bold text-foreground text-sm">Acessibilidade</h3>
-              <button onClick={() => setOpen(false)} className="hover:bg-accent p-1 rounded">
+              <button onClick={() => setOpen(false)} className="hover:bg-accent p-1 rounded transition-colors">
                 <X className="h-4 w-4 text-muted-foreground" />
               </button>
             </div>
@@ -86,7 +94,7 @@ export function AccessibilityMenu() {
                   variant="outline"
                   size="sm"
                   onClick={speakSelected}
-                  className="w-full flex gap-2 justify-start"
+                  className="w-full flex gap-2 justify-start hover:bg-emerald-50 dark:hover:bg-emerald-950/20 transition-colors"
                 >
                   <Volume2 className="h-4 w-4 text-emerald-500" /> Ler texto selecionado
                 </Button>
