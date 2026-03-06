@@ -9,7 +9,7 @@ export default function HomeLayout() {
     <ChatProvider>
       <div className="flex w-full min-h-screen bg-background">
         <HomeSidebar />
-        <main className="flex-1 ml-[260px] transition-all duration-300">
+        <main className="flex-1 ml-[84px] transition-all duration-300">
           <Outlet />
         </main>
         <FloatingChatbot />
