@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useQuiz } from "@/contexts/QuizContext";
 import { Navigate, useNavigate } from "react-router-dom";
+import supabase from '../../../utils/supabase'
 
 
 
@@ -46,10 +47,18 @@ export function CTASection() {
   }
 
 
-    function handleRegister() { console.log('handleRegister')
+    async function handleRegister() { console.log('handleRegister')
       if (user?.email && user?.pass) {
         setUsers([...users, user]);
-        alert('Email Cadastrado com sucesso!')
+
+        const {data, error} = await supabase.auth.signUp({
+          email: user.email,
+          password: user.pass
+
+        })
+
+        if(error) alert("Deu ruim!")
+        else alert('Email Cadastrado com sucesso!')
 
       } else {
         alert('Email e senha obrigatório!');
