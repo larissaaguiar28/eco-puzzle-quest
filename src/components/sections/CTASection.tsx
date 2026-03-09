@@ -26,7 +26,7 @@ export function CTASection() {
   const [users, setUsers] = useState<User[]>([]);
 
 
-  function checkedLogin() { console.log('checkedLogin')
+  async function checkedLogin() { console.log('checkedLogin')
     if (tentativa < 3) {
       setTentativa(tentativa + 1);
 
@@ -35,15 +35,21 @@ export function CTASection() {
       return;
     }
 
-    let loged = users.find(u => u.email == user?.email && u.pass === user?.pass);
-    if (loged) {
-      alert('Login realizado com sucesso!');
-      nav('/home');
+    if (!user?.email || !user.pass) {
+        alert("Email e senha são obrigatórios");
+        return;
+      }
 
-    } else {
-      alert('Email ou senha invalidos');
+    const {error} = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: user.pass
+    });
 
-    }
+    if(error){
+      alert(error.message);
+      return;
+    } 
+    nav('/home', {replace: true})
   }
 
 
