@@ -164,7 +164,8 @@ const XPProgress = ({ xp, xpNext, level }: { xp: number; xpNext: number; level: 
 
   return (
     <Card className={cn(
-      "relative overflow-hidden border transition-colors duration-500 bg-slate-900 p-8 rounded-[3rem] shadow-2xl h-full flex flex-col justify-center",
+      // ADICIONADO: transition-all, duration-300 e hover:scale-[1.02]
+      "relative overflow-hidden border transition-all duration-300 hover:scale-[1.02] hover:shadow-emerald-500/20 bg-slate-900 p-8 rounded-[3rem] shadow-2xl h-full flex flex-col justify-center",
       showLevelUp ? "border-amber-400 shadow-[0_0_40px_rgba(251,191,36,0.3)]" : "border-emerald-500/30"
     )}>
       <AnimatePresence>
@@ -314,7 +315,7 @@ export default function GamesPage() {
         <header className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div>
             <h1 className="text-4xl font-black tracking-tighter text-emerald-950">ECO<span className="text-emerald-500">PLAY</span></h1>
-            <p className="text-slate-500 font-medium italic">Sua jornada sustentável começa aqui.</p>
+            <p className="text-slate-500 font-medium italic">A aventura da sustentabilidade.</p>
           </div>
           <XPCounter value={totalXp} />
         </header>
@@ -397,7 +398,8 @@ export default function GamesPage() {
         <section className="grid lg:grid-cols-2 gap-8 items-stretch">
           <XPProgress xp={xpInCurrentLevel} xpNext={xpPerLevel} level={currentLevel} />
 
-          <Card className="bg-slate-900 border border-emerald-500/30 rounded-[3rem] p-8 shadow-2xl relative flex flex-col justify-center overflow-hidden min-h-[250px]">
+          {/* ADICIONADO: transition-all duration-300 hover:scale-[1.02] hover:shadow-emerald-500/20 na tag Card abaixo */}
+          <Card className="bg-slate-900 border border-emerald-500/30 rounded-[3rem] p-8 shadow-2xl relative flex flex-col justify-center overflow-hidden min-h-[250px] transition-all duration-300 hover:scale-[1.02] hover:shadow-emerald-500/20">
             <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 blur-[60px] rounded-full" />
             <div className="flex items-center justify-between mb-8 z-10">
               <h3 className="text-xl font-black text-white flex items-center gap-2">
@@ -426,8 +428,8 @@ export default function GamesPage() {
                             animate={{ opacity: 1, x: 0, scale: 1 }}
                             exit={{ opacity: 0, x: -50, scale: 0.8 }}
                             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                            whileHover={{ scale: 1.1, rotate: 5 }}
-                            className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-[2rem] bg-gradient-to-br from-white/10 to-white/5 border border-white/10 flex items-center justify-center cursor-pointer group hover:border-emerald-400 shadow-xl"
+                            whileHover={{ scale: 1.1, rotate: 2 }}
+                            className="flex-shrink-0 w-20 h-20 md:w-24 md:h-15 rounded-[2rem] bg-gradient-to-br from-white/10 to-white/5 border border-white/10 flex items-center justify-center cursor-pointer group hover:border-emerald-400 shadow-xl"
                           >
                             <badge.icon size={36} className="text-emerald-400 group-hover:text-white transition-colors" />
                           </motion.div>
