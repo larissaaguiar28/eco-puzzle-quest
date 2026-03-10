@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   TreePine, Recycle, Droplets, Wind, Leaf, Sun,
-  ChevronLeft, ChevronRight, Shield, Zap, Award, Trophy, Star, Sprout
+  ChevronLeft, ChevronRight, Shield, Zap, Award, Trophy, Star, Sprout,
+  Gamepad2, Flame // Ícones adicionados
 } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
@@ -34,7 +35,6 @@ const XPCounter = ({ value }: { value: number }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isChanging, setIsChanging] = useState(false);
 
-  // Dispara o feedback visual de "ganho" quando o valor muda
   useEffect(() => {
     setIsChanging(true);
     const timer = setTimeout(() => setIsChanging(false), 400);
@@ -90,7 +90,6 @@ const XPCounter = ({ value }: { value: number }) => {
           <Zap size={18} className={cn("transition-colors mr-1", isHovered ? "fill-white text-white" : "fill-emerald-500 text-emerald-500")} />
         </motion.div>
 
-        {/* ANIMAÇÃO MELHORADA DOS DÍGITOS */}
         <div className="flex h-[1.2em] items-center tabular-nums font-black overflow-hidden px-0.5">
           <AnimatePresence mode="popLayout" initial={false}>
             {digits.map((digit, index) => (
@@ -135,42 +134,171 @@ const XPCounter = ({ value }: { value: number }) => {
 };
 
 // --- COMPONENTE DE PROGRESSO ---
-const XPProgress = ({ xp, xpNext, level }: { xp: number; xpNext: number; level: number }) => {
+const XPProgress = ({ xp, xpNext, level, streak, matches }: { xp: number; xpNext: number; level: number; streak: number; matches: number }) => {
   const progress = (xp / xpNext) * 100;
+  const [showLevelUp, setShowLevelUp] = useState(false);
+  const [currentMessage, setCurrentMessage] = useState("");
+  const prevLevel = useRef(level);
+
+  // Lógica de crescimento e cor do foguinho
+  const getStreakConfig = (days: number) => {
+    if (days === 0) return { color: "text-slate-500", scale: 1, glow: "none" };
+    if (days < 3) return { color: "text-amber-400", scale: 1.1, glow: "drop-shadow(0 0 8px rgba(251, 191, 36, 0.4))" };
+    if (days < 7) return { color: "text-orange-500", scale: 1.25, glow: "drop-shadow(0 0 12px rgba(249, 115, 22, 0.6))" };
+    return { color: "text-red-500", scale: 1.4, glow: "drop-shadow(0 0 16px rgba(239, 68, 68, 0.8))" };
+  };
+
+  const streakConfig = getStreakConfig(streak);
+
+  const evolutionMessages = [
+    "🎉 Parabéns! Você está evoluindo!",
+    "🌿 Incrível! Sua consciência ambiental cresceu!",
+    "🚀 Nível mestre! O planeta agradece seu esforço!",
+    "✨ Evolução constante! Você é um verdadeiro guardião!",
+    "🏆 Novo patamar atingido! Continue transformando o mundo!",
+    "🌱 Semente germinada! Sua jornada está dando frutos!"
+  ];
+
+  useEffect(() => {
+    if (level > prevLevel.current) {
+      const randomIndex = Math.floor(Math.random() * evolutionMessages.length);
+      setCurrentMessage(evolutionMessages[randomIndex]);
+      
+      setShowLevelUp(true);
+      const timer = setTimeout(() => setShowLevelUp(false), 4000);
+      prevLevel.current = level;
+      return () => clearTimeout(timer);
+    }
+  }, [level]);
+
   return (
-    <Card className="relative overflow-hidden border border-emerald-500/30 bg-slate-900 p-8 rounded-[3rem] shadow-2xl h-full flex flex-col justify-center">
+    <Card className={cn(
+      "relative overflow-hidden border transition-all duration-300 hover:scale-[1.02] hover:shadow-emerald-500/20 bg-slate-900 p-8 rounded-[3rem] shadow-2xl h-full flex flex-col",
+      showLevelUp ? "border-amber-400 shadow-[0_0_40px_rgba(251,191,36,0.3)]" : "border-emerald-500/30"
+    )}>
+      <AnimatePresence>
+        {showLevelUp && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-gradient-to-r from-amber-500/20 to-emerald-500/20 blur-[100px] z-0"
+          />
+        )}
+      </AnimatePresence>
+
       <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-emerald-500/10 blur-[80px] rounded-full" />
-      <div className="relative z-10 flex flex-col md:flex-row items-center gap-6">
+      
+      {/* SEÇÃO SUPERIOR: XP e Nível */}
+      <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 mb-8 flex-1">
         <div className="relative shrink-0">
-          <svg className="w-24 h-24 transform -rotate-90">
+          <svg className="w-24 h-24 transform -rotate-90 overflow-visible">
             <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-white/5" />
             <motion.circle
               cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent"
               strokeDasharray="251.2"
               initial={{ strokeDashoffset: 251.2 }}
               animate={{ strokeDashoffset: 251.2 - (251.2 * progress) / 100 }}
-              transition={{ duration: 2, ease: "easeOut" }}
-              className="text-emerald-500"
+              transition={{ duration: 1, ease: "circOut" }}
+              className={cn("transition-colors duration-500", showLevelUp ? "text-amber-400" : "text-emerald-500")}
             />
+            
+            <AnimatePresence>
+              {showLevelUp && [...Array(12)].map((_, i) => (
+                <motion.circle
+                  key={i}
+                  cx="48" cy="48" r="2"
+                  fill="#fbbf24"
+                  initial={{ opacity: 1, x: 0, y: 0 }}
+                  animate={{ 
+                    opacity: 0, 
+                    x: Math.cos(i * 30 * Math.PI / 180) * 60,
+                    y: Math.sin(i * 30 * Math.PI / 180) * 60
+                  }}
+                  transition={{ duration: 1, ease: "easeOut" }}
+                />
+              ))}
+            </AnimatePresence>
           </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-2xl font-black text-white leading-none">{level}</span>
-            <span className="text-[10px] font-bold text-emerald-400 uppercase">Nível</span>
-          </div>
+
+          <motion.div 
+            animate={showLevelUp ? { scale: [1, 1.4, 1], rotate: [0, 10, -10, 0] } : {}}
+            className="absolute inset-0 flex flex-col items-center justify-center"
+          >
+            <span className={cn(
+              "text-2xl font-black leading-none transition-colors",
+              showLevelUp ? "text-amber-400" : "text-white"
+            )}>{level}</span>
+            <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-tighter">Nível</span>
+          </motion.div>
         </div>
+
         <div className="flex-1 space-y-4 text-center md:text-left w-full">
           <div className="flex justify-between items-end">
-            <h3 className="text-xl font-bold text-white flex items-center gap-2">
-              Semente de Herói <Sprout size={20} className="text-emerald-400" />
-            </h3>
-            <span className="text-sm font-bold text-emerald-400">{xp} / {xpNext} XP</span>
+            <motion.h3 
+              animate={showLevelUp ? { x: [0, 5, 0], color: ["#fff", "#fbbf24", "#fff"] } : {}}
+              className="text-xl font-bold text-white flex items-center gap-2 justify-center md:justify-start"
+            >
+              {showLevelUp ? "NÍVEL ALCANÇADO!" : "Semente de Herói"} 
+              <motion.div animate={showLevelUp ? { scale: [1, 1.5, 1], rotate: 360 } : {}}>
+                <Sprout size={20} className={showLevelUp ? "text-amber-400" : "text-emerald-400"} />
+              </motion.div>
+            </motion.h3>
+            <span className="text-sm font-bold text-emerald-400 hidden md:block">{xp} / {xpNext} XP</span>
           </div>
+
           <div className="h-4 w-full bg-white/5 rounded-full overflow-hidden border border-white/10 p-0.5">
             <motion.div 
               initial={{ width: 0 }} 
               animate={{ width: `${progress}%` }} 
-              className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full shadow-[0_0_15px_rgba(16,185,129,0.5)]" 
+              className={cn(
+                "h-full rounded-full shadow-[0_0_15px_rgba(16,185,129,0.5)] transition-all duration-500",
+                showLevelUp ? "bg-gradient-to-r from-amber-400 to-yellow-600 shadow-amber-500/50" : "bg-gradient-to-r from-emerald-500 to-teal-400"
+              )}
             />
+          </div>
+          
+          <AnimatePresence mode="wait">
+            {showLevelUp && (
+              <motion.p
+                key={currentMessage}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="text-xs font-black text-amber-400 uppercase tracking-widest text-center md:text-left"
+              >
+                {currentMessage}
+              </motion.p>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+
+      {/* SEÇÃO INFERIOR: Partidas e Sequência */}
+      <div className="relative z-10 pt-6 mt-auto border-t border-white/10 flex flex-wrap items-center justify-around md:justify-start gap-6 md:gap-12">
+        {/* Sequência (Foguinho) */}
+        <div className="flex items-center gap-3">
+          <motion.div 
+            animate={{ scale: streakConfig.scale }}
+            style={{ filter: streakConfig.glow }}
+            className={cn("p-2 rounded-xl bg-white/5", streakConfig.color)}
+          >
+            <Flame size={22} fill="currentColor" />
+          </motion.div>
+          <div className="flex flex-col">
+            <span className="text-[10px] font-black text-slate-400 uppercase leading-none mb-1">Sequência</span>
+            <span className={cn("text-lg font-black leading-none", streakConfig.color)}>{streak} dias</span>
+          </div>
+        </div>
+
+        {/* Partidas (Controle) */}
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-xl bg-white/5 text-emerald-400">
+            <Gamepad2 size={22} />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[10px] font-black text-slate-400 uppercase leading-none mb-1">Partidas</span>
+            <span className="text-lg font-black text-white leading-none">{matches} jogadas</span>
           </div>
         </div>
       </div>
@@ -182,15 +310,22 @@ const XPProgress = ({ xp, xpNext, level }: { xp: number; xpNext: number; level: 
 export default function GamesPage() {
   const [index, setIndex] = useState(0);
   const [badges, setBadges] = useState(INITIAL_BADGES);
+  
+  // Estados para gerenciar XP, partidas e dias de sequência
   const [totalXp, setTotalXp] = useState(2350);
+  const [matches, setMatches] = useState(12);
+  const [streakDays, setStreakDays] = useState(5); // Você pode alterar este valor para testar o foguinho!
+
   const featured = GAMES[index];
 
   const REWARD_XP = 120;
-  const xpNextLevel = 3000;
-  const currentLevel = Math.floor(totalXp / 400) + 1;
+  const xpPerLevel = 1000; 
+  const currentLevel = Math.floor(totalXp / xpPerLevel) + 1;
+  const xpInCurrentLevel = totalXp % xpPerLevel;
 
   const handleStartMission = () => {
     setTotalXp(prev => prev + REWARD_XP);
+    setMatches(prev => prev + 1); // Atualiza o contador de partidas
   };
 
   useEffect(() => {
@@ -221,11 +356,10 @@ export default function GamesPage() {
   return (
     <div className="min-h-screen bg-[#F0F7F4] p-4 md:p-10 font-sans text-slate-900 overflow-x-hidden">
       <div className="max-w-7xl mx-auto space-y-12">
-        
         <header className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div>
             <h1 className="text-4xl font-black tracking-tighter text-emerald-950">ECO<span className="text-emerald-500">PLAY</span></h1>
-            <p className="text-slate-500 font-medium italic">Sua jornada sustentável começa aqui.</p>
+            <p className="text-slate-500 font-medium italic">A aventura da sustentabilidade.</p>
           </div>
           <XPCounter value={totalXp} />
         </header>
@@ -306,9 +440,16 @@ export default function GamesPage() {
         </section>
 
         <section className="grid lg:grid-cols-2 gap-8 items-stretch">
-          <XPProgress xp={totalXp % xpNextLevel} xpNext={xpNextLevel} level={currentLevel} />
+          {/* Card de Progresso (XPProgress) agora com as novas props */}
+          <XPProgress 
+            xp={xpInCurrentLevel} 
+            xpNext={xpPerLevel} 
+            level={currentLevel} 
+            matches={matches} 
+            streak={streakDays} 
+          />
 
-          <Card className="bg-slate-900 border border-emerald-500/30 rounded-[3rem] p-8 shadow-2xl relative flex flex-col justify-center overflow-hidden min-h-[250px]">
+          <Card className="bg-slate-900 border border-emerald-500/30 rounded-[3rem] p-8 shadow-2xl relative flex flex-col justify-center overflow-hidden min-h-[250px] transition-all duration-300 hover:scale-[1.02] hover:shadow-emerald-500/20">
             <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 blur-[60px] rounded-full" />
             <div className="flex items-center justify-between mb-8 z-10">
               <h3 className="text-xl font-black text-white flex items-center gap-2">
@@ -337,8 +478,8 @@ export default function GamesPage() {
                             animate={{ opacity: 1, x: 0, scale: 1 }}
                             exit={{ opacity: 0, x: -50, scale: 0.8 }}
                             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                            whileHover={{ scale: 1.1, rotate: 5 }}
-                            className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-[2rem] bg-gradient-to-br from-white/10 to-white/5 border border-white/10 flex items-center justify-center cursor-pointer group hover:border-emerald-400 shadow-xl"
+                            whileHover={{ scale: 1.1, rotate: 2 }}
+                            className="flex-shrink-0 w-20 h-20 md:w-24 md:h-15 rounded-[2rem] bg-gradient-to-br from-white/10 to-white/5 border border-white/10 flex items-center justify-center cursor-pointer group hover:border-emerald-400 shadow-xl"
                           >
                             <badge.icon size={36} className="text-emerald-400 group-hover:text-white transition-colors" />
                           </motion.div>
