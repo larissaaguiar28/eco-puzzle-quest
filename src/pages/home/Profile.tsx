@@ -201,7 +201,7 @@ export default function Profile() {
                       {isSelected && <Check size={16} className="animate-in zoom-in" />}
                     </button>
                   );
-                })}
+                })} 
               </div>
             </CardContent>
           </Card>
