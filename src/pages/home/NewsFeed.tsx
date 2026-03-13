@@ -1,8 +1,11 @@
+"use client";
+
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ThumbsUp, Heart, Lightbulb, MessageCircle, Share2,
-  CloudRain, Landmark, TreePine, MapPin, Search, Leaf, Sun, LucideIcon, Send
+  CloudRain, Landmark, TreePine, MapPin, Search, Leaf, Sun, LucideIcon, Send,
+  Activity, ArrowUpRight
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 
-// --- INTERFACES ---
+// --- INTERFACES (Mantidas) ---
 interface NewsItem {
   id: number;
   title: string;
@@ -31,8 +34,7 @@ interface SidebarItem {
   bg: string;
 }
 
-// --- DADOS ---
-// Ajustei as categorias para baterem exatamente com os nomes da Sidebar
+// --- DADOS (Mantidos) ---
 const newsData: NewsItem[] = [
   {
     id: 1,
@@ -44,7 +46,7 @@ const newsData: NewsItem[] = [
     date: "05 Mar 2026",
     location: "Nordeste, BR",
     likes: 342,
-    gradient: "from-yellow-400 via-amber-400 to-orange-500" 
+    gradient: "from-amber-500 to-orange-600" 
   },
   {
     id: 2,
@@ -56,7 +58,7 @@ const newsData: NewsItem[] = [
     date: "04 Mar 2026",
     location: "Rio de Janeiro, BR",
     likes: 289,
-    gradient: "from-cyan-400 to-teal-500" 
+    gradient: "from-cyan-500 to-blue-600" 
   },
   {
     id: 3,
@@ -68,24 +70,23 @@ const newsData: NewsItem[] = [
     date: "02 Mar 2026",
     location: "São Paulo, BR",
     likes: 512,
-    gradient: "from-lime-400 to-green-500" 
+    gradient: "from-emerald-500 to-green-600" 
   }
 ];
 
 const sidebarItems: SidebarItem[] = [
-  { label: "Energia Solar", icon: Sun, color: "text-amber-500", bg: "hover:bg-amber-50" },
-  { label: "Clima", icon: CloudRain, color: "text-cyan-500", bg: "hover:bg-cyan-50" },
-  { label: "Políticas", icon: Landmark, color: "text-indigo-500", bg: "hover:bg-indigo-50" },
-  { label: "Inovação", icon: Lightbulb, color: "text-yellow-500", bg: "hover:bg-yellow-50" },
-  { label: "Conservação", icon: TreePine, color: "text-green-500", bg: "hover:bg-green-50" },
+  { label: "Energia Solar", icon: Sun, color: "text-amber-400", bg: "hover:bg-amber-400/10" },
+  { label: "Clima", icon: CloudRain, color: "text-cyan-400", bg: "hover:bg-cyan-400/10" },
+  { label: "Políticas", icon: Landmark, color: "text-indigo-400", bg: "hover:bg-indigo-400/10" },
+  { label: "Inovação", icon: Lightbulb, color: "text-yellow-400", bg: "hover:bg-yellow-400/10" },
+  { label: "Conservação", icon: TreePine, color: "text-emerald-400", bg: "hover:bg-emerald-400/10" },
 ];
 
-// --- COMPONENTE DE NOTÍCIA INDIVIDUAL ---
+// --- COMPONENTE DE NOTÍCIA INDIVIDUAL (DESIGN ATUALIZADO) ---
 const NewsCard = ({ item }: { item: NewsItem }) => {
   const [likes, setLikes] = useState(item.likes);
   const [hearts, setHearts] = useState(Math.floor(item.likes / 3));
   const [ideas, setIdeas] = useState(Math.floor(item.likes / 5));
-  
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState<{id: number, text: string}[]>([]);
   const [newComment, setNewComment] = useState("");
@@ -99,97 +100,95 @@ const NewsCard = ({ item }: { item: NewsItem }) => {
   };
 
   return (
-    <Card className="rounded-3xl overflow-hidden border-none shadow-sm hover:shadow-xl transition-all duration-300 bg-white">
-      <div className={`h-48 bg-gradient-to-r ${item.gradient} relative`}>
-        <Badge className="absolute top-4 left-4 bg-white/90 text-teal-900 rounded-full px-4 py-1 font-bold shadow-sm backdrop-blur-md border-none">
+    <Card className="rounded-[2.5rem] overflow-hidden border border-white/5 bg-slate-900/40 backdrop-blur-xl shadow-2xl group transition-all duration-500 hover:border-white/10">
+      <div className={`h-40 bg-gradient-to-br ${item.gradient} relative overflow-hidden`}>
+        <div className="absolute inset-0 bg-black/20" />
+        <Badge className="absolute top-6 left-6 bg-black/40 text-white backdrop-blur-md border border-white/10 rounded-xl px-4 py-1.5 font-black uppercase italic tracking-tighter">
           {item.category}
         </Badge>
+        <ArrowUpRight className="absolute top-6 right-6 text-white/50 group-hover:text-white transition-colors" size={24} />
       </div>
 
-      <CardContent className="p-8 space-y-5">
-        <div>
-          <h3 className="text-2xl font-extrabold text-gray-800 leading-tight hover:text-teal-600 transition-colors cursor-pointer">
+      <CardContent className="p-8 space-y-6">
+        <div className="space-y-3">
+          <h3 className="text-3xl font-black text-white leading-[0.9] uppercase italic tracking-tighter group-hover:text-emerald-400 transition-colors cursor-pointer">
             {item.title}
           </h3>
-          <p className="text-base font-medium text-teal-600 mt-2">{item.summary}</p>
+          <p className="text-emerald-400/80 font-bold text-sm uppercase tracking-wider italic">{item.summary}</p>
         </div>
 
-        <div className="flex items-center gap-4 text-xs text-gray-500 font-medium">
-          <div className="flex items-center gap-2">
-            <Avatar className="h-8 w-8 ring-2 ring-teal-100">
-              <AvatarFallback className="bg-teal-100 text-teal-800 text-xs font-extrabold">
-                {item.author.substring(0,2).toUpperCase()}
+        <div className="flex flex-wrap items-center gap-4 text-[10px] font-black uppercase tracking-widest">
+          <div className="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
+            <Avatar className="h-5 w-5 ring-1 ring-emerald-500/50">
+              <AvatarFallback className="bg-emerald-500 text-black text-[8px] font-black uppercase">
+                {item.author.substring(0,2)}
               </AvatarFallback>
             </Avatar>
-            <span className="text-gray-700">{item.author}</span>
+            <span className="text-slate-300">{item.author}</span>
           </div>
-          <span className="w-1 h-1 rounded-full bg-gray-300"></span>
-          <span>{item.date}</span>
-          <span className="w-1 h-1 rounded-full bg-gray-300"></span>
-          <span className="flex items-center gap-1 text-teal-600 bg-teal-50 px-2 py-1 rounded-md">
-            <MapPin size={14} /> {item.location}
+          <span className="text-slate-600">{item.date}</span>
+          <span className="flex items-center gap-1.5 text-cyan-400 bg-cyan-400/10 px-3 py-1.5 rounded-full border border-cyan-400/20">
+            <MapPin size={12} /> {item.location}
           </span>
         </div>
 
-        <p className="text-gray-600 leading-relaxed text-sm">{item.content}</p>
+        <p className="text-slate-400 leading-relaxed text-sm font-medium">{item.content}</p>
 
-        <div className="flex items-center gap-3 pt-5 border-t border-gray-100">
+        {/* ACTIONS BAR */}
+        <div className="flex flex-wrap items-center gap-3 pt-6 border-t border-white/5">
           <button 
             onClick={() => setLikes(likes + 1)}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-transform active:scale-90"
+            className="flex items-center gap-2 px-4 py-2 text-[10px] font-black rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 transition-all uppercase italic tracking-widest active:scale-95"
           >
-            <ThumbsUp size={16} /> {likes}
+            <ThumbsUp size={14} /> {likes}
           </button>
           <button 
             onClick={() => setHearts(hearts + 1)}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-full bg-rose-50 text-rose-500 hover:bg-rose-100 transition-transform active:scale-90"
+            className="flex items-center gap-2 px-4 py-2 text-[10px] font-black rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20 hover:bg-rose-500/20 transition-all uppercase italic tracking-widest active:scale-95"
           >
-            <Heart size={16} /> {hearts}
+            <Heart size={14} /> {hearts}
           </button>
           <button 
             onClick={() => setIdeas(ideas + 1)}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-full bg-yellow-50 text-yellow-600 hover:bg-yellow-100 transition-transform active:scale-90"
+            className="flex items-center gap-2 px-4 py-2 text-[10px] font-black rounded-xl bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 hover:bg-yellow-500/20 transition-all uppercase italic tracking-widest active:scale-95"
           >
-            <Lightbulb size={16} /> {ideas}
+            <Lightbulb size={14} /> {ideas}
           </button>
           
           <div className="flex-1" />
           
           <button 
             onClick={() => setShowComments(!showComments)}
-            className={`p-2.5 rounded-full transition-colors ${showComments ? 'bg-teal-100 text-teal-600' : 'text-gray-400 hover:text-teal-600 hover:bg-teal-50'}`}
+            className={`p-3 rounded-xl transition-all border ${showComments ? 'bg-emerald-500 text-black border-emerald-500' : 'bg-white/5 text-slate-400 border-white/5 hover:text-white hover:bg-white/10'}`}
           >
-            <MessageCircle size={20} />
-          </button>
-          <button className="p-2.5 rounded-full text-gray-400 hover:text-teal-600 hover:bg-teal-50 transition-colors">
-            <Share2 size={20} />
+            <MessageCircle size={18} />
           </button>
         </div>
 
         <AnimatePresence>
           {showComments && (
             <motion.div 
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="space-y-4 pt-4 border-t border-gray-50"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="space-y-4 pt-4"
             >
               <form onSubmit={handleAddComment} className="flex gap-2">
                 <Input 
-                  placeholder="Deixe um comentário positivo..." 
+                  placeholder="DIGITE SEU LOG..." 
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
-                  className="rounded-full border-teal-100 focus-visible:ring-teal-500 text-sm"
+                  className="rounded-xl border-white/10 bg-black/20 text-white focus-visible:ring-emerald-500 text-xs font-bold uppercase tracking-widest"
                 />
-                <Button size="icon" type="submit" className="rounded-full bg-teal-600 hover:bg-teal-700 shrink-0">
+                <Button size="icon" type="submit" className="rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black shrink-0">
                   <Send size={16} />
                 </Button>
               </form>
               
-              <div className="max-h-40 overflow-y-auto space-y-2 pr-1">
+              <div className="max-h-40 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
                 {comments.map((c) => (
-                  <div key={c.id} className="bg-gray-50 p-3 rounded-2xl text-xs text-gray-700 border border-gray-100">
-                    <span className="font-bold text-teal-700">Você: </span>{c.text}
+                  <div key={c.id} className="bg-white/5 p-3 rounded-xl text-[10px] font-bold text-slate-300 border border-white/5 tracking-wider uppercase">
+                    <span className="text-emerald-400 italic">User_Log: </span>{c.text}
                   </div>
                 ))}
               </div>
@@ -204,10 +203,8 @@ const NewsCard = ({ item }: { item: NewsItem }) => {
 // --- COMPONENTE PRINCIPAL ---
 export default function SustainableNewsFeed() {
   const [searchQuery, setSearchQuery] = useState<string>("");
-  // Estado para a categoria ativa
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  // Filtro que une a busca por texto + a categoria clicada na sidebar
   const filteredNews = newsData.filter((item) => {
     const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory ? item.category === selectedCategory : true;
@@ -215,64 +212,80 @@ export default function SustainableNewsFeed() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-green-50 to-yellow-50 text-foreground">
-      <header className="sticky top-0 z-40 backdrop-blur-md bg-white/70 border-b border-green-200">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => setSelectedCategory(null)}>
-            <div className="bg-gradient-to-tr from-green-500 to-teal-400 text-white p-2.5 rounded-2xl shadow-lg shadow-green-200">
-              <Leaf size={24} />
+    <div className="min-h-screen bg-[#020617] text-slate-300 font-sans selection:bg-emerald-500/30 overflow-x-hidden">
+      
+      {/* BACKGROUND ELEMENTS */}
+      <div className="fixed inset-0 -z-10">
+        <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-emerald-900/10 blur-[140px] rounded-full" />
+        <div className="absolute bottom-0 right-0 w-[40%] h-[40%] bg-blue-900/10 blur-[120px] rounded-full" />
+      </div>
+
+      <header className="sticky top-0 z-40 backdrop-blur-2xl bg-[#020617]/80 border-b border-white/5">
+        <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+          <div className="flex items-center gap-4 cursor-pointer group" onClick={() => setSelectedCategory(null)}>
+            <div className="bg-emerald-500 p-2.5 rounded-2xl shadow-lg shadow-emerald-500/20 group-hover:rotate-12 transition-transform">
+              <Leaf size={24} className="text-black" />
             </div>
             <div>
-              <h1 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-teal-700 to-green-600">Eco'S</h1>
-              <p className="text-xs font-medium text-teal-600">Notícias para um futuro brilhante</p>
+              <h1 className="text-2xl font-black text-white uppercase italic tracking-tighter leading-none">Eco'S <span className="text-emerald-500">FEED+</span></h1>
+              <p className="text-[10px] font-black text-emerald-500/60 uppercase tracking-[0.3em]">Broadcast Sustentável</p>
             </div>
           </div>
 
-          <div className="relative w-72 hidden md:block">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-teal-400" size={16} />
+          <div className="relative w-80 hidden md:block">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-500/50" size={16} />
             <Input
-              placeholder="Buscar boas notícias..."
+              placeholder="PESQUISAR DATABASE..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 rounded-full border-teal-200 bg-white/80 focus-visible:ring-teal-500 shadow-sm"
+              className="pl-11 rounded-xl border-white/10 bg-white/5 focus-visible:ring-emerald-500 text-xs font-black tracking-widest text-white uppercase placeholder:text-slate-600"
             />
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8 px-6 py-8">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8 px-6 py-10">
+        {/* SIDEBAR */}
         <aside className="hidden lg:block col-span-1">
-          <Card className="rounded-3xl border-none shadow-sm bg-white/80 backdrop-blur-sm sticky top-24">
-            <CardContent className="p-6 space-y-4">
-              <h2 className="text-sm font-bold text-teal-800 uppercase tracking-wider">Explorar</h2>
-              {sidebarItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = selectedCategory === item.label;
-                return (
-                  <button 
-                    key={item.label} 
-                    onClick={() => setSelectedCategory(isActive ? null : item.label)}
-                    className={`flex items-center gap-3 w-full px-4 py-3 rounded-2xl text-sm font-semibold transition-all duration-200 
-                    ${isActive ? 'bg-teal-100 text-teal-800 shadow-inner' : `text-gray-700 ${item.bg}`}`}
-                  >
-                    <Icon size={20} className={item.color} />
-                    {item.label}
-                  </button>
-                );
-              })}
-            </CardContent>
-          </Card>
+          <div className="sticky top-32 space-y-6">
+            <div className="bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[2rem] p-6 space-y-4 shadow-xl">
+              <h2 className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+                <Activity size={14} /> Filtros de Campo
+              </h2>
+              <div className="space-y-2">
+                {sidebarItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = selectedCategory === item.label;
+                  return (
+                    <button 
+                      key={item.label} 
+                      onClick={() => setSelectedCategory(isActive ? null : item.label)}
+                      className={`flex items-center gap-3 w-full px-5 py-3.5 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 border
+                      ${isActive 
+                        ? 'bg-emerald-500 text-black border-emerald-500 shadow-lg shadow-emerald-500/20 italic' 
+                        : `text-slate-400 border-transparent hover:border-white/10 ${item.bg}`}`}
+                    >
+                      <Icon size={18} className={isActive ? 'text-black' : item.color} />
+                      {item.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
         </aside>
 
-        <main className="col-span-1 lg:col-span-3 space-y-8">
+        {/* FEED */}
+        <main className="col-span-1 lg:col-span-3 space-y-10">
           <AnimatePresence mode="popLayout">
             {filteredNews.map((item) => (
               <motion.div 
                 key={item.id} 
-                layout // Faz os cards deslizarem suavemente ao filtrar
-                initial={{ opacity: 0, y: 20 }} 
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
+                layout
+                initial={{ opacity: 0, scale: 0.95 }} 
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.4 }}
               >
                 <NewsCard item={item} />
               </motion.div>
@@ -280,12 +293,12 @@ export default function SustainableNewsFeed() {
           </AnimatePresence>
           
           {filteredNews.length === 0 && (
-            <div className="text-center py-20 bg-white/50 rounded-3xl border-2 border-dashed border-teal-200">
-               <p className="text-teal-800 font-medium">Nenhuma notícia encontrada nesta categoria.</p>
-               <Button variant="link" onClick={() => setSelectedCategory(null)} className="text-teal-600">Ver todas as notícias</Button>
+            <div className="text-center py-32 bg-slate-900/20 rounded-[3rem] border-2 border-dashed border-white/5 backdrop-blur-sm">
+               <p className="text-slate-500 font-black uppercase tracking-widest text-xs italic">Nenhum registro encontrado no Database</p>
+               <Button variant="link" onClick={() => setSelectedCategory(null)} className="text-emerald-400 uppercase font-black text-[10px] tracking-widest mt-4">Resetar Conexão</Button>
             </div>
           )}
-</main>
+        </main>
       </div>
     </div>
   );
