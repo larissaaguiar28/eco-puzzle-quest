@@ -1,49 +1,78 @@
 
+# Atualização de 3 Páginas: Feed, Jogos e Perfil
 
-# Plano: Integrar IA real no EcoBot (Lovable AI Gateway)
+## 1. Feed de Noticias - Redesign Completo
 
-## Objetivo
-Substituir as respostas hardcoded do EcoBot por respostas reais usando o Lovable AI Gateway (Gemini), permitindo conversas sobre qualquer assunto.
+**Mudancas na estrutura de dados:**
+- Adicionar campos: `subtitle`, `location`, `imageUrl` (placeholder) a cada noticia
+- Todos os autores passam a ser "Eco'S" com iniciais "ES"
+- Manter campos existentes: title, summary, date, category, reactions, comments
 
-## Arquitetura
+**Novo layout de cada card de noticia:**
+- Area de imagem placeholder no topo (fundo cinza com icone de imagem, altura fixa ~200px)
+- Badge de categoria no canto da imagem
+- Abaixo da imagem: titulo em destaque (font-bold, text-lg)
+- Subtitulo em texto medio (text-sm, muted)
+- Linha com autor "Eco'S" + data + localizacao (com icone MapPin)
+- Resumo/descricao do conteudo
+- Barra de reacoes e comentarios (manter logica existente)
 
-```text
-FloatingChatbot / Chatbot.tsx
-        ↓
-   ChatContext.tsx (sendMessage)
-        ↓
-   Supabase Edge Function (chat)
-        ↓
-   Lovable AI Gateway (Gemini 3 Flash)
-        ↓
-   Streaming de resposta → UI
-```
+**Filtro por palavras-chave:**
+- Adicionar campo de busca (Input com icone Search) acima do feed
+- Filtrar dinamicamente por titulo, subtitulo e resumo
+- Combinar com filtro de categoria existente
+- Responsivo: funciona em mobile e desktop
 
-## Etapas
+**Dados das noticias atualizados:**
+- Adicionar subtitulo e localizacao a todas as 6 noticias existentes
 
-### 1. Criar Edge Function `supabase/functions/chat/index.ts`
-- Recebe o histórico de mensagens do frontend
-- Adiciona system prompt de sustentabilidade: "Você é o EcoBot, um assistente especializado em sustentabilidade e meio ambiente. Responda em português."
-- Chama `https://ai.gateway.lovable.dev/v1/chat/completions` com streaming
-- Usa `LOVABLE_API_KEY` (já disponível) para autenticação
-- Trata erros 429 (rate limit) e 402 (créditos)
+## 2. Pagina de Jogos - Redesign Gamer Premium
 
-### 2. Configurar `supabase/config.toml`
-- Adicionar entry para a função `chat` com `verify_jwt = false`
+**Secao Hero com Carrossel (topo):**
+- Carrossel ocupando ~60% da largura (lado esquerdo) com jogos ficticios
+- Cada slide: imagem placeholder com overlay escuro em degrade, titulo e descricao do jogo
+- Indicadores de slide (bolinhas) abaixo do carrossel
+- Transicao suave automatica + manual
+- Lado direito (~40%): card de "jogo em destaque" ou informacao adicional
 
-### 3. Atualizar `ChatContext.tsx`
-- Remover respostas hardcoded (`getReply`, objeto `responses`)
-- Implementar chamada streaming à edge function via `fetch`
-- Processar tokens SSE e atualizar a mensagem do bot progressivamente
-- Manter interface existente (`messages`, `typing`, `sendMessage`, `addBotMessage`, `clearChat`)
+**Secao de Perfil do Jogador (abaixo):**
+- Avatar do usuario com nome da conta
+- Nivel da conta com barra de progresso visual (Progress component)
+- XP atual / XP necessario para proximo nivel
+- Layout em card com bordas arredondadas (rounded-2xl)
 
-### 4. Componentes que usam o contexto
-- **FloatingChatbot.tsx** e **Chatbot.tsx** já consomem `useChatContext()` — não precisam de alteração, pois a interface do contexto permanece a mesma
-- A mudança é transparente para os componentes de UI
+**Insignias do Jogador:**
+- Icones circulares em linha horizontal
+- Cada insignia com icone, nome e tooltip (usando Tooltip component existente)
+- Scroll lateral se necessario (overflow-x-auto)
+- Insignias tematicas de sustentabilidade (ex: Guardiao da Floresta, Mestre da Reciclagem)
 
-## Detalhes técnicos
-- Modelo: `google/gemini-3-flash-preview` (rápido e gratuito incluído)
-- System prompt no backend (nunca no cliente)
-- Histórico completo enviado a cada requisição para manter contexto da conversa
-- Streaming token-by-token para UX responsiva
+**Design geral:**
+- Bordas arredondadas (16px), sombras suaves
+- Estetica gamer premium com animacoes framer-motion
+- Efeitos hover elegantes nos cards
+- Responsivo desktop-first
 
+## 3. Pagina de Perfil - Fundo Gradiente
+
+**Fundo da pagina:**
+- Gradiente vertical de 3 cores:
+  - Topo: bege (#d4a373 / beige-start)
+  - Meio: azul celeste (#87CEEB / light sky blue)
+  - Baixo: verde fantasma (~#c8e6c9 / ghost green)
+- Aplicado como background no container principal
+- Cards mantem fundo branco/card para contraste e legibilidade
+
+## Detalhes Tecnicos
+
+**Arquivos modificados:**
+- `src/pages/home/NewsFeed.tsx` - Redesign completo com busca, novos campos, layout profissional
+- `src/pages/home/Games.tsx` - Reescrita total com carrossel, perfil gamer, insignias
+- `src/pages/home/Profile.tsx` - Adicionar gradiente de fundo tricolor
+
+**Dependencias utilizadas (ja instaladas):**
+- framer-motion (animacoes e carrossel)
+- lucide-react (icones)
+- recharts (nao necessario aqui)
+- Radix UI Tooltip, Progress (ja disponiveis)
+- embla-carousel-react (disponivel mas usarei framer-motion para simplicidade)

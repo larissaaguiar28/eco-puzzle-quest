@@ -1,43 +1,14 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, RefreshCw, Lightbulb, Info, Paperclip } from "lucide-react";
+import { Send, RefreshCw, Paperclip } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useChatContext } from "@/contexts/ChatContext";
 
-const suggestions = ["Energia renovável", "Reciclagem", "Mudanças climáticas"];
-
-const tips = [
-  "💧 Feche a torneira enquanto escova os dentes.",
-  "🚲 Prefira caminhar ou usar bicicleta.",
-  "🔌 Tire aparelhos da tomada quando não estiver usando.",
-  "🛍️ Use sacolas reutilizáveis.",
-];
-
-const facts = [
-  "🌎 Uma garrafa plástica pode levar até 400 anos para se decompor.",
-  "🌳 Uma árvore adulta pode absorver até 22kg de CO₂ por ano.",
-  "💡 Lâmpadas LED economizam até 80% de energia.",
-  "♻️ Reciclar alumínio economiza 95% de energia.",
-];
-
-function Typewriter({ text }: { text: string }) {
-  const [displayed, setDisplayed] = useState("");
-  useEffect(() => {
-    let i = 0;
-    const interval = setInterval(() => {
-      setDisplayed(text.slice(0, i));
-      i++;
-      if (i > text.length) clearInterval(interval);
-    }, 15);
-    return () => clearInterval(interval);
-  }, [text]);
-  return <span>{displayed}</span>;
-}
-
 export default function EcoChat() {
-  const { messages, typing, sendMessage, addBotMessage, clearChat } = useChatContext();
+  const { messages, typing, sendMessage, clearChat } = useChatContext();
   const [input, setInput] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -57,8 +28,8 @@ export default function EcoChat() {
     }
   };
 
-  const send = (textOverride?: string) => {
-    const text = textOverride || input;
+  const send = () => {
+    const text = input;
     if ((!text.trim() && !selectedFile) || typing) return;
 
     let fileData;
@@ -71,9 +42,6 @@ export default function EcoChat() {
     setSelectedFile(null);
   };
 
-  const sendTip = () => addBotMessage(tips[Math.floor(Math.random() * tips.length)]);
-  const sendFact = () => addBotMessage(facts[Math.floor(Math.random() * facts.length)]);
-
   return (
     <div className="h-screen flex items-center justify-center bg-gradient-to-br from-emerald-200 via-green-100 to-teal-200 p-4">
       <div className="w-full max-w-4xl h-[90vh] bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl flex flex-col overflow-hidden">
@@ -85,7 +53,7 @@ export default function EcoChat() {
             </div>
             <div>
               <h1 className="font-semibold">EcoBot</h1>
-              <p className="text-xs opacity-90">Online</p>
+              <p className="text-xs opacity-90">{typing ? "Digitando..." : "Online"}</p>
             </div>
           </div>
           <button onClick={clearChat}><RefreshCw size={18} /></button>
@@ -109,7 +77,13 @@ export default function EcoChat() {
                       ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-br-none"
                       : "bg-white text-gray-800 border rounded-bl-none"
                   )}>
-                    {msg.sender === "bot" ? <Typewriter text={msg.text} /> : msg.text}
+                    {isUser ? (
+                      msg.text
+                    ) : (
+                      <div className="prose prose-sm prose-green max-w-none [&>p]:mb-1 [&>p:last-child]:mb-0">
+                        <ReactMarkdown>{msg.text}</ReactMarkdown>
+                      </div>
+                    )}
                     {msg.file && (
                       <div className="mt-3">
                         {msg.file.type.startsWith("image/") ? (
@@ -127,23 +101,8 @@ export default function EcoChat() {
               );
             })}
           </AnimatePresence>
-          {typing && <div className="text-sm text-green-600">EcoBot está digitando...</div>}
+          {typing && <div className="text-sm text-green-600 animate-pulse">EcoBot está pensando...</div>}
           <div ref={bottomRef} />
-        </div>
-
-        {/* Quick actions */}
-        <div className="px-6 pb-2 flex gap-2 flex-wrap">
-          {suggestions.map((sug) => (
-            <button key={sug} onClick={() => send(sug)} className="text-xs bg-green-100 hover:bg-green-200 text-green-700 px-3 py-1 rounded-full transition">
-              {sug}
-            </button>
-          ))}
-          <button onClick={sendTip} className="text-xs bg-yellow-100 hover:bg-yellow-200 text-yellow-700 px-3 py-1 rounded-full flex items-center gap-1">
-            <Lightbulb size={14} /> Dica
-          </button>
-          <button onClick={sendFact} className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded-full flex items-center gap-1">
-            <Info size={14} /> Curiosidade
-          </button>
         </div>
 
         {/* Input */}
@@ -155,14 +114,14 @@ export default function EcoChat() {
               <Paperclip size={18} />
             </Button>
             <Input
-              placeholder="Digite sua mensagem..."
+              placeholder="Pergunte qualquer coisa ao EcoBot..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && send()}
               className="rounded-full"
             />
             <Button
-              onClick={() => send()}
+              onClick={send}
               disabled={(!input.trim() && !selectedFile) || typing}
               className="rounded-full bg-gradient-to-r from-green-500 to-emerald-600"
             >
