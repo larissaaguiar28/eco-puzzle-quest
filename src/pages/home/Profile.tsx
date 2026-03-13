@@ -39,6 +39,9 @@ export default function Profile() {
   });
 
   const [currentDate, setCurrentDate] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [savedStatus, setSavedStatus] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const now = new Date();
@@ -46,10 +49,6 @@ export default function Profile() {
     const formatted = `${now.getDate().toString().padStart(2, '0')}.${(now.getMonth() + 1).toString().padStart(2, '0')}.${now.getFullYear()} // ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
     setCurrentDate(formatted);
   }, []);
-
-  const [isSaving, setIsSaving] = useState(false);
-  const [savedStatus, setSavedStatus] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Sincroniza o email se o usuário estiver logado
   useEffect(() => {
