@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import supabase from "../../../utils/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface UserProfile {
   name: string;
@@ -27,12 +29,15 @@ const INTEREST_OPTIONS = [
 ] as const;
 
 export default function Profile() {
+  const { user } = useAuth();
+  const randomId = Math.floor(1000 + Math.random() * 9000);
+
   const [profile, setProfile] = useState<UserProfile>({
-    name: "Eco Guardião",
-    email: "contato@ecos.com",
-    location: "São Paulo, BR",
-    bio: "Trabalhando por um futuro onde a tecnologia e a natureza coexistam em harmonia.",
-    interests: ["Energia Solar", "Biodiversidade"],
+    name: `Eco Guardião${randomId}`,
+    email: "cseuEmail@gmail.com",
+    location: "Cidade, Estado",
+    bio: "Clique aqui para escrever sua bio e começar sua missão!",
+    interests: [],
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -64,7 +69,14 @@ export default function Profile() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    const data = { ...profile, user_id: user?.id }
+    const { error } = await supabase.from('profiles').insert(data);
+
+    if (error) {
+      alert(error.message)
+      return
+    } else alert("Cadastro realizado com sucesso!")
+
     setIsSaving(false);
     setSavedStatus(true);
     setTimeout(() => setSavedStatus(false), 3000);
@@ -201,7 +213,7 @@ export default function Profile() {
                       {isSelected && <Check size={16} className="animate-in zoom-in" />}
                     </button>
                   );
-                })} 
+                })}
               </div>
             </CardContent>
           </Card>
