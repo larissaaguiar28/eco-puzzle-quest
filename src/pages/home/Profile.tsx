@@ -11,10 +11,13 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import supabase from "../../../utils/supabase";
+import { useAuth } from "../../contexts/AuthContext";
+
 
 interface UserProfile {
-  name: string;
-  email: string;
+  name?: string;
+  email?: string;
   location: string;
   bio: string;
   avatarUrl?: string;
@@ -27,6 +30,7 @@ const INTEREST_OPTIONS = [
 ] as const;
 
 export default function Profile() {
+  const {user, signOutUser}=useAuth();
   const [profile, setProfile] = useState<UserProfile>({
     name: "Eco Guardião",
     email: "contato@ecos.com",
@@ -39,10 +43,7 @@ export default function Profile() {
   const [savedStatus, setSavedStatus] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setProfile((prev) => ({ ...prev, [name]: value }));
-  };
+ 
 
   const toggleInterest = (interest: string) => {
     setProfile((prev) => ({
@@ -61,13 +62,18 @@ export default function Profile() {
       reader.readAsDataURL(file);
     }
   };
-
+ 
   const handleSave = async () => {
-    setIsSaving(true);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setIsSaving(false);
-    setSavedStatus(true);
-    setTimeout(() => setSavedStatus(false), 3000);
+    const data= {...profile, user_id: user?.id}
+    const {error}=await supabase.from('profiles')
+    .insert(data);
+
+    if (error){
+      alert(error.message);
+      return
+    }
+    alert ('Cadastrado com sucesso')
+  
   };
 
   return (
@@ -142,7 +148,9 @@ export default function Profile() {
                   <Input
                     name="name"
                     value={profile.name}
-                    onChange={handleInputChange}
+                    onChange={(e)=>setProfile ({...profile, name: e.target.value
+                    })}
+
                     className="h-12 bg-slate-50/50 border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20 text-slate-900 rounded-xl"
                   />
                 </FormField>
@@ -151,7 +159,7 @@ export default function Profile() {
                   <Input
                     name="email"
                     value={profile.email}
-                    onChange={handleInputChange}
+                    onChange={(e)=>setProfile ({...profile, email: e.target.value})}
                     className="h-12 bg-slate-50/50 border-slate-200 focus:border-emerald-500 text-slate-900 rounded-xl"
                   />
                 </FormField>
@@ -160,7 +168,8 @@ export default function Profile() {
                   <Input
                     name="location"
                     value={profile.location}
-                    onChange={handleInputChange}
+                   onChange={(e)=>setProfile ({...profile, location: e.target.value
+                    })}
                     className="h-12 bg-slate-50/50 border-slate-200 focus:border-emerald-500 text-slate-900 rounded-xl"
                   />
                 </FormField>
@@ -169,7 +178,9 @@ export default function Profile() {
                   <Input
                     name="bio"
                     value={profile.bio}
-                    onChange={handleInputChange}
+                   onChange={(e)=>setProfile ({...profile, bio: e.target.value
+                    })}
+                    
                     className="h-12 bg-slate-50/50 border-slate-200 focus:border-emerald-500 text-slate-900 rounded-xl"
                   />
                 </FormField>
