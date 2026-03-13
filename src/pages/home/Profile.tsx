@@ -30,13 +30,15 @@ const INTEREST_OPTIONS = [
 ] as const;
 
 export default function Profile() {
+  const randomNumber = Math.floor(1000 + Math.random() * 9000);
+
   const {user, signOutUser}=useAuth();
   const [profile, setProfile] = useState<UserProfile>({
-    name: "Eco Guardião",
-    email: "contato@ecos.com",
-    location: "São Paulo, BR",
-    bio: "Trabalhando por um futuro onde a tecnologia e a natureza coexistam em harmonia.",
-    interests: ["Energia Solar", "Biodiversidade"],
+    name: `Eco Guardião${randomNumber}`,
+    email: "",
+    location: "Cidade, Estado",
+    bio: "Conte um pouco sobre você...",
+    interests: [""],
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -64,7 +66,16 @@ export default function Profile() {
   };
  
   const handleSave = async () => {
-    const data= {...profile, user_id: user?.id}
+    setIsSaving(true);
+    const data = {...profile, 
+      user_id: user?.id,
+      email: user?.email,
+      level: 1,
+      role: "user",
+      bonus: false,
+      active: true,
+    }
+
     const {error}=await supabase.from('profiles')
     .insert(data);
 
@@ -72,6 +83,11 @@ export default function Profile() {
       alert(error.message);
       return
     }
+    
+    setIsSaving(false);
+    setSavedStatus(true);
+    setTimeout(() => setSavedStatus(false), 3000);
+
     alert ('Cadastrado com sucesso')
   
   };
@@ -158,8 +174,8 @@ export default function Profile() {
                 <FormField label="E-mail" icon={<Mail size={14} />}>
                   <Input
                     name="email"
-                    value={profile.email}
-                    onChange={(e)=>setProfile ({...profile, email: e.target.value})}
+                    value={user?.email || ""}
+                    readOnly
                     className="h-12 bg-slate-50/50 border-slate-200 focus:border-emerald-500 text-slate-900 rounded-xl"
                   />
                 </FormField>
