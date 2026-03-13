@@ -29,15 +29,15 @@ const App = () => (
               <AuthProvider>
                 <Index />
               </AuthProvider>
-              
-              } />
+
+            } />
             <Route path="/home" element={
               <ProtectedRoute>
-                 <HomeLayout />
+                <HomeLayout />
               </ProtectedRoute>
-              
-              }>
-                
+
+            }>
+
               <Route index element={<Dashboard />} />
               <Route path="feed" element={<NewsFeed />} />
               <Route path="chatbot" element={<Chatbot />} />
