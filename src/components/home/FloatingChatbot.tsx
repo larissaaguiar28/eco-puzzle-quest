@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Maximize2, X } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -66,17 +67,23 @@ export function FloatingChatbot() {
                       ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-br-none"
                       : "bg-muted text-foreground rounded-bl-none"
                   )}>
-                    {msg.text}
+                    {msg.sender === "user" ? (
+                      msg.text
+                    ) : (
+                      <div className="prose prose-xs prose-green max-w-none [&>p]:mb-0.5 [&>p:last-child]:mb-0">
+                        <ReactMarkdown>{msg.text}</ReactMarkdown>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
-              {typing && <div className="text-xs text-emerald-600">EcoBot está digitando...</div>}
+              {typing && <div className="text-xs text-emerald-600 animate-pulse">EcoBot está pensando...</div>}
               <div ref={bottomRef} />
             </div>
 
             <div className="p-3 border-t flex gap-2">
               <Input
-                placeholder="Digite..."
+                placeholder="Pergunte algo..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && send()}
