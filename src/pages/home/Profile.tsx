@@ -52,13 +52,13 @@ const INTEREST_OPTIONS = [
 
 export default function Profile() {
   const { user } = useAuth();
-  
+
   const [profile, setProfile] = useState<UserProfile>({
     name: "",
     email: "",
     location: "",
     bio: "",
-    interests: [],
+    interests: []
   });
 
   const [currentDate, setCurrentDate] = useState("");
@@ -67,18 +67,17 @@ export default function Profile() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Sincroniza a data e dados iniciais
-  useEffect(() => {
-    const now = new Date();
-    setCurrentDate(now.toLocaleDateString('pt-BR'));
-    
-    if (user) {
-      setProfile(prev => ({
-        ...prev,
-        name: user.user_metadata?.full_name || `Eco_Guardião_${Math.floor(1000 + Math.random() * 9000)}`,
-        email: user.email || ""
-      }));
+  async function syncprofile(user_id: string): Promise < void> {
+    const { data, error } = await supabase.from('profiles')
+    .select('*').eq("user_id", user_id)
+    .single()
+
+    if(error){
+      alert(error.message)
+      return
     }
-  }, [user]);
+    setProfile(data)
+  }
 
   const toggleInterest = (interest: string) => {
     setProfile((prev) => ({
@@ -102,7 +101,7 @@ export default function Profile() {
     if (!user) return alert("Você precisa estar logado!");
 
     setIsSaving(true);
-    
+
     const payload = {
       ...profile,
       user_id: user.id,
@@ -110,7 +109,6 @@ export default function Profile() {
       role: "user",
       bonus: false,
       active: true,
-      updated_at: new Date()
     };
 
     const { error } = await supabase
@@ -130,7 +128,7 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-[#020617] text-slate-300 font-sans p-4 md:p-10 relative overflow-hidden">
-      
+
       {/* BACKGROUND GLOWS */}
       <div className="fixed inset-0 overflow-hidden -z-10">
         <div className="absolute top-[-15%] left-[-10%] w-[80%] h-[80%] bg-emerald-600/10 blur-[150px] rounded-full animate-pulse" />
@@ -275,11 +273,10 @@ export default function Profile() {
                     <button
                       key={interest}
                       onClick={() => toggleInterest(interest)}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-full border transition-all duration-300 font-bold text-[9px] uppercase tracking-tighter ${
-                        isSelected
-                          ? "bg-cyan-400 text-black border-white shadow-[0_0_15px_rgba(34,211,238,0.5)] scale-105"
-                          : "bg-blue-950/40 text-cyan-100/70 border-cyan-500/20 hover:border-cyan-400/40"
-                      }`}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-full border transition-all duration-300 font-bold text-[9px] uppercase tracking-tighter ${isSelected
+                        ? "bg-cyan-400 text-black border-white shadow-[0_0_15px_rgba(34,211,238,0.5)] scale-105"
+                        : "bg-blue-950/40 text-cyan-100/70 border-cyan-500/20 hover:border-cyan-400/40"
+                        }`}
                     >
                       {interest}
                       {isSelected && <Check size={10} strokeWidth={4} />}
@@ -296,11 +293,10 @@ export default function Profile() {
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className={`w-full max-w-md h-16 rounded-2xl font-black italic uppercase tracking-tighter text-xl transition-all duration-500 flex items-center justify-center gap-3 ${
-              savedStatus
-                ? "bg-blue-600 text-white"
-                : "bg-emerald-500 text-black hover:bg-emerald-400 hover:shadow-[0_0_30px_rgba(16,185,129,0.4)]"
-            } disabled:opacity-50`}
+            className={`w-full max-w-md h-16 rounded-2xl font-black italic uppercase tracking-tighter text-xl transition-all duration-500 flex items-center justify-center gap-3 ${savedStatus
+              ? "bg-blue-600 text-white"
+              : "bg-emerald-500 text-black hover:bg-emerald-400 hover:shadow-[0_0_30px_rgba(16,185,129,0.4)]"
+              } disabled:opacity-50`}
           >
             {isSaving ? (
               <Loader2 className="animate-spin" />
