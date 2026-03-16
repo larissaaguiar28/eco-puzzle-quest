@@ -10,6 +10,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import supabase from "../../../utils/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 
 // --- DADOS DE CONFIGURAÇÃO ---
 const GAMES = [
@@ -43,6 +45,8 @@ const XPCounter = ({ value }: { value: number }) => {
 
   const digits = Math.abs(value).toString().split("");
 
+
+
   return (
     <motion.div
       onMouseEnter={() => setIsHovered(true)}
@@ -58,8 +62,8 @@ const XPCounter = ({ value }: { value: number }) => {
               <motion.div
                 key={i}
                 initial={{ opacity: 0, scale: 0, x: 0, y: 0 }}
-                animate={{ 
-                  opacity: [0, 1, 0], 
+                animate={{
+                  opacity: [0, 1, 0],
                   scale: [0, 1.2, 0.2],
                   x: (i % 2 === 0 ? 1 : -1) * (Math.random() * 60 + 20),
                   y: (i < 4 ? 1 : -1) * (Math.random() * 60 + 20)
@@ -73,12 +77,12 @@ const XPCounter = ({ value }: { value: number }) => {
         )}
       </AnimatePresence>
 
-      <Badge 
+      <Badge
         className={cn(
           "relative z-10 px-6 py-3 rounded-full shadow-lg text-lg font-bold flex items-center gap-1 transition-all duration-500 overflow-hidden border-2",
-          isHovered 
-            ? "bg-cyan-600 text-white border-cyan-300 shadow-cyan-500/40" 
-            : isChanging 
+          isHovered
+            ? "bg-cyan-600 text-white border-cyan-300 shadow-cyan-500/40"
+            : isChanging
               ? "bg-slate-800 border-cyan-400 text-cyan-400 shadow-md"
               : "bg-slate-900 border-emerald-500/50 text-emerald-400"
         )}
@@ -98,11 +102,11 @@ const XPCounter = ({ value }: { value: number }) => {
                 initial={{ y: 25, opacity: 0, filter: "blur(4px)" }}
                 animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
                 exit={{ y: -25, opacity: 0, filter: "blur(4px)" }}
-                transition={{ 
-                  type: "spring", 
-                  stiffness: 500, 
+                transition={{
+                  type: "spring",
+                  stiffness: 500,
                   damping: 35,
-                  delay: (digits.length - index) * 0.04 
+                  delay: (digits.length - index) * 0.04
                 }}
                 className="inline-block"
               >
@@ -110,7 +114,7 @@ const XPCounter = ({ value }: { value: number }) => {
               </motion.span>
             ))}
           </AnimatePresence>
-          <motion.span 
+          <motion.span
             className="ml-1 text-xs opacity-70 uppercase tracking-widest"
             animate={isChanging ? { opacity: [0.7, 1, 0.7], scale: [1, 1.1, 1] } : {}}
           >
@@ -118,7 +122,7 @@ const XPCounter = ({ value }: { value: number }) => {
           </motion.span>
         </div>
 
-        <motion.div 
+        <motion.div
           className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent -translate-x-full"
           animate={isHovered ? { translateX: ["150%", "-150%"] } : {}}
           transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }}
@@ -176,7 +180,7 @@ const XPProgress = ({ xp, xpNext, level, streak, matches }: { xp: number; xpNext
     )}>
       <AnimatePresence>
         {showLevelUp && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
@@ -186,7 +190,7 @@ const XPProgress = ({ xp, xpNext, level, streak, matches }: { xp: number; xpNext
       </AnimatePresence>
 
       <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-cyan-500/10 blur-[80px] rounded-full" />
-      
+
       <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 mb-8 flex-1">
         <div className="relative shrink-0">
           <svg className="w-24 h-24 transform -rotate-90 overflow-visible">
@@ -201,7 +205,7 @@ const XPProgress = ({ xp, xpNext, level, streak, matches }: { xp: number; xpNext
             />
           </svg>
 
-          <motion.div 
+          <motion.div
             animate={showLevelUp ? { scale: [1, 1.4, 1], rotate: [0, 10, -10, 0] } : {}}
             className="absolute inset-0 flex flex-col items-center justify-center"
           >
@@ -215,11 +219,11 @@ const XPProgress = ({ xp, xpNext, level, streak, matches }: { xp: number; xpNext
 
         <div className="flex-1 space-y-4 text-center md:text-left w-full">
           <div className="flex justify-between items-end">
-            <motion.h3 
+            <motion.h3
               animate={showLevelUp ? { x: [0, 5, 0], color: ["#fff", "#22d3ee", "#fff"] } : {}}
               className="text-xl font-black text-white flex items-center gap-2 justify-center md:justify-start"
             >
-              {showLevelUp ? "NEW RANK UNLOCKED!" : "Eco-Warrior Status"} 
+              {showLevelUp ? "NEW RANK UNLOCKED!" : "Eco-Warrior Status"}
               <motion.div animate={showLevelUp ? { scale: [1, 1.5, 1], rotate: 360 } : {}}>
                 <Sprout size={20} className={showLevelUp ? "text-cyan-400" : "text-emerald-500"} />
               </motion.div>
@@ -228,16 +232,16 @@ const XPProgress = ({ xp, xpNext, level, streak, matches }: { xp: number; xpNext
           </div>
 
           <div className="h-4 w-full bg-slate-900 rounded-full overflow-hidden border border-white/5 p-0.5">
-            <motion.div 
-              initial={{ width: 0 }} 
-              animate={{ width: `${progress}%` }} 
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${progress}%` }}
               className={cn(
                 "h-full rounded-full shadow-[0_0_15px_rgba(34,211,238,0.5)] transition-all duration-500",
                 showLevelUp ? "bg-gradient-to-r from-cyan-400 to-blue-600 shadow-cyan-500/50" : "bg-gradient-to-r from-emerald-600 to-cyan-500"
               )}
             />
           </div>
-          
+
           <AnimatePresence mode="wait">
             {showLevelUp && (
               <motion.p
@@ -256,7 +260,7 @@ const XPProgress = ({ xp, xpNext, level, streak, matches }: { xp: number; xpNext
 
       <div className="relative z-10 pt-6 mt-auto border-t border-white/5 flex flex-wrap items-center justify-around md:justify-start gap-6 md:gap-12">
         <div className="flex items-center gap-3">
-          <motion.div 
+          <motion.div
             animate={{ scale: streakConfig.scale }}
             style={{ filter: streakConfig.glow }}
             className={cn("p-2 rounded-xl bg-slate-900", streakConfig.color)}
@@ -287,19 +291,45 @@ const XPProgress = ({ xp, xpNext, level, streak, matches }: { xp: number; xpNext
 export default function GamesPage() {
   const [index, setIndex] = useState(0);
   const [badges, setBadges] = useState(INITIAL_BADGES);
-  const [totalXp, setTotalXp] = useState(2350);
+  const [totalXp, setTotalXp] = useState(0);
   const [matches, setMatches] = useState(12);
   const [streakDays, setStreakDays] = useState(5);
 
   const featured = GAMES[index];
   const REWARD_XP = 120;
-  const xpPerLevel = 1000; 
+  const xpPerLevel = 1000;
   const currentLevel = Math.floor(totalXp / xpPerLevel) + 1;
   const xpInCurrentLevel = totalXp % xpPerLevel;
+  const { user } = useAuth();
+
+
+  const handleSave = async () => {
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    const data = {
+      totalXp,
+      level: currentLevel,
+      matches,
+      streakDays,
+      badges,
+      user_id: user?.id
+    };
+  
+    const { error } = await supabase
+      .from("games")
+      .upsert(data, { onConflict: "user_id" });
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    alert("Dados recebidos com sucesso");
+  };
 
   const handleStartMission = () => {
     setTotalXp(prev => prev + REWARD_XP);
     setMatches(prev => prev + 1);
+    handleSave()
   };
 
   useEffect(() => {
@@ -342,18 +372,18 @@ export default function GamesPage() {
           <div className="lg:col-span-8 relative">
             <Card className="h-[500px] md:h-[600px] rounded-[3.5rem] overflow-hidden border-none shadow-2xl bg-slate-900 relative">
               <AnimatePresence mode="wait">
-                <motion.div 
-                  key={index} 
-                  initial={{ opacity: 0 }} 
-                  animate={{ opacity: 1 }} 
-                  exit={{ opacity: 0 }} 
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
                   className="relative h-full w-full"
                 >
                   <img src={featured.image} className="absolute inset-0 w-full h-full object-cover opacity-20 grayscale-[0.5]" alt={featured.title} />
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-950/80 to-slate-950" />
-                  
+
                   <div className="absolute inset-0 flex flex-col items-center justify-center p-8 md:p-16 z-10 text-center">
-                    <motion.div 
+                    <motion.div
                       initial={{ y: -20, opacity: 0 }}
                       animate={{ y: 0, opacity: 1 }}
                       className={cn("inline-flex p-5 rounded-3xl bg-gradient-to-br mb-6 shadow-[0_0_30px_rgba(34,211,238,0.3)] border border-white/10", featured.color)}
@@ -369,7 +399,7 @@ export default function GamesPage() {
                       {featured.description}
                     </p>
 
-                    <motion.button 
+                    <motion.button
                       onClick={handleStartMission}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
@@ -402,11 +432,11 @@ export default function GamesPage() {
             {GAMES.map((game, i) => (
               <button key={game.id} onClick={() => setIndex(i)} className={cn("flex items-center gap-4 p-4 rounded-[2.5rem] transition-all border-2", i === index ? "bg-slate-900 border-cyan-500 shadow-[0_0_20px_rgba(34,211,238,0.2)]" : "bg-slate-950/50 border-white/5 opacity-50 hover:opacity-100 hover:bg-slate-900")}>
                 <div className={cn("p-3 rounded-2xl bg-gradient-to-br shadow-md", game.color)}>
-                    <game.icon size={20} className="text-white" />
+                  <game.icon size={20} className="text-white" />
                 </div>
                 <div className="text-left">
-                    <h4 className="font-bold text-white leading-none mb-1">{game.title}</h4>
-                    <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest">Explore Region</span>
+                  <h4 className="font-bold text-white leading-none mb-1">{game.title}</h4>
+                  <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest">Explore Region</span>
                 </div>
               </button>
             ))}
@@ -414,12 +444,12 @@ export default function GamesPage() {
         </section>
 
         <section className="grid lg:grid-cols-2 gap-8 items-stretch">
-          <XPProgress 
-            xp={xpInCurrentLevel} 
-            xpNext={xpPerLevel} 
-            level={currentLevel} 
-            matches={matches} 
-            streak={streakDays} 
+          <XPProgress
+            xp={xpInCurrentLevel}
+            xpNext={xpPerLevel}
+            level={currentLevel}
+            matches={matches}
+            streak={streakDays}
           />
 
           <Card className="bg-slate-950 border border-white/5 rounded-[3rem] p-8 shadow-2xl relative flex flex-col justify-center overflow-hidden min-h-[250px] transition-all duration-300 hover:scale-[1.02] hover:shadow-cyan-500/10">
@@ -437,7 +467,7 @@ export default function GamesPage() {
                 </button>
               </div>
             </div>
-            
+
             <div className="relative h-24 overflow-hidden">
               <TooltipProvider delayDuration={0}>
                 <div className="flex gap-5 items-center justify-center">
@@ -445,7 +475,7 @@ export default function GamesPage() {
                     {badges.slice(0, 4).map((badge) => (
                       <Tooltip key={badge.name}>
                         <TooltipTrigger asChild>
-                          <motion.div 
+                          <motion.div
                             layout
                             initial={{ opacity: 0, x: 50, scale: 0.8 }}
                             animate={{ opacity: 1, x: 0, scale: 1 }}
