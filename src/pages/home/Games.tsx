@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import supabase from "../../../utils/supabase";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "../../contexts/AuthContext";
 
 // --- DADOS DE CONFIGURAÇÃO ---
 const GAMES = [
@@ -287,6 +287,8 @@ const XPProgress = ({ xp, xpNext, level, streak, matches }: { xp: number; xpNext
   );
 };
 
+
+
 // --- COMPONENTE PRINCIPAL ---
 export default function GamesPage() {
   const [index, setIndex] = useState(0);
@@ -302,6 +304,32 @@ export default function GamesPage() {
   const xpInCurrentLevel = totalXp % xpPerLevel;
   const { user } = useAuth();
 
+  useEffect(() => {
+    const loadData = async () => {
+
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("games")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
+
+      if (error) {
+        console.log(error);
+        return;
+      }
+
+      if (data) {
+        setTotalXp(data.totalxp || 0);
+        setMatches(data.matches || 0);
+        setStreakDays(data.streakdays || 0);
+        setBadges(data.badges || INITIAL_BADGES);
+      }
+    };
+
+    loadData();
+  }, [user]);
 
   const handleSave = async () => {
     await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -313,7 +341,7 @@ export default function GamesPage() {
       badges,
       user_id: user?.id
     };
-  
+
     const { error } = await supabase
       .from("games")
       .upsert(data, { onConflict: "user_id" });

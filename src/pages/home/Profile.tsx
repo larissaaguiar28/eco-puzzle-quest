@@ -165,7 +165,7 @@ export default function Profile() {
             </div>
 
             <h1 className="text-5xl md:text-6xl font-black text-white italic uppercase tracking-tighter leading-none">
-              Settings_<span className="text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.4)]">Profile</span>
+              Eco-<span className="text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.4)]">Perfil</span>
             </h1>
           </div>
 
