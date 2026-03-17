@@ -32,6 +32,14 @@ const INITIAL_BADGES = [
   { icon: Award, name: "Veterano", description: "30 dias seguidos" }
 ];
 
+interface GameData {
+  totalXp: number;
+  matches: number;
+  streakDays: number;
+  badges: any[]; // Ou o tipo específico do seu INITIAL_BADGES
+  user_id: string;
+}
+
 // --- COMPONENTE: CONTADOR DE XP INTERATIVO (HEADER) ---
 const XPCounter = ({ value }: { value: number }) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -305,31 +313,32 @@ export default function GamesPage() {
   const { user } = useAuth();
 
   useEffect(() => {
-    const loadData = async () => {
+    const loadGameData = async () => {
+      if (!user?.id) return;
 
-      if (!user) return;
-
+      // Tipamos o select com <GameData>
       const { data, error } = await supabase
         .from("games")
-        .select("*")
+        .select("totalXp, matches, streakDays")
         .eq("user_id", user.id)
-        .single();
+        .single<GameData>();
 
       if (error) {
-        console.log(error);
-        return;
+        alert(error.message)
+       return;
       }
 
       if (data) {
-        setTotalXp(data.totalxp || 0);
-        setMatches(data.matches || 0);
-        setStreakDays(data.streakdays || 0);
-        setBadges(data.badges || INITIAL_BADGES);
+        // Agora o TS reconhece as propriedades de 'data'
+        setTotalXp(data.totalXp);
+        setMatches(data.matches);
+        setStreakDays(data.streakDays);
+        if (data.badges) setBadges(data.badges);
       }
     };
 
-    loadData();
-  }, [user]);
+    loadGameData();
+  }, [user?.id]);
 
   const handleSave = async () => {
     await new Promise((resolve) => setTimeout(resolve, 1500));
