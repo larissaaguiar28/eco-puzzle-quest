@@ -2,21 +2,35 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, Megaphone,Leaf,Camera,Send, Type} from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
-
+import supabase from "../../utils/supabase";
 
 export type Report = {
     name?: string,
     url?: string,
     message?: string,
-    birtaddress?: string
+    address?: string
 };
 
 export  function Report(){
     const {user, signOutUser} = useAuth();
-    const [Reports, setReports] = useState<Report[]>([]);
+    const [reports, setReports] = useState<Report[]>([]);
+    const [report, setReport] = useState<Report>();
 
 
-//handleReport
+    async function handleReport():Promise<void> {
+      let data={...report,user_id:user.id}
+      console.log (data)
+
+      const {error}= await supabase.from("reports").insert(data);
+
+      if (error){
+        alert(error.message)
+        return
+      }
+      
+      alert("recebemos sua denúcia")
+    }
+
     return (
         <>
         {/* PAINEL DE DENÚNCIA */}
@@ -36,7 +50,8 @@ export  function Report(){
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                <ReportAction icon={MapPin} label="Localização" />
                <ReportAction icon={Camera} label="Evidência" />
-               <ReportAction icon={Send} label="Emitir Alerta" highlight />
+               <ReportAction icon={Send} label="Emitir Alerta" onClick={()=> handleReport()}  highlight />
+               <input placeholder="descreva sua denúncia" onChange={(e)=>setReport({...report, message:e.target.value})}/>
             </div>
             
             <Leaf className="absolute -bottom-16 -left-16 w-64 h-64 text-emerald-500/[0.03] -rotate-12 pointer-events-none" />
