@@ -323,7 +323,6 @@ export default function GamesPage() {
       return;
     }
 
-    alert("Dados recebidos com sucesso");
   };
 
   const handleStartMission = () => {

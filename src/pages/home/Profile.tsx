@@ -37,10 +37,10 @@ const Input = ({ className, ...props }: React.InputHTMLAttributes<HTMLInputEleme
 // --- CONFIGURAÇÕES ---
 
 interface UserProfile {
-  name: string;
-  email: string;
-  location: string;
-  bio: string;
+  name?: string;
+  email?: string;
+  location?: string;
+  bio?: string;
   avatarUrl?: string;
   interests: string[];
 }
@@ -51,14 +51,15 @@ const INTEREST_OPTIONS = [
 ] as const;
 
 export default function Profile() {
-  const { user } = useAuth();
+  const randomNumber = Math.floor(1000 + Math.random() * 9000);
 
+  const {user, signOutUser}=useAuth();
   const [profile, setProfile] = useState<UserProfile>({
-    name: "",
+    name: `Eco Guardião${randomNumber}`,
     email: "",
-    location: "",
-    bio: "",
-    interests: []
+    location: "Cidade, Estado",
+    bio: "Conte um pouco sobre você...",
+    interests: [],
   });
 
   const [currentDate, setCurrentDate] = useState("");
@@ -66,7 +67,16 @@ export default function Profile() {
   const [savedStatus, setSavedStatus] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Sincroniza a data e dados iniciais
+  useEffect(() => {
+    if(user?.email){
+      setProfile(prev => ({ ...prev, email: user.email as string}));
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if(user) syncprofile(user.id);
+  }, []);
+
   async function syncprofile(user_id: string): Promise < void> {
     const { data, error } = await supabase.from('profiles')
     .select('*').eq("user_id", user_id)
@@ -99,12 +109,12 @@ export default function Profile() {
 
   const handleSave = async () => {
     if (!user) return alert("Você precisa estar logado!");
-
     setIsSaving(true);
 
-    const payload = {
+    const data = {
       ...profile,
-      user_id: user.id,
+       user_id: user?.id,
+      email: user?.email,
       level: 1,
       role: "user",
       bonus: false,
@@ -113,14 +123,13 @@ export default function Profile() {
 
     const { error } = await supabase
       .from('profiles')
-      .upsert(payload); // Upsert atualiza se já existir ou insere se for novo
+      .upsert(data); // Upsert atualiza se já existir ou insere se for novo
 
     if (error) {
       alert(`Erro: ${error.message}`);
       setIsSaving(false);
       return;
     }
-
     setIsSaving(false);
     setSavedStatus(true);
     setTimeout(() => setSavedStatus(false), 3000);
@@ -229,7 +238,8 @@ export default function Profile() {
 
                 <FormField label="E-mail" icon={<Mail size={14} />}>
                   <Input
-                    value={profile.email}
+                    onChange={(e)=>setProfile ({...profile, email: e.target.value})}
+                    value={user?.email || ""}
                     readOnly
                     className="opacity-60 cursor-not-allowed border-slate-700"
                   />
