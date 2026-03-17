@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import supabase from "../../../utils/supabase";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "../../contexts/AuthContext";
 
 // --- DADOS DE CONFIGURAÇÃO ---
 const GAMES = [
@@ -144,45 +144,22 @@ const XPProgress = ({ xp, xpNext, level, streak, matches }: { xp: number; xpNext
   const [currentMessage, setCurrentMessage] = useState("");
   const prevLevel = useRef(level);
 
-  interface StreakStyle {
-    color: string;
-    scale: number;
-    glow: string;
-  }
-
-  const getStreakConfig = (days: number): StreakStyle => {
-    // Se não houver sequência, ícone apagado (cinza)
+  const getStreakConfig = (days: number) => {
     if (days === 0) return { color: "text-slate-600", scale: 1, glow: "none" };
-
-    // Aumenta o brilho em 4px por dia (limite de 40px para não estourar o layout)
-    const blur = Math.min(days * 4, 40);
-
-    // Aumenta a opacidade do brilho conforme a frequência cresce
-    const opacity = Math.min(0.2 + (days * 0.1), 0.8);
-
-    // O ícone cresce 5% a cada dia (limite de 50% de aumento total)
-    const scale = 1 + Math.min(days * 0.05, 0.5);
-
-    return {
-      color: "text-orange-500", // Laranja fixo, o brilho que muda
-      scale: scale,
-      glow: `drop-shadow(0 0 ${blur}px rgba(249, 115, 22, ${opacity}))`
-    };
+    if (days < 3) return { color: "text-cyan-400", scale: 1.1, glow: "drop-shadow(0 0 8px rgba(34, 211, 238, 0.4))" };
+    if (days < 7) return { color: "text-emerald-400", scale: 1.25, glow: "drop-shadow(0 0 12px rgba(16, 185, 129, 0.6))" };
+    return { color: "text-blue-500", scale: 1.4, glow: "drop-shadow(0 0 16px rgba(59, 130, 246, 0.8))" };
   };
+
   const streakConfig = getStreakConfig(streak);
 
   const evolutionMessages = [
-    "🌱 BROTOU! SUA INFLUÊNCIA ESTÁ CRESCENDO!",
-    "🌿 ECOSSISTEMA EM EXPANSÃO: VOCÊ SUBIU DE NÍVEL!",
-    "🌳 DE PROTECTOR A GUARDIÃO: EVOLUÇÃO CONCLUÍDA!",
-    "🍃 SOPRO DE VIDA! NOVO STATUS ALCANÇADO!",
-    "🌺 FLORESCER LENDÁRIO! VOCÊ É ESSENCIAL!",
-    "🌎 GAIA ESTÁ ORGULHOSA: NÍVEL MÁXIMO ATIVADO!",
-    "🌊 MARÉ ALTA! VOCÊ LIMPOU O CAMINHO PARA O FUTURO!",
-    "☀️ CLAREZA SOLAR! SUA ENERGIA REGENERA O MUNDO!",
-    "🦋 EFEITO BORBOLETA: PEQUENAS AÇÕES, GRANDES EVOLUÇÕES!",
-    "🏔️ FORÇA DA TERRA! SEU IMPACTO É AGORA INABALÁVEL!",
-    "🌌 EQUILÍBRIO ALCANÇADO: VOCÊ É UM ARQUITETO DA NATUREZA!"
+    "🎉 LEVEL UP! VOCÊ ESTÁ INSANO!",
+    "🌿 ECO-WARRIOR EVOLUÍDO!",
+    "🚀 GOD MODE ATIVADO!",
+    "✨ LENDÁRIO! PROTEÇÃO MÁXIMA!",
+    "🏆 MVP DA NATUREZA!",
+    "🌱 POWER-UP CONQUISTADO!"
   ];
 
   useEffect(() => {
@@ -310,6 +287,8 @@ const XPProgress = ({ xp, xpNext, level, streak, matches }: { xp: number; xpNext
   );
 };
 
+
+
 // --- COMPONENTE PRINCIPAL ---
 export default function GamesPage() {
   const [index, setIndex] = useState(0);
@@ -325,6 +304,32 @@ export default function GamesPage() {
   const xpInCurrentLevel = totalXp % xpPerLevel;
   const { user } = useAuth();
 
+  useEffect(() => {
+    const loadData = async () => {
+
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("games")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
+
+      if (error) {
+        console.log(error);
+        return;
+      }
+
+      if (data) {
+        setTotalXp(data.totalxp || 0);
+        setMatches(data.matches || 0);
+        setStreakDays(data.streakdays || 0);
+        setBadges(data.badges || INITIAL_BADGES);
+      }
+    };
+
+    loadData();
+  }, [user]);
 
   const handleSave = async () => {
     await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -346,7 +351,6 @@ export default function GamesPage() {
       return;
     }
 
-    alert("Dados recebidos com sucesso");
   };
 
   const handleStartMission = () => {
@@ -381,31 +385,8 @@ export default function GamesPage() {
   };
 
   return (
-  
-<div className="relative min-h-screen bg-[#020617] p-4 md:p-10 font-sans text-slate-100 overflow-x-hidden">
-
-    {/* Luzes animadas de fundo */}
-    <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-      <motion.div
-        animate={{ x: [0, 200, -200, 0], y: [0, -150, 150, 0] }}
-        transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute w-[600px] h-[600px] bg-cyan-500/20 blur-[150px] rounded-full top-[-200px] left-[-200px]"
-      />
-
-      <motion.div
-        animate={{ x: [0, -150, 200, 0], y: [0, 200, -150, 0] }}
-        transition={{ duration: 30, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute w-[500px] h-[500px] bg-emerald-500/20 blur-[150px] rounded-full bottom-[-200px] right-[-200px]"
-      />
-
-      <motion.div
-        animate={{ x: [0, 100, -100, 0], y: [0, -100, 120, 0] }}
-        transition={{ duration: 35, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute w-[400px] h-[400px] bg-blue-500/20 blur-[150px] rounded-full top-[40%] left-[40%]"
-      />
-    </div>
-
-    <div className="max-w-7xl mx-auto space-y-12">
+    <div className="min-h-screen bg-[#020617] p-4 md:p-10 font-sans text-slate-100 overflow-x-hidden">
+      <div className="max-w-7xl mx-auto space-y-12">
         <header className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div>
             <h1 className="text-4xl font-black tracking-tighter text-white">ECO<span className="text-cyan-500">PLAY</span></h1>
@@ -429,7 +410,6 @@ export default function GamesPage() {
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-950/80 to-slate-950" />
 
                   <div className="absolute inset-0 flex flex-col items-center justify-center p-8 md:p-16 z-10 text-center">
-
                     <motion.div
                       initial={{ y: -20, opacity: 0 }}
                       animate={{ y: 0, opacity: 1 }}
@@ -438,30 +418,8 @@ export default function GamesPage() {
                       <featured.icon size={42} className="text-white" />
                     </motion.div>
 
-                    <h2
-                      className="text-4xl md:text-7xl font-black text-white mb-6 leading-[1.1] tracking-tight max-w-4xl flex flex-wrap justify-center gap-x-4 gap-y-2"
-                      style={{ perspective: "1000px" }}
-                    >
-                      {featured.title.split(" ").map((word, wordIndex) => (
-                        <span key={wordIndex} className="whitespace-nowrap inline-block">
-                          {word.split("").map((char, charIndex) => (
-                            <motion.span
-                              key={`${index}-${wordIndex}-${charIndex}`}
-                              initial={{ y: "100%", rotateX: -90, opacity: 0 }}
-                              animate={{ y: 0, rotateX: 0, opacity: 1 }}
-                              transition={{
-                                delay: (wordIndex * 5 + charIndex) * 0.02,
-                                type: "spring",
-                                stiffness: 150,
-                                damping: 15
-                              }}
-                              className="inline-block origin-bottom"
-                            >
-                              {char}
-                            </motion.span>
-                          ))}
-                        </span>
-                      ))}
+                    <h2 className="text-4xl md:text-7xl font-black text-white mb-6 leading-none tracking-tight max-w-2xl drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]">
+                      {featured.title}
                     </h2>
 
                     <p className="text-slate-400 text-lg md:text-xl max-w-lg mb-10 font-medium leading-relaxed">
@@ -499,32 +457,16 @@ export default function GamesPage() {
           <div className="lg:col-span-4 flex flex-col gap-4">
             <h3 className="text-xs font-black text-cyan-500/50 uppercase tracking-[0.3em] ml-4">Select Level</h3>
             {GAMES.map((game, i) => (
-              <button
-                key={game.id}
-                onClick={() => setIndex(i)}
-                className="relative flex items-center gap-4 p-4 rounded-[2.5rem] transition-all"
-              >
-                {/* O "Fundo" que se move entre os botões */}
-                {i === index && (
-                  <motion.div
-                    layoutId="activeTab"
-                    className="absolute inset-0 bg-slate-900 border-2 border-cyan-500 shadow-[0_0_20px_rgba(34,211,238,0.2)] rounded-[2.5rem]"
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                  />
-                )}
-
-                {/* Conteúdo com z-index para ficar acima do fundo */}
-                <div className="relative z-10 flex items-center gap-4">
-                  <div className={cn("p-3 rounded-2xl bg-gradient-to-br", game.color)}>
-                    <game.icon size={20} className="text-white" />
-                  </div>
-                  <div className="text-left">
-                    <h4 className="font-bold text-white">{game.title}</h4>
-                  </div>
+              <button key={game.id} onClick={() => setIndex(i)} className={cn("flex items-center gap-4 p-4 rounded-[2.5rem] transition-all border-2", i === index ? "bg-slate-900 border-cyan-500 shadow-[0_0_20px_rgba(34,211,238,0.2)]" : "bg-slate-950/50 border-white/5 opacity-50 hover:opacity-100 hover:bg-slate-900")}>
+                <div className={cn("p-3 rounded-2xl bg-gradient-to-br shadow-md", game.color)}>
+                  <game.icon size={20} className="text-white" />
+                </div>
+                <div className="text-left">
+                  <h4 className="font-bold text-white leading-none mb-1">{game.title}</h4>
+                  <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest">Explore Region</span>
                 </div>
               </button>
             ))}
-
           </div>
         </section>
 
@@ -541,7 +483,7 @@ export default function GamesPage() {
             <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 blur-[60px] rounded-full" />
             <div className="flex items-center justify-between mb-8 z-10">
               <h3 className="text-xl font-black text-white flex items-center gap-2 uppercase tracking-tight">
-                Eco-Conquistas <Trophy className="text-cyan-400 animate-pulse" size={20} />
+                Collection <Trophy className="text-cyan-400 animate-pulse" size={20} />
               </h3>
               <div className="flex gap-2">
                 <button onClick={handlePrevBadge} className="p-2 rounded-xl bg-slate-900 hover:bg-cyan-500 text-white transition-all border border-white/5">
