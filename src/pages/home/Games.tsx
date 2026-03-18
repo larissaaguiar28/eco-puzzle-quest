@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  TreePine, Recycle, Droplets, Wind, Leaf, Sun,
+  TreePine, Recycle, Droplets, Wind, Leaf, Sun, Brain,
   ChevronLeft, ChevronRight, Shield, Zap, Award, Trophy, Star, Sprout,
   Gamepad2, Flame
 } from "lucide-react";
@@ -13,12 +13,19 @@ import { cn } from "@/lib/utils";
 import supabase from "../../../utils/supabase";
 import { useAuth } from "../../contexts/AuthContext";
 
+import ReciclaQuest from "@/components/games/ReciclaQuest";
+import OceanoLimpo from "@/components/games/OceanoLimpo";
+import EnergiaVerde from "@/components/games/EnergiaVerde";
+import GuardiaoFloresta from "@/components/games/GuardiaoFloresta";
+import MemoriaSustentavel from "@/components/games/MemoriaSustentavel";
+
 // --- DADOS DE CONFIGURAÇÃO ---
 const GAMES = [
-  { id: 1, title: "Guardião da Floresta", description: "Proteja a biodiversidade e restaure biomas degradados.", icon: TreePine, color: "from-cyan-500 to-emerald-600", image: "https://images.unsplash.com/photo-1508780709619-79562169bc64?auto=format&fit=crop&q=80&w=1000" },
-  { id: 2, title: "Recicla Quest", description: "Domine a economia circular e transforme resíduos em recursos.", icon: Recycle, color: "from-blue-600 to-indigo-900", image: "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&q=80&w=1000" },
-  { id: 3, title: "Oceano Limpo", description: "Recupere recifes de coral e remova microplásticos dos mares.", icon: Droplets, color: "from-cyan-400 to-blue-600", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=1000" },
-  { id: 4, title: "Energia Verde", description: "Projete a rede elétrica do futuro com fontes 100% renováveis.", icon: Wind, color: "from-emerald-400 to-cyan-700", image: "https://images.unsplash.com/photo-1466611653911-95081537e5b7?auto=format&fit=crop&q=80&w=1000" }
+  { id: 1, title: "Recicla Quest", description: "Domine a economia circular e transforme resíduos em recursos.", icon: Recycle, color: "from-blue-600 to-indigo-900", image: "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&q=80&w=1000" },
+  { id: 2, title: "Oceano Limpo", description: "Recupere recifes de coral e remova microplásticos dos mares.", icon: Droplets, color: "from-cyan-400 to-blue-600", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=1000" },
+  { id: 3, title: "Energia Verde", description: "Projete a rede elétrica do futuro com fontes 100% renováveis.", icon: Wind, color: "from-emerald-400 to-cyan-700", image: "https://images.unsplash.com/photo-1466611653911-95081537e5b7?auto=format&fit=crop&q=80&w=1000" },
+  { id: 4, title: "Guardião da Floresta", description: "Proteja a biodiversidade e restaure biomas degradados.", icon: TreePine, color: "from-cyan-500 to-emerald-600", image: "https://images.unsplash.com/photo-1508780709619-79562169bc64?auto=format&fit=crop&q=80&w=1000" },
+  { id: 5, title: "Memória Sustentável", description: "Teste sua memória com conceitos ecológicos e sustentáveis.", icon: Brain, color: "from-indigo-500 to-purple-700", image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&q=80&w=1000" },
 ];
 
 const INITIAL_BADGES = [
@@ -335,6 +342,7 @@ export default function GamesPage() {
   const currentLevel = Math.floor(totalXp / xpPerLevel) + 1;
   const xpInCurrentLevel = totalXp % xpPerLevel;
   const { user } = useAuth();
+  const [activeMission, setActiveMission] = useState<number | null>(null);
 
   useEffect(() => {
     const loadGameData = async () => {
@@ -387,9 +395,17 @@ export default function GamesPage() {
   };
 
   const handleStartMission = () => {
-    setTotalXp(prev => prev + REWARD_XP);
+    setActiveMission(index);
+  };
+
+  const handleMissionXP = (amount: number) => {
+    setTotalXp(prev => prev + amount);
+  };
+
+  const handleExitMission = () => {
     setMatches(prev => prev + 1);
-    handleSave()
+    setActiveMission(null);
+    handleSave();
   };
 
   useEffect(() => {
@@ -416,6 +432,18 @@ export default function GamesPage() {
       return newArr;
     });
   };
+
+  // Render active mission
+  if (activeMission !== null) {
+    const MissionComponents: Record<number, React.ReactNode> = {
+      0: <ReciclaQuest onExit={handleExitMission} onXP={handleMissionXP} />,
+      1: <OceanoLimpo onExit={handleExitMission} onXP={handleMissionXP} />,
+      2: <EnergiaVerde onExit={handleExitMission} onXP={handleMissionXP} />,
+      3: <GuardiaoFloresta onExit={handleExitMission} onXP={handleMissionXP} />,
+      4: <MemoriaSustentavel onExit={handleExitMission} onXP={handleMissionXP} />,
+    };
+    return MissionComponents[activeMission] || null;
+  }
 
   return (
     <div className="min-h-screen bg-[#020617] p-4 md:p-10 font-sans text-slate-100 overflow-x-hidden">
