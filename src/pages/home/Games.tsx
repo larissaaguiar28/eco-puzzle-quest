@@ -333,15 +333,13 @@ export default function GamesPage() {
 
       if (error) {
         alert(error.message)
-       return;
+        return;
       }
 
       if (data) {
-        // Agora o TS reconhece as propriedades de 'data'
-        setTotalXp(data.totalXp);
-        setMatches(data.matches);
-        setStreakDays(data.streakDays);
-        if (data.badges) setBadges(data.badges);
+        setTotalXp(Number(data.totalXp) || 0);
+        setMatches(Number(data.matches) || 0);
+        setStreakDays(Number(data.streakDays) || 0);
       }
     };
 
@@ -378,10 +376,19 @@ export default function GamesPage() {
     setTotalXp(prev => prev + amount);
   };
 
-  const handleExitMission = () => {
+  const handleExitMission = async () => {
     setMatches(prev => prev + 1);
     setActiveMission(null);
-    handleSave();
+    
+    const finalXp = totalXp;
+    const data = {
+      totalXp: finalXp,
+      matches: matches + 1,
+      streakDays,
+      user_id: user?.id
+    };
+
+    await supabase.from("games").upsert(data, { onConflict: "user_id" });
   };
 
   useEffect(() => {

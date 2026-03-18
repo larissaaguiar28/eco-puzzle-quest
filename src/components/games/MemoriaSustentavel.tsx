@@ -53,12 +53,13 @@ export default function MemoriaSustentavel({ onExit, onXP }: Props) {
 
   const totalPairs = PAIRS.length;
 
+
   useEffect(() => {
-    if (matchedCount === totalPairs) {
+    if (matchedCount === totalPairs && !finished) {
       onXP(100);
       setFinished(true);
     }
-  }, [matchedCount, totalPairs, onXP]);
+  }, [matchedCount, totalPairs, onXP, finished]);
 
   const handleFlip = (uid: string) => {
     if (locked) return;
@@ -146,13 +147,12 @@ export default function MemoriaSustentavel({ onExit, onXP }: Props) {
                 key={card.uid}
                 onClick={() => handleFlip(card.uid)}
                 whileTap={{ scale: 0.95 }}
-                className={`aspect-square rounded-2xl text-4xl flex items-center justify-center border-2 transition-all duration-300 ${
-                  card.matched
+                className={`aspect-square rounded-2xl text-4xl flex items-center justify-center border-2 transition-all duration-300 ${card.matched
                     ? "bg-emerald-500/20 border-emerald-500/50 opacity-60"
                     : card.flipped
-                    ? "bg-indigo-500/20 border-indigo-400"
-                    : "bg-slate-800/80 border-slate-700/50 hover:border-indigo-400/50 hover:bg-slate-700/50"
-                }`}
+                      ? "bg-indigo-500/20 border-indigo-400"
+                      : "bg-slate-800/80 border-slate-700/50 hover:border-indigo-400/50 hover:bg-slate-700/50"
+                  }`}
               >
                 <motion.span
                   animate={{ rotateY: card.flipped || card.matched ? 0 : 180, opacity: card.flipped || card.matched ? 1 : 0 }}

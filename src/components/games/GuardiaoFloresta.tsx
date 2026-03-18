@@ -54,13 +54,13 @@ export default function GuardiaoFloresta({ onExit, onXP }: Props) {
 
     if (pos >= 40 && pos <= 60) {
       quality = 3; // perfect 🌲
-      xp = 30;
+      xp = 10;
     } else if (pos >= 25 && pos <= 75) {
       quality = 2; // good 🌳
-      xp = 20;
+      xp = 8;
     } else {
       quality = 1; // okay 🌿
-      xp = 10;
+      xp = 5;
     }
 
     onXP(xp);
