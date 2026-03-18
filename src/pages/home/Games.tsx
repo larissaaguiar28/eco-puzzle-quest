@@ -371,9 +371,17 @@ export default function GamesPage() {
   };
 
   const handleStartMission = () => {
-    setTotalXp(prev => prev + REWARD_XP);
+    setActiveMission(index);
+  };
+
+  const handleMissionXP = (amount: number) => {
+    setTotalXp(prev => prev + amount);
+  };
+
+  const handleExitMission = () => {
     setMatches(prev => prev + 1);
-    handleSave()
+    setActiveMission(null);
+    handleSave();
   };
 
   useEffect(() => {
