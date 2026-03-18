@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  TreePine, Recycle, Droplets, Wind, Leaf, Sun,
+  TreePine, Recycle, Droplets, Wind, Leaf, Sun, Brain,
   ChevronLeft, ChevronRight, Shield, Zap, Award, Trophy, Star, Sprout,
   Gamepad2, Flame
 } from "lucide-react";
@@ -13,12 +13,19 @@ import { cn } from "@/lib/utils";
 import supabase from "../../../utils/supabase";
 import { useAuth } from "../../contexts/AuthContext";
 
+import ReciclaQuest from "@/components/games/ReciclaQuest";
+import OceanoLimpo from "@/components/games/OceanoLimpo";
+import EnergiaVerde from "@/components/games/EnergiaVerde";
+import GuardiaoFloresta from "@/components/games/GuardiaoFloresta";
+import MemoriaSustentavel from "@/components/games/MemoriaSustentavel";
+
 // --- DADOS DE CONFIGURAÇÃO ---
 const GAMES = [
-  { id: 1, title: "Guardião da Floresta", description: "Proteja a biodiversidade e restaure biomas degradados.", icon: TreePine, color: "from-cyan-500 to-emerald-600", image: "https://images.unsplash.com/photo-1508780709619-79562169bc64?auto=format&fit=crop&q=80&w=1000" },
-  { id: 2, title: "Recicla Quest", description: "Domine a economia circular e transforme resíduos em recursos.", icon: Recycle, color: "from-blue-600 to-indigo-900", image: "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&q=80&w=1000" },
-  { id: 3, title: "Oceano Limpo", description: "Recupere recifes de coral e remova microplásticos dos mares.", icon: Droplets, color: "from-cyan-400 to-blue-600", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=1000" },
-  { id: 4, title: "Energia Verde", description: "Projete a rede elétrica do futuro com fontes 100% renováveis.", icon: Wind, color: "from-emerald-400 to-cyan-700", image: "https://images.unsplash.com/photo-1466611653911-95081537e5b7?auto=format&fit=crop&q=80&w=1000" }
+  { id: 1, title: "Recicla Quest", description: "Domine a economia circular e transforme resíduos em recursos.", icon: Recycle, color: "from-blue-600 to-indigo-900", image: "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&q=80&w=1000" },
+  { id: 2, title: "Oceano Limpo", description: "Recupere recifes de coral e remova microplásticos dos mares.", icon: Droplets, color: "from-cyan-400 to-blue-600", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=1000" },
+  { id: 3, title: "Energia Verde", description: "Projete a rede elétrica do futuro com fontes 100% renováveis.", icon: Wind, color: "from-emerald-400 to-cyan-700", image: "https://images.unsplash.com/photo-1466611653911-95081537e5b7?auto=format&fit=crop&q=80&w=1000" },
+  { id: 4, title: "Guardião da Floresta", description: "Proteja a biodiversidade e restaure biomas degradados.", icon: TreePine, color: "from-cyan-500 to-emerald-600", image: "https://images.unsplash.com/photo-1508780709619-79562169bc64?auto=format&fit=crop&q=80&w=1000" },
+  { id: 5, title: "Memória Sustentável", description: "Teste sua memória com conceitos ecológicos e sustentáveis.", icon: Brain, color: "from-indigo-500 to-purple-700", image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&q=80&w=1000" },
 ];
 
 const INITIAL_BADGES = [
@@ -152,22 +159,46 @@ const XPProgress = ({ xp, xpNext, level, streak, matches }: { xp: number; xpNext
   const [currentMessage, setCurrentMessage] = useState("");
   const prevLevel = useRef(level);
 
-  const getStreakConfig = (days: number) => {
+  interface StreakStyle {
+    color: string;
+    scale: number;
+    glow: string;
+  }
+
+  const getStreakConfig = (days: number): StreakStyle => {
+    // Se não houver sequência, ícone apagado (cinza)
     if (days === 0) return { color: "text-slate-600", scale: 1, glow: "none" };
-    if (days < 3) return { color: "text-cyan-400", scale: 1.1, glow: "drop-shadow(0 0 8px rgba(34, 211, 238, 0.4))" };
-    if (days < 7) return { color: "text-emerald-400", scale: 1.25, glow: "drop-shadow(0 0 12px rgba(16, 185, 129, 0.6))" };
-    return { color: "text-blue-500", scale: 1.4, glow: "drop-shadow(0 0 16px rgba(59, 130, 246, 0.8))" };
+
+    // Aumenta o brilho em 4px por dia (limite de 40px para não estourar o layout)
+    const blur = Math.min(days * 4, 40);
+
+    // Aumenta a opacidade do brilho conforme a frequência cresce
+    const opacity = Math.min(0.2 + (days * 0.1), 0.8);
+
+    // O ícone cresce 5% a cada dia (limite de 50% de aumento total)
+    const scale = 1 + Math.min(days * 0.05, 0.5);
+
+    return {
+      color: "text-orange-500", // Laranja fixo, o brilho que muda
+      scale: scale,
+      glow: `drop-shadow(0 0 ${blur}px rgba(249, 115, 22, ${opacity}))`
+    };
   };
 
   const streakConfig = getStreakConfig(streak);
 
   const evolutionMessages = [
-    "🎉 LEVEL UP! VOCÊ ESTÁ INSANO!",
-    "🌿 ECO-WARRIOR EVOLUÍDO!",
-    "🚀 GOD MODE ATIVADO!",
-    "✨ LENDÁRIO! PROTEÇÃO MÁXIMA!",
-    "🏆 MVP DA NATUREZA!",
-    "🌱 POWER-UP CONQUISTADO!"
+    "🌱 BROTOU! SUA INFLUÊNCIA ESTÁ CRESCENDO!",
+    "🌿 ECOSSISTEMA EM EXPANSÃO: VOCÊ SUBIU DE NÍVEL!",
+    "🌳 DE PROTECTOR A GUARDIÃO: EVOLUÇÃO CONCLUÍDA!",
+    "🍃 SOPRO DE VIDA! NOVO STATUS ALCANÇADO!",
+    "🌺 FLORESCER LENDÁRIO! VOCÊ É ESSENCIAL!",
+    "🌎 GAIA ESTÁ ORGULHOSA: NÍVEL MÁXIMO ATIVADO!",
+    "🌊 MARÉ ALTA! VOCÊ LIMPOU O CAMINHO PARA O FUTURO!",
+    "☀️ CLAREZA SOLAR! SUA ENERGIA REGENERA O MUNDO!",
+    "🦋 EFEITO BORBOLETA: PEQUENAS AÇÕES, GRANDES EVOLUÇÕES!",
+    "🏔️ FORÇA DA TERRA! SEU IMPACTO É AGORA INABALÁVEL!",
+    "🌌 EQUILÍBRIO ALCANÇADO: VOCÊ É UM ARQUITETO DA NATUREZA!"
   ];
 
   useEffect(() => {
@@ -311,6 +342,7 @@ export default function GamesPage() {
   const currentLevel = Math.floor(totalXp / xpPerLevel) + 1;
   const xpInCurrentLevel = totalXp % xpPerLevel;
   const { user } = useAuth();
+  const [activeMission, setActiveMission] = useState<number | null>(null);
 
   useEffect(() => {
     const loadGameData = async () => {
@@ -325,15 +357,13 @@ export default function GamesPage() {
 
       if (error) {
         alert(error.message)
-       return;
+        return;
       }
 
       if (data) {
-        // Agora o TS reconhece as propriedades de 'data'
-        setTotalXp(data.totalXp);
-        setMatches(data.matches);
-        setStreakDays(data.streakDays);
-        if (data.badges) setBadges(data.badges);
+        setTotalXp(Number(data.totalXp) || 0);
+        setMatches(Number(data.matches) || 0);
+        setStreakDays(Number(data.streakDays) || 0);
       }
     };
 
@@ -363,9 +393,26 @@ export default function GamesPage() {
   };
 
   const handleStartMission = () => {
-    setTotalXp(prev => prev + REWARD_XP);
+    setActiveMission(index);
+  };
+
+  const handleMissionXP = (amount: number) => {
+    setTotalXp(prev => prev + amount);
+  };
+
+  const handleExitMission = async () => {
     setMatches(prev => prev + 1);
-    handleSave()
+    setActiveMission(null);
+    
+    const finalXp = totalXp;
+    const data = {
+      totalXp: finalXp,
+      matches: matches + 1,
+      streakDays,
+      user_id: user?.id
+    };
+
+    await supabase.from("games").upsert(data, { onConflict: "user_id" });
   };
 
   useEffect(() => {
@@ -392,6 +439,18 @@ export default function GamesPage() {
       return newArr;
     });
   };
+
+  // Render active mission
+  if (activeMission !== null) {
+    const MissionComponents: Record<number, React.ReactNode> = {
+      0: <ReciclaQuest onExit={handleExitMission} onXP={handleMissionXP} />,
+      1: <OceanoLimpo onExit={handleExitMission} onXP={handleMissionXP} />,
+      2: <EnergiaVerde onExit={handleExitMission} onXP={handleMissionXP} />,
+      3: <GuardiaoFloresta onExit={handleExitMission} onXP={handleMissionXP} />,
+      4: <MemoriaSustentavel onExit={handleExitMission} onXP={handleMissionXP} />,
+    };
+    return MissionComponents[activeMission] || null;
+  }
 
   return (
     <div className="min-h-screen bg-[#020617] p-4 md:p-10 font-sans text-slate-100 overflow-x-hidden">
@@ -492,7 +551,7 @@ export default function GamesPage() {
             <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 blur-[60px] rounded-full" />
             <div className="flex items-center justify-between mb-8 z-10">
               <h3 className="text-xl font-black text-white flex items-center gap-2 uppercase tracking-tight">
-                Collection <Trophy className="text-cyan-400 animate-pulse" size={20} />
+                Eco-Conquistas <Trophy className="text-cyan-400 animate-pulse" size={20} />
               </h3>
               <div className="flex gap-2">
                 <button onClick={handlePrevBadge} className="p-2 rounded-xl bg-slate-900 hover:bg-cyan-500 text-white transition-all border border-white/5">

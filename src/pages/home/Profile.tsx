@@ -80,13 +80,15 @@ export default function Profile() {
   async function syncprofile(user_id: string): Promise < void> {
     const { data, error } = await supabase.from('profiles')
     .select('*').eq("user_id", user_id)
-    .single()
+    .maybeSingle();
 
     if(error){
       alert(error.message)
       return
     }
-    setProfile(data)
+    if(data){
+      setProfile(data)
+    }
   }
 
   const toggleInterest = (interest: string) => {
