@@ -318,6 +318,7 @@ export default function GamesPage() {
   const currentLevel = Math.floor(totalXp / xpPerLevel) + 1;
   const xpInCurrentLevel = totalXp % xpPerLevel;
   const { user } = useAuth();
+  const [activeMission, setActiveMission] = useState<number | null>(null);
 
   useEffect(() => {
     const loadGameData = async () => {
