@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Recycle, Check, X } from "lucide-react";
+import { ArrowLeft, Trophy, Heart, Timer, MousePointer2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface Props {
@@ -8,220 +8,221 @@ interface Props {
   onXP: (amount: number) => void;
 }
 
-interface FallingItem {
-  id: number;
-  type: "metal" | "plastic" | "paper" | "glass";
-  emoji: string;
-  x: number;
-  y: number;
-  speed: number;
-}
-
 const BINS = [
-  { type: "metal", label: "Metal", color: "bg-yellow-500", emoji: "🟡" },
-  { type: "plastic", label: "Plástico", color: "bg-red-500", emoji: "🔴" },
-  { type: "paper", label: "Papel", color: "bg-blue-500", emoji: "🔵" },
-  { type: "glass", label: "Vidro", color: "bg-green-500", emoji: "🟢" },
+  { type: "metal", label: "Metal", color: "bg-yellow-500", light: "bg-yellow-400/20", border: "border-yellow-400", emoji: "🟡" },
+  { type: "plastic", label: "Plástico", color: "bg-red-500", light: "bg-red-400/20", border: "border-red-400", emoji: "🔴" },
+  { type: "paper", label: "Papel", color: "bg-blue-500", light: "bg-blue-400/20", border: "border-blue-400", emoji: "🔵" },
+  { type: "glass", label: "Vidro", color: "bg-green-500", light: "bg-green-400/20", border: "border-green-400", emoji: "🟢" },
 ];
 
-const ITEMS: { type: FallingItem["type"]; emoji: string; name: string }[] = [
-  { type: "metal", emoji: "🥫", name: "Latinha" },
-  { type: "metal", emoji: "🔩", name: "Parafuso" },
-  { type: "plastic", emoji: "🧴", name: "Frasco" },
-  { type: "plastic", emoji: "🥤", name: "Copo" },
-  { type: "paper", emoji: "📰", name: "Jornal" },
-  { type: "paper", emoji: "📦", name: "Caixa" },
-  { type: "glass", emoji: "🍾", name: "Garrafa" },
-  { type: "glass", emoji: "🫙", name: "Pote" },
+const ITEMS = [
+  { type: "metal", emoji: "🥫", color: "text-yellow-400" },
+  { type: "plastic", emoji: "🧴", color: "text-red-400" },
+  { type: "paper", emoji: "📦", color: "text-blue-400" },
+  { type: "glass", emoji: "🍾", color: "text-green-400" },
 ];
 
 export default function ReciclaQuest({ onExit, onXP }: Props) {
-  const [items, setItems] = useState<FallingItem[]>([]);
+  const [item, setItem] = useState<{ x: number; y: number; type: string; emoji: string; color: string } | null>(null);
   const [score, setScore] = useState(0);
   const [misses, setMisses] = useState(0);
-  const [selected, setSelected] = useState<FallingItem | null>(null);
-  const [feedback, setFeedback] = useState<{ correct: boolean; id: number } | null>(null);
-  const [gameOver, setGameOver] = useState(false);
   const [timer, setTimer] = useState(60);
-  const nextId = useRef(0);
+  const [gameOver, setGameOver] = useState(false);
+  const [hitEffect, setHitEffect] = useState<string | null>(null);
 
-  // Spawn items
+  const spawn = useCallback(() => {
+    const t = ITEMS[Math.floor(Math.random() * ITEMS.length)];
+    setItem({ x: 50, y: -10, type: t.type, emoji: t.emoji, color: t.color });
+  }, []);
+
+  // Loop de queda
   useEffect(() => {
     if (gameOver) return;
-    const interval = setInterval(() => {
-      const template = ITEMS[Math.floor(Math.random() * ITEMS.length)];
-      const item: FallingItem = {
-        id: nextId.current++,
-        type: template.type,
-        emoji: template.emoji,
-        x: 10 + Math.random() * 70,
-        y: -5,
-        speed: 0.3 + Math.random() * 0.3,
-      };
-      setItems((prev) => [...prev.slice(-12), item]);
-    }, 1400);
-    return () => clearInterval(interval);
-  }, [gameOver]);
+    if (!item) { spawn(); return; }
 
-  // Fall animation
-  useEffect(() => {
-    if (gameOver) return;
-    const interval = setInterval(() => {
-      setItems((prev) => {
-        const next: FallingItem[] = [];
-        let newMisses = 0;
-        for (const item of prev) {
-          if (item.y >= 85) {
-            newMisses++;
+    const id = setInterval(() => {
+      setItem(prev => {
+        if (!prev) return null;
+        if (prev.y >= 85) {
+          const binIdx = Math.floor(prev.x / 25);
+          if (BINS[binIdx].type === prev.type) {
+            setScore(s => s + 1);
+            onXP(10);
+            setHitEffect("✨ +10 XP");
           } else {
-            next.push({ ...item, y: item.y + item.speed * 2 });
+            setMisses(m => m + 1);
+            setHitEffect("❌ ERRO");
           }
+          setTimeout(() => setHitEffect(null), 800);
+          return null;
         }
-        if (newMisses > 0) setMisses((m) => m + newMisses);
-        return next;
+        return { ...prev, y: prev.y + 0.7 }; // Velocidade suave
       });
-    }, 50);
-    return () => clearInterval(interval);
-  }, [gameOver]);
+    }, 16);
+    return () => clearInterval(id);
+  }, [item, gameOver, spawn, onXP]);
 
-  // Timer
+  // Controles (Teclado + Clique na Lixeira)
   useEffect(() => {
-    if (gameOver) return;
-    const t = setInterval(() => {
-      setTimer((prev) => {
-        if (prev <= 1) {
-          setGameOver(true);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(t);
-  }, [gameOver]);
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") setItem(p => p ? { ...p, x: Math.max(12, p.x - 25) } : null);
+      if (e.key === "ArrowRight") setItem(p => p ? { ...p, x: Math.min(87, p.x + 25) } : null);
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, []);
 
-  // End on too many misses
   useEffect(() => {
-    if (misses >= 10) setGameOver(true);
-  }, [misses]);
+    if (timer > 0 && !gameOver) {
+      const id = setInterval(() => setTimer(t => t - 1), 1000);
+      return () => clearInterval(id);
+    } else if (timer === 0) setGameOver(true);
+  }, [timer, gameOver]);
 
-  const handleDropOnBin = (binType: string) => {
-    if (!selected) return;
-    const correct = selected.type === binType;
-    setFeedback({ correct, id: selected.id });
-    if (correct) {
-      setScore((s) => s + 1);
-      onXP(10);
-      setItems((prev) => prev.filter((i) => i.id !== selected.id));
-    }
-    setSelected(null);
-    setTimeout(() => setFeedback(null), 600);
-  };
+  if (misses >= 5 && !gameOver) setGameOver(true);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 p-4 md:p-8 text-white">
-      <div className="max-w-3xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <Button variant="ghost" onClick={onExit} className="text-slate-400 hover:text-white">
-            <ArrowLeft className="mr-2 h-4 w-4" /> Sair da Missão
-          </Button>
-          <div className="flex items-center gap-4">
-            <span className="text-cyan-400 font-bold">⏱ {timer}s</span>
-            <span className="text-emerald-400 font-bold">✅ {score}</span>
-            <span className="text-red-400 font-bold">❌ {misses}/10</span>
+    // NOVO FUNDO: Gradiente dinâmico profundo
+    <div className="min-h-screen bg-[#020617] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#0f172a] via-[#020617] to-[#000000] text-white flex flex-col items-center p-4 font-sans select-none relative overflow-hidden">
+      
+      {/* ELEMENTO DE FUNDO: Partículas flutuantes sutis */}
+      <div className="absolute inset-0 opacity-20 pointer-events-none">
+        {[...Array(20)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-1 h-1 bg-cyan-400 rounded-full"
+            style={{
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+            }}
+            animate={{
+              y: [0, -100, 0],
+              opacity: [0, 1, 0],
+            }}
+            transition={{
+              duration: Math.random() * 10 + 10,
+              repeat: Infinity,
+              ease: "linear",
+              delay: Math.random() * 5,
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="w-full max-w-md flex flex-col h-[90vh] z-10">
+        
+        {/* Placar Simples (Sem alterações) */}
+        <div className="flex justify-between items-center bg-slate-900 border-2 border-slate-800 p-4 rounded-2xl mb-4 shadow-[0_0_30px_rgba(0,0,0,0.6)]">
+          <div className="flex flex-col items-center">
+             <Timer className="h-4 w-4 text-cyan-400 mb-1" />
+             <span className="font-mono text-xl font-bold">{timer}s</span>
+          </div>
+          <div className="text-center">
+            <Trophy className="h-5 w-5 text-yellow-500 mx-auto mb-1" />
+            <span className="text-2xl font-black text-yellow-500">{score}</span>
+          </div>
+          <div className="flex gap-1">
+            {[...Array(5)].map((_, i) => (
+              <Heart key={i} className={`h-4 w-4 ${i < 5 - misses ? "fill-red-500 text-red-500" : "text-slate-800"}`} />
+            ))}
           </div>
         </div>
 
-        <h2 className="text-3xl font-black text-center mb-2">
-          <Recycle className="inline mr-2 text-cyan-400" /> Recicla Quest
-        </h2>
-        <p className="text-slate-400 text-center mb-6 text-sm">
-          Toque no resíduo e depois na lixeira correta!
-        </p>
+        {/* Área de Jogo (Adicionada sombra externa para profundidade) */}
+        <div className="relative flex-1 bg-slate-900/50 rounded-[2rem] border-2 border-slate-800 overflow-hidden shadow-[0_0_60px_rgba(0,0,0,0.8),_inset_0_0_20px_rgba(0,0,0,0.5)]">
+          
+          {/* ELEMENTO DE FUNDO: Anel de luz pulsante atrás do jogo */}
+          <div className="absolute -inset-10 bg-[radial-gradient(closest-side,_var(--tw-gradient-stops))] from-cyan-950/20 via-transparent to-transparent animate-pulse-slow pointer-events-none z-0" />
 
-        {gameOver ? (
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="text-center py-16"
-          >
-            <h3 className="text-4xl font-black mb-4">🏁 Fim de Jogo!</h3>
-            <p className="text-2xl text-cyan-400 font-bold mb-2">{score} itens reciclados</p>
-            <p className="text-emerald-400 font-bold mb-8">+{score * 10} XP ganhos!</p>
-            <div className="flex gap-4 justify-center">
-              <Button onClick={() => { setScore(0); setMisses(0); setTimer(60); setItems([]); setGameOver(false); }} className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold">
-                Jogar Novamente
-              </Button>
-              <Button variant="outline" onClick={onExit} className="border-slate-600">
-                Voltar ao Menu
-              </Button>
-            </div>
-          </motion.div>
-        ) : (
-          <>
-            {/* Game area */}
-            <div className="relative bg-slate-800/50 rounded-3xl border border-slate-700/50 h-[400px] overflow-hidden mb-6">
-              <AnimatePresence>
-                {items.map((item) => (
-                  <motion.button
-                    key={item.id}
-                    initial={{ opacity: 0, scale: 0 }}
-                    animate={{
-                      opacity: 1,
-                      scale: selected?.id === item.id ? 1.3 : 1,
-                      top: `${item.y}%`,
-                      left: `${item.x}%`,
-                    }}
-                    exit={{ opacity: 0, scale: 0 }}
-                    onClick={() => setSelected(item)}
-                    className={`absolute text-3xl cursor-pointer transition-all ${
-                      selected?.id === item.id ? "ring-4 ring-cyan-400 rounded-xl bg-cyan-500/20 p-1" : ""
-                    }`}
-                    style={{ transform: "translate(-50%, -50%)" }}
-                  >
-                    {item.emoji}
-                  </motion.button>
-                ))}
-              </AnimatePresence>
+          {/* Colunas de Guia (Sem alterações) */}
+          <div className="absolute inset-0 grid grid-cols-4 pointer-events-none z-0">
+            {BINS.map((bin, i) => (
+              <div key={i} className={`h-full border-r border-white/5 transition-colors ${item && Math.floor(item.x / 25) === i ? bin.light : ""}`} />
+            ))}
+          </div>
 
-              <AnimatePresence>
-                {feedback && (
-                  <motion.div
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1.5, opacity: 1 }}
-                    exit={{ scale: 0, opacity: 0 }}
-                    className="absolute inset-0 flex items-center justify-center pointer-events-none z-20"
-                  >
-                    {feedback.correct ? (
-                      <Check className="h-20 w-20 text-emerald-400" />
-                    ) : (
-                      <X className="h-20 w-20 text-red-400" />
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+          <AnimatePresence>
+            {hitEffect && (
+              <motion.div initial={{ y: 200, opacity: 0 }} animate={{ y: 100, opacity: 1 }} exit={{ opacity: 0 }} className="absolute w-full text-center z-50 font-black text-2xl drop-shadow-lg">
+                <span className={hitEffect.includes("XP") ? "text-emerald-400" : "text-red-500"}>{hitEffect}</span>
+              </motion.div>
+            )}
 
-            {/* Bins */}
-            <div className="grid grid-cols-4 gap-3">
-              {BINS.map((bin) => (
-                <motion.button
-                  key={bin.type}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => handleDropOnBin(bin.type)}
-                  className={`${bin.color} rounded-2xl p-4 text-center font-bold text-white shadow-lg transition-all ${
-                    selected ? "ring-2 ring-white/30 animate-pulse" : ""
-                  }`}
+            {gameOver ? (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 z-[60] bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center">
+                <div className="p-4 bg-cyan-500/10 rounded-full mb-6">
+                  <Sparkles className="h-12 w-12 text-cyan-400" />
+                </div>
+                <h2 className="text-4xl font-black text-cyan-400 mb-2 tracking-tighter">MISSÃO CONCLUÍDA</h2>
+                <p className="text-slate-400 mb-8 italic font-medium">O planeta agradece seu esforço!</p>
+                <div className="bg-slate-900 rounded-2xl p-6 mb-12 border border-slate-800 shadow-xl">
+                  <span className="text-5xl font-black text-white tracking-tight">{score * 10} XP</span>
+                </div>
+                <Button onClick={() => window.location.reload()} className="w-full h-16 text-xl font-bold bg-cyan-600 rounded-2xl shadow-[0_6px_0_#0891b2] active:translate-y-1 active:shadow-none transition-all hover:bg-cyan-500">
+                  JOGAR NOVAMENTE
+                </Button>
+              </motion.div>
+            ) : (
+              item && (
+                <motion.div
+                  key={item.emoji}
+                  className="absolute z-20 flex flex-col items-center"
+                  style={{ left: `${item.x}%`, top: `${item.y}%`, transform: "translateX(-50%)" }}
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
                 >
-                  <span className="text-2xl block mb-1">{bin.emoji}</span>
-                  <span className="text-xs uppercase tracking-wider">{bin.label}</span>
-                </motion.button>
-              ))}
+                  <span className={`text-6xl drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]`}>{item.emoji}</span>
+                  <div className="mt-2 h-4 w-4 border-l-4 border-b-4 border-white/20 rotate-[-45deg]" />
+                </motion.div>
+              )
+            )}
+          </AnimatePresence>
+
+          {/* Tutorial rápido (Sem alterações) */}
+          {score === 0 && !item?.y && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+               <div className="bg-black/60 p-5 rounded-2xl border border-white/10 text-center animate-pulse backdrop-blur-sm">
+                  <MousePointer2 className="mx-auto mb-3 text-cyan-400 h-6 w-6" />
+                  <p className="text-xs font-bold uppercase tracking-widest leading-relaxed text-slate-200">Toque na lixeira certa<br/>ou use as setas</p>
+               </div>
             </div>
-          </>
-        )}
+          )}
+
+          {/* Lixeiras (Sem alterações) */}
+          <div className="absolute bottom-0 w-full grid grid-cols-4 h-28 gap-2 p-2 bg-slate-950/80 backdrop-blur-md z-10 border-t border-slate-800">
+            {BINS.map((bin, i) => (
+              <button
+                key={bin.type}
+                onClick={() => setItem(p => p ? { ...p, x: i * 25 + 12.5 } : null)}
+                className={`group relative ${bin.color} rounded-2xl flex flex-col items-center justify-center transition-transform active:scale-95 border-b-4 ${bin.border} overflow-hidden shadow-lg`}
+              >
+                <span className="text-3xl z-10 drop-shadow-md">{bin.emoji}</span>
+                <span className="text-[10px] font-black text-white/90 uppercase z-10 tracking-tighter">{bin.label}</span>
+                {item && Math.floor(item.x / 25) === i && (
+                  <motion.div layoutId="aim" className="absolute inset-0 border-4 border-white z-20 rounded-2xl shadow-[0_0_15px_white]" />
+                )}
+                <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Botão Sair (Sem alterações) */}
+        <button onClick={onExit} className="mt-6 flex items-center justify-center gap-2 text-slate-600 hover:text-cyan-400 transition-colors py-2 group">
+          <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" /> <span className="text-xs font-bold uppercase tracking-widest">Sair da Missão</span>
+        </button>
       </div>
+
+      {/* Estilo para a animação de pulso lento */}
+      <style>{`
+        @keyframes pulse-slow {
+          0%, 100% { opacity: 0.3; transform: scale(1); }
+          50% { opacity: 0.6; transform: scale(1.05); }
+        }
+        .animate-pulse-slow {
+          animation: pulse-slow 6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+      `}</style>
     </div>
   );
 }
