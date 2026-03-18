@@ -152,22 +152,46 @@ const XPProgress = ({ xp, xpNext, level, streak, matches }: { xp: number; xpNext
   const [currentMessage, setCurrentMessage] = useState("");
   const prevLevel = useRef(level);
 
-  const getStreakConfig = (days: number) => {
+  interface StreakStyle {
+    color: string;
+    scale: number;
+    glow: string;
+  }
+
+  const getStreakConfig = (days: number): StreakStyle => {
+    // Se não houver sequência, ícone apagado (cinza)
     if (days === 0) return { color: "text-slate-600", scale: 1, glow: "none" };
-    if (days < 3) return { color: "text-cyan-400", scale: 1.1, glow: "drop-shadow(0 0 8px rgba(34, 211, 238, 0.4))" };
-    if (days < 7) return { color: "text-emerald-400", scale: 1.25, glow: "drop-shadow(0 0 12px rgba(16, 185, 129, 0.6))" };
-    return { color: "text-blue-500", scale: 1.4, glow: "drop-shadow(0 0 16px rgba(59, 130, 246, 0.8))" };
+
+    // Aumenta o brilho em 4px por dia (limite de 40px para não estourar o layout)
+    const blur = Math.min(days * 4, 40);
+
+    // Aumenta a opacidade do brilho conforme a frequência cresce
+    const opacity = Math.min(0.2 + (days * 0.1), 0.8);
+
+    // O ícone cresce 5% a cada dia (limite de 50% de aumento total)
+    const scale = 1 + Math.min(days * 0.05, 0.5);
+
+    return {
+      color: "text-orange-500", // Laranja fixo, o brilho que muda
+      scale: scale,
+      glow: `drop-shadow(0 0 ${blur}px rgba(249, 115, 22, ${opacity}))`
+    };
   };
 
   const streakConfig = getStreakConfig(streak);
 
   const evolutionMessages = [
-    "🎉 LEVEL UP! VOCÊ ESTÁ INSANO!",
-    "🌿 ECO-WARRIOR EVOLUÍDO!",
-    "🚀 GOD MODE ATIVADO!",
-    "✨ LENDÁRIO! PROTEÇÃO MÁXIMA!",
-    "🏆 MVP DA NATUREZA!",
-    "🌱 POWER-UP CONQUISTADO!"
+    "🌱 BROTOU! SUA INFLUÊNCIA ESTÁ CRESCENDO!",
+    "🌿 ECOSSISTEMA EM EXPANSÃO: VOCÊ SUBIU DE NÍVEL!",
+    "🌳 DE PROTECTOR A GUARDIÃO: EVOLUÇÃO CONCLUÍDA!",
+    "🍃 SOPRO DE VIDA! NOVO STATUS ALCANÇADO!",
+    "🌺 FLORESCER LENDÁRIO! VOCÊ É ESSENCIAL!",
+    "🌎 GAIA ESTÁ ORGULHOSA: NÍVEL MÁXIMO ATIVADO!",
+    "🌊 MARÉ ALTA! VOCÊ LIMPOU O CAMINHO PARA O FUTURO!",
+    "☀️ CLAREZA SOLAR! SUA ENERGIA REGENERA O MUNDO!",
+    "🦋 EFEITO BORBOLETA: PEQUENAS AÇÕES, GRANDES EVOLUÇÕES!",
+    "🏔️ FORÇA DA TERRA! SEU IMPACTO É AGORA INABALÁVEL!",
+    "🌌 EQUILÍBRIO ALCANÇADO: VOCÊ É UM ARQUITETO DA NATUREZA!"
   ];
 
   useEffect(() => {
@@ -492,7 +516,7 @@ export default function GamesPage() {
             <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 blur-[60px] rounded-full" />
             <div className="flex items-center justify-between mb-8 z-10">
               <h3 className="text-xl font-black text-white flex items-center gap-2 uppercase tracking-tight">
-                Collection <Trophy className="text-cyan-400 animate-pulse" size={20} />
+                Eco-Conquistas <Trophy className="text-cyan-400 animate-pulse" size={20} />
               </h3>
               <div className="flex gap-2">
                 <button onClick={handlePrevBadge} className="p-2 rounded-xl bg-slate-900 hover:bg-cyan-500 text-white transition-all border border-white/5">
