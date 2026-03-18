@@ -409,6 +409,18 @@ export default function GamesPage() {
     });
   };
 
+  // Render active mission
+  if (activeMission !== null) {
+    const MissionComponents: Record<number, React.ReactNode> = {
+      0: <ReciclaQuest onExit={handleExitMission} onXP={handleMissionXP} />,
+      1: <OceanoLimpo onExit={handleExitMission} onXP={handleMissionXP} />,
+      2: <EnergiaVerde onExit={handleExitMission} onXP={handleMissionXP} />,
+      3: <GuardiaoFloresta onExit={handleExitMission} onXP={handleMissionXP} />,
+      4: <MemoriaSustentavel onExit={handleExitMission} onXP={handleMissionXP} />,
+    };
+    return MissionComponents[activeMission] || null;
+  }
+
   return (
     <div className="min-h-screen bg-[#020617] p-4 md:p-10 font-sans text-slate-100 overflow-x-hidden">
       <div className="max-w-7xl mx-auto space-y-12">
