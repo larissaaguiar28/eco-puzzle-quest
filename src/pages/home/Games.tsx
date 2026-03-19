@@ -21,11 +21,11 @@ import MemoriaSustentavel from "@/components/games/MemoriaSustentavel";
 
 // --- DADOS DE CONFIGURAÇÃO ---
 const GAMES = [
-  { id: 1, title: "Recicla Quest", description: "Domine a economia circular e transforme resíduos em recursos.", icon: Recycle, color: "from-blue-600 to-indigo-900", image: "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&q=80&w=1000" },
-  { id: 2, title: "Oceano Limpo", description: "Recupere recifes de coral e remova microplásticos dos mares.", icon: Droplets, color: "from-cyan-400 to-blue-600", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=1000" },
-  { id: 3, title: "Energia Verde", description: "Projete a rede elétrica do futuro com fontes 100% renováveis.", icon: Wind, color: "from-emerald-400 to-cyan-700", image: "https://images.unsplash.com/photo-1466611653911-95081537e5b7?auto=format&fit=crop&q=80&w=1000" },
-  { id: 4, title: "Guardião da Floresta", description: "Proteja a biodiversidade e restaure biomas degradados.", icon: TreePine, color: "from-cyan-500 to-emerald-600", image: "https://images.unsplash.com/photo-1508780709619-79562169bc64?auto=format&fit=crop&q=80&w=1000" },
-  { id: 5, title: "Memória Sustentável", description: "Teste sua memória com conceitos ecológicos e sustentáveis.", icon: Brain, color: "from-indigo-500 to-purple-700", image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&q=80&w=1000" },
+  { id: 1, title: "Recicla Quest", description: "Domine a economia circular e transforme resíduos em recursos.", icon: Recycle, color: "from-blue-600 to-indigo-900", image: "images/public/images/ecoquest.png" },
+  { id: 2, title: "Oceano Limpo", description: "Recupere recifes de coral e remova microplásticos dos mares.", icon: Droplets, color: "from-cyan-400 to-blue-600", image: "images/public/images/oceano.png" },
+  { id: 3, title: "Energia Verde", description: "Projete a rede elétrica do futuro com fontes 100% renováveis.", icon: Wind, color: "from-emerald-400 to-cyan-700", image: "images/public/images/energia.png" },
+  { id: 4, title: "Guardião da Floresta", description: "Proteja a biodiversidade e restaure biomas degradados.", icon: TreePine, color: "from-cyan-500 to-emerald-600", image: "images/public/images/guardiao.png" },
+  { id: 5, title: "Memória Sustentável", description: "Teste sua memória com conceitos ecológicos e sustentáveis.", icon: Brain, color: "from-indigo-500 to-purple-700", image: "images/public/images/ecoquest.png" },
 ];
 
 const INITIAL_BADGES = [
@@ -453,7 +453,7 @@ export default function GamesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#020617] p-4 md:p-10 font-sans text-slate-100 overflow-x-hidden">
+   <div className="min-h-screen bg-[#0f172a] p-4 md:p-10 font-sans text-slate-100 overflow-x-hidden relative">
       <div className="max-w-7xl mx-auto space-y-12">
         <header className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div>
@@ -566,29 +566,38 @@ export default function GamesPage() {
             <div className="relative h-24 overflow-hidden">
               <TooltipProvider delayDuration={0}>
                 <div className="flex gap-5 items-center justify-center">
-                  <AnimatePresence mode="popLayout">
-                    {badges.slice(0, 4).map((badge) => (
-                      <Tooltip key={badge.name}>
-                        <TooltipTrigger asChild>
-                          <motion.div
-                            layout
-                            initial={{ opacity: 0, x: 50, scale: 0.8 }}
-                            animate={{ opacity: 1, x: 0, scale: 1 }}
-                            exit={{ opacity: 0, x: -50, scale: 0.8 }}
-                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                            whileHover={{ scale: 1.1, rotate: 2, borderColor: "#22d3ee" }}
-                            className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-[2rem] bg-slate-900 border border-white/5 flex items-center justify-center cursor-pointer group shadow-xl"
-                          >
-                            <badge.icon size={36} className="text-cyan-400 group-hover:text-white group-hover:drop-shadow-[0_0_10px_rgba(34,211,238,0.8)] transition-all" />
-                          </motion.div>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="bg-cyan-500 text-slate-950 font-black p-3 rounded-xl border-none shadow-[0_0_20px_rgba(34,211,238,0.5)]">
-                          <p className="uppercase text-[10px] tracking-wider">{badge.name}</p>
-                          <p className="text-[11px] font-medium opacity-80">{badge.description}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    ))}
-                  </AnimatePresence>
+                  <AnimatePresence mode="popLayout" initial={false}>
+    {badges.slice(0, 4).map((badge) => (
+      <motion.div
+        key={badge.name} // Crítico: deve ser único
+        layout // Faz os outros itens deslizarem suavemente quando um sai
+        initial={{ opacity: 0, scale: 0.8, x: 20 }}
+        animate={{ opacity: 1, scale: 1, x: 0 }}
+        exit={{ opacity: 0, scale: 0.5, x: -20 }}
+        transition={{
+          type: "spring",
+          stiffness: 400, // Mais rápido para não parecer "lento"
+          damping: 30,    // Evita o balanço excessivo
+          opacity: { duration: 0.2 }
+        }}
+        className="relative group"
+      >
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="w-20 h-20 md:w-24 md:h-24 rounded-[2rem] bg-slate-900 border border-white/5 flex items-center justify-center cursor-pointer shadow-xl hover:border-cyan-400 transition-colors">
+                <badge.icon size={36} className="text-cyan-400 group-hover:text-white transition-all" />
+              </div>
+            </TooltipTrigger>
+            {/* O TooltipContent fora do fluxo de animação para não bugar o layout */}
+            <TooltipContent className="bg-cyan-500 text-slate-950 font-black p-3 rounded-xl border-none">
+              <p className="uppercase text-[10px]">{badge.name}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </motion.div>
+    ))}
+  </AnimatePresence>
                   <div className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-[2rem] border-2 border-dashed border-white/10 flex items-center justify-center bg-white/5">
                     <Star size={24} className="text-white/10 animate-pulse" />
                   </div>
