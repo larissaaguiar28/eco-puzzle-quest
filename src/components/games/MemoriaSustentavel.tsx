@@ -9,12 +9,12 @@ interface Props {
 }
 
 const PAIRS = [
-  { id: "solar", emoji: "☀️", match: "painel", matchEmoji: "🔲" },
-  { id: "vento", emoji: "💨", match: "turbina", matchEmoji: "🌀" },
+  { id: "solar", emoji: "☀️", match: "painel", matchEmoji: "🌡️" },
+  { id: "vento", emoji: "💨", match: "turbina", matchEmoji: "🌪️" },
   { id: "agua", emoji: "💧", match: "hidro", matchEmoji: "🌊" },
   { id: "planta", emoji: "🌱", match: "arvore", matchEmoji: "🌳" },
   { id: "recicla", emoji: "♻️", match: "lixeira", matchEmoji: "🗑️" },
-  { id: "bici", emoji: "🚲", match: "verde", matchEmoji: "🟢" },
+  { id: "bici", emoji: "🥕", match: "verde", matchEmoji: "🐇" },
 ];
 
 interface Card {
