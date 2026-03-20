@@ -474,7 +474,7 @@ export default function GamesPage() {
                   exit={{ opacity: 0 }}
                   className="relative h-full w-full"
                 >
-                  <img src={featured.image} className="absolute inset-0 w-full h-full object-cover opacity-20 grayscale-[0.5]" alt={featured.title} />
+                  <img src={featured.image} className="absolute inset-0 w-full h-full object-cover grayscale-[0.5]" alt={featured.title} />
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-950/80 to-slate-950" />
 
                   <div className="absolute inset-0 flex flex-col items-center justify-center p-8 md:p-16 z-10 text-center">
