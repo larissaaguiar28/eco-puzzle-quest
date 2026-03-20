@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ThumbsUp, Heart, Lightbulb, MessageCircle, Share2,
@@ -12,10 +12,13 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import supabase from "../../../utils/supabase";
+import {useAuth}from "../../contexts/AuthContext";
+
 
 // --- INTERFACES (Mantidas) ---
 interface NewsItem {
-  id: number;
+  id: string;
   title: string;
   summary: string;
   content: string;
@@ -23,8 +26,8 @@ interface NewsItem {
   author: string;
   date: string;
   location: string;
-  likes: number;
   gradient: string;
+  image?: string; 
 }
 
 interface SidebarItem {
@@ -37,7 +40,7 @@ interface SidebarItem {
 // --- DADOS (Mantidos) ---
 const newsData: NewsItem[] = [
   {
-    id: 1,
+    id:"1",
     title: "Brasil bate recorde histórico em geração de energia solar e eólica",
     summary: "O país alcançou a marca de 90% da matriz elétrica renovável neste mês, impulsionando a economia verde.",
     content: "Com novos parques eólicos no Nordeste e fazendas solares no Sudeste, o Brasil não apenas reduziu suas emissões de carbono em 15% no último trimestre, mas também gerou mais de 50 mil novos empregos diretos no setor.",
@@ -45,11 +48,11 @@ const newsData: NewsItem[] = [
     author: "EcoS",
     date: "05 Mar 2026",
     location: "Nordeste, BR",
-    likes: 342,
-    gradient: "from-amber-500 to-orange-600" 
+    gradient: "from-amber-500 to-orange-600",
+    image: "https://images.unsplash.com/photo-1509395176047-4a66953fd231"
   },
   {
-    id: 2,
+    id: "2",
     title: "Startup desenvolve bioplástico a partir de algas marinhas",
     summary: "Nova embalagem 100% biodegradável se dissolve na água em semanas e já atrai gigantes do varejo.",
     content: "Pesquisadores em parceria com uma startup de biotecnologia criaram um material revolucionário que substitui o plástico de uso único. Feito de sargaço e resíduos da indústria pesqueira.",
@@ -57,11 +60,11 @@ const newsData: NewsItem[] = [
     author: "EcoS",
     date: "04 Mar 2026",
     location: "Rio de Janeiro, BR",
-    likes: 289,
-    gradient: "from-cyan-500 to-blue-600" 
+    gradient: "from-cyan-500 to-blue-600",
+    image: "https://images.unsplash.com/photo-1509395176047-4a66953fd231"
   },
   {
-    id: 3,
+    id: "3",
     title: "Hortas urbanas verticais transformam telhados em São Paulo",
     summary: "Projeto de agricultura urbana reduz a temperatura dos prédios e fornece alimentos frescos para a comunidade.",
     content: "Uma iniciativa comunitária mapeou e transformou mais de 200 telhados ociosos no centro da capital paulista em fazendas urbanas produtivas. Além de mitigar as ilhas de calor.",
@@ -69,7 +72,6 @@ const newsData: NewsItem[] = [
     author: "EcoS",
     date: "02 Mar 2026",
     location: "São Paulo, BR",
-    likes: 512,
     gradient: "from-emerald-500 to-green-600" 
   }
 ];
@@ -83,13 +85,40 @@ const sidebarItems: SidebarItem[] = [
 ];
 
 // --- COMPONENTE DE NOTÍCIA INDIVIDUAL (DESIGN ATUALIZADO) ---
-const NewsCard = ({ item }: { item: NewsItem }) => {
-  const [likes, setLikes] = useState(item.likes);
+const NewsCard = ({ item }: { item: NewsItem;  }) => {
+  const [likes, setLikes] = useState(0);
   const [hearts, setHearts] = useState(Math.floor(item.likes / 3));
   const [ideas, setIdeas] = useState(Math.floor(item.likes / 5));
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState<{id: number, text: string}[]>([]);
   const [newComment, setNewComment] = useState("");
+  const { user } = useAuth();
+
+
+  useEffect(() => {
+  loadLikes();
+}, []);
+
+async function loadLikes() {
+  const { count } = await supabase
+    .from("likes")
+    .select("*", { count: "exact", head: true })
+    .eq("news_id", item.id);
+
+  setLikes(count || 0);
+}
+
+
+async function handleLike() {
+  if (!user) return;
+
+  await supabase.from("likes").insert({
+    user_id: user.id,
+    news_id: item.id
+  });
+
+  setLikes((prev) => prev + 1);
+}
 
   const handleAddComment = (e: React.FormEvent) => {
     e.preventDefault();
@@ -137,7 +166,7 @@ const NewsCard = ({ item }: { item: NewsItem }) => {
         {/* ACTIONS BAR */}
         <div className="flex flex-wrap items-center gap-3 pt-6 border-t border-white/5">
           <button 
-            onClick={() => setLikes(likes + 1)}
+            onClick={handleLike}
             className="flex items-center gap-2 px-4 py-2 text-[10px] font-black rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 transition-all uppercase italic tracking-widest active:scale-95"
           >
             <ThumbsUp size={14} /> {likes}
@@ -200,18 +229,128 @@ const NewsCard = ({ item }: { item: NewsItem }) => {
   );
 };
 
+
+
+
+
 // --- COMPONENTE PRINCIPAL ---
 export default function SustainableNewsFeed() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  const filteredNews = newsData.filter((item) => {
-    const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory ? item.category === selectedCategory : true;
-    return matchesSearch && matchesCategory;
-  });
+  const {user} =useAuth();
+  const[newsfeed, setNewsfeed] =useState<NewsItem[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+
+
+  const [newNews, setNewNews] = useState({
+    title: "",
+    summary: "",
+    content: "",
+    category: "",
+    location: ""
+});
+
+  useEffect(() => {
+  if (isPaused) return;
+
+  const interval = setInterval(() => {
+    setCurrentIndex((prev) => (prev + 1) % newsData.length);
+  }, 7000);
+
+  return () => clearInterval(interval);
+}, [isPaused]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % newsData.length);
+    }, 6000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  async function handlesalvenewsfeed(updatedNews:NewsItem[]){ 
+    if (!user) return;
+    
+    const {error} =await supabase 
+    .from("newsfeed") 
+    .upsert({
+
+      }) 
+      if (error)alert (error.message); 
+    }
+
+  /*Carregar Newsfeed */ 
+  useEffect(() => { 
+    if (user) loadNewsFeed(user.id); 
+  }, [user]); 
+  
+  async function loadNewsFeed(user_id:string){
+     const {data,error}=await supabase 
+     .from("newsfeed") 
+     .select("*") 
+     .eq("user_id",user_id) 
+     
+     
+
+     if (error){ alert(error.message); 
+      return; 
+    } 
+    if (data && Array.isArray(data)) {
+    setNewsfeed(data);
+    }
+   }
+   
+  /*para publicar */
+  async function handlePublish() {
+    if (!user) return;
+
+    const { error } = await supabase.from("newsfeed").insert({
+      user_id: user.id,
+      title: newNews.title,
+      summary: newNews.summary,
+      content: newNews.content,
+      category: newNews.category,
+      location: newNews.location,
+      author: user.email, // ou nome
+      date: new Date().toISOString(),
+    
+      gradient: "from-emerald-500 to-green-600"
+    });
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    // limpa form
+    setNewNews({
+      title: "",
+      summary: "",
+      content: "",
+      category: "",
+      location: ""
+    });
+
+    // recarrega feed
+    loadNewsFeed(user.id);
+  }
+
+  
+  const filteredNews = newsfeed.filter((item) => {
+  const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase());
+  const matchesCategory = selectedCategory ? item.category === selectedCategory : true;
+  return matchesSearch && matchesCategory;
+
+
+});
+
 
   return (
+
+
     <div className="min-h-screen bg-[#020617] text-slate-300 font-sans selection:bg-emerald-500/30 overflow-x-hidden">
       
       {/* BACKGROUND ELEMENTS */}
@@ -219,6 +358,84 @@ export default function SustainableNewsFeed() {
         <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-emerald-900/10 blur-[140px] rounded-full" />
         <div className="absolute bottom-0 right-0 w-[40%] h-[40%] bg-blue-900/10 blur-[120px] rounded-full" />
       </div>
+       {/* 🔥 CARROSSEL */}
+      <div className="max-w-7xl mx-auto px-6 pt-6">
+        <div
+          className="relative h-[320px] rounded-[2.5rem] overflow-hidden group"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+        >
+
+      {/* SLIDE */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={newsData[currentIndex].id}
+          initial={{ opacity: 0, x: 100 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -100 }}
+          transition={{ duration: 0.8 }}
+          className={`absolute inset-0 bg-gradient-to-br ${newsData[currentIndex].gradient}`}
+        >
+          {/* overlay */}
+          <div className="absolute inset-0 bg-black/50" />
+
+          {/* conteúdo */}
+          <div className="absolute bottom-0 p-10 space-y-3 max-w-2xl">
+            <span className="text-xs text-emerald-400 font-bold uppercase tracking-widest">
+              {newsData[currentIndex].category}
+            </span>
+
+            <h2 className="text-4xl font-black text-white leading-tight">
+              {newsData[currentIndex].title}
+            </h2>
+
+            <p className="text-white/80 text-sm">
+              {newsData[currentIndex].summary}
+            </p>
+          </div>
+        </motion.div>
+      </AnimatePresence>
+
+      {/* BOTÃO ESQUERDA */}
+      <button
+        onClick={() =>
+          setCurrentIndex((prev) =>
+            prev === 0 ? newsData.length - 1 : prev - 1
+          )
+        }
+        className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white p-3 rounded-full opacity-0 group-hover:opacity-100 transition"
+      >
+        ◀
+      </button>
+
+      {/* BOTÃO DIREITA */}
+      <button
+        onClick={() =>
+          setCurrentIndex((prev) =>
+            (prev + 1) % newsData.length
+          )
+        }
+        className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white p-3 rounded-full opacity-0 group-hover:opacity-100 transition"
+      >
+        ▶
+      </button>
+
+      {/* INDICADORES */}
+      <div className="absolute bottom-5 right-6 flex gap-2">
+        {newsData.map((_, index) => (
+          <div
+            key={index}
+            onClick={() => setCurrentIndex(index)}
+            className={`h-2 rounded-full cursor-pointer transition-all ${
+              index === currentIndex
+                ? "w-6 bg-emerald-400"
+                : "w-2 bg-white/40"
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  </div>
 
       <header className="sticky top-0 z-40 backdrop-blur-2xl bg-[#020617]/80 border-b border-white/5">
         <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
@@ -241,7 +458,15 @@ export default function SustainableNewsFeed() {
               className="pl-11 rounded-xl border-white/10 bg-white/5 focus-visible:ring-emerald-500 text-xs font-black tracking-widest text-white uppercase placeholder:text-slate-600"
             />
           </div>
+
+          <Button
+            onClick={() => setShowForm(true)}
+            className="bg-emerald-500 text-black font-bold uppercase text-xs"
+            >
+                + Publicar Notícia
+            </Button>
         </div>
+        
       </header>
 
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8 px-6 py-10">
@@ -275,6 +500,108 @@ export default function SustainableNewsFeed() {
           </div>
         </aside>
 
+        <AnimatePresence>
+  {showForm && (
+    <>
+      {/* BACKDROP */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40"
+        onClick={() => setShowForm(false)}
+      />
+
+      {/* MODAL */}
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0, y: 40 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.9, opacity: 0, y: 40 }}
+        transition={{ duration: 0.3 }}
+        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 
+        w-full max-w-2xl bg-gradient-to-br from-slate-900 to-slate-800 
+        border border-white/10 rounded-[2rem] p-8 z-50 shadow-2xl"
+      >
+
+        {/* HEADER */}
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-black text-white">
+            ✨ Criar Notícia
+          </h2>
+
+          <button
+            onClick={() => setShowForm(false)}
+            className="text-white/60 hover:text-white text-xl"
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* FORM */}
+        <div className="space-y-4">
+
+          {/* GRID TOP */}
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              placeholder="Título"
+              value={newNews.title}
+              onChange={(e) => setNewNews({ ...newNews, title: e.target.value })}
+              className="bg-black/30 border-white/10 text-white"
+            />
+
+            <Input
+              placeholder="Categoria"
+              value={newNews.category}
+              onChange={(e) => setNewNews({ ...newNews, category: e.target.value })}
+              className="bg-black/30 border-white/10 text-white"
+            />
+          </div>
+
+          <Input
+            placeholder="Resumo"
+            value={newNews.summary}
+            onChange={(e) => setNewNews({ ...newNews, summary: e.target.value })}
+            className="bg-black/30 border-white/10 text-white"
+          />
+
+          <Input
+            placeholder="Localização"
+            value={newNews.location}
+            onChange={(e) => setNewNews({ ...newNews, location: e.target.value })}
+            className="bg-black/30 border-white/10 text-white"
+          />
+
+          <textarea
+            placeholder="Conteúdo completo..."
+            className="w-full p-4 rounded-2xl bg-black/30 text-white border border-white/10 min-h-[120px]"
+            value={newNews.content}
+            onChange={(e) => setNewNews({ ...newNews, content: e.target.value })}
+          />
+
+          {/* ACTIONS */}
+          <div className="flex justify-end gap-3 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => setShowForm(false)}
+              className="border-white/10 text-white"
+            >
+              Cancelar
+            </Button>
+
+            <Button
+              onClick={handlePublish}
+              className="bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-6"
+            >
+              Publicar 🚀
+            </Button>
+          </div>
+
+        </div>
+      </motion.div>
+    </>
+  )}
+</AnimatePresence>
+    
         {/* FEED */}
         <main className="col-span-1 lg:col-span-3 space-y-10">
           <AnimatePresence mode="popLayout">
