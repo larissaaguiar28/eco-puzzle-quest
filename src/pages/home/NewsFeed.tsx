@@ -61,7 +61,7 @@ const newsData: NewsItem[] = [
     date: "04 Mar 2026",
     location: "Rio de Janeiro, BR",
     gradient: "from-cyan-500 to-blue-600",
-    image: "https://images.unsplash.com/photo-1509395176047-4a66953fd231"
+    image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e"
   },
   {
     id: "3",
@@ -72,7 +72,8 @@ const newsData: NewsItem[] = [
     author: "EcoS",
     date: "02 Mar 2026",
     location: "São Paulo, BR",
-    gradient: "from-emerald-500 to-green-600" 
+    gradient: "from-emerald-500 to-green-600",
+    image:"https://images.unsplash.com/photo-1464226184884-fa280b87c399"
   }
 ];
 
@@ -90,8 +91,9 @@ const NewsCard = ({ item }: { item: NewsItem;  }) => {
   const [hearts, setHearts] = useState(Math.floor(item.likes / 3));
   const [ideas, setIdeas] = useState(Math.floor(item.likes / 5));
   const [showComments, setShowComments] = useState(false);
-  const [comments, setComments] = useState<{id: number, text: string}[]>([]);
+  const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState("");
+  const [expanded, setExpanded] = useState(false);
   const { user } = useAuth();
 
 
@@ -120,13 +122,54 @@ async function handleLike() {
   setLikes((prev) => prev + 1);
 }
 
-  const handleAddComment = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newComment.trim()) {
-      setComments([...comments, { id: Date.now(), text: newComment }]);
-      setNewComment("");
+ 
+ /* Buscando comentarios  */
+  useEffect(() => {
+    loadComments();
+  }, []);
+
+
+
+  async function loadComments() {
+    const { data, error } = await supabase
+      .from("newscomments")
+      .select("*")
+      .eq("news_id", item.id)
+      .order("created_at", { ascending: false });
+
+    if (!error && data) {
+      setComments(data);
     }
+  }
+
+  /* Salva no banco comentario */
+  const handleAddComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+     // 🔥 COLOCA AQUI
+    if (!user) {
+      alert("Você precisa estar logado!");
+      return;
+    }
+
+    if (!newComment.trim() || !user) return;
+
+    const { error } = await supabase.from("newscomments").insert({
+      user_id: user.id,
+      news_id: item.id,
+      text: newComment
+    });
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    setNewComment("");
+    loadComments(); // recarrega comentários
   };
+
+
 
   return (
     <Card className="rounded-[2.5rem] overflow-hidden border border-white/5 bg-slate-900/40 backdrop-blur-xl shadow-2xl group transition-all duration-500 hover:border-white/10">
@@ -140,12 +183,32 @@ async function handleLike() {
 
       <CardContent className="p-8 space-y-6">
         <div className="space-y-3">
-          <h3 className="text-3xl font-black text-white leading-[0.9] uppercase italic tracking-tighter group-hover:text-emerald-400 transition-colors cursor-pointer">
+          <h3
+            onClick={() => setExpanded(!expanded)} // <- aqui você adiciona o clique
+            className="cursor-pointer text-3xl font-black text-white leading-[0.9] uppercase italic tracking-tighter group-hover:text-emerald-400 transition-colors"
+          >
             {item.title}
           </h3>
+
           <p className="text-emerald-400/80 font-bold text-sm uppercase tracking-wider italic">{item.summary}</p>
         </div>
-
+        {expanded && (
+        <div className="mt-4 text-slate-300">
+          {item.image && (
+            <img
+              src={item.image}
+              alt={item.title}
+              className="w-full h-60 object-cover rounded-xl mb-4"
+            />
+          )}
+          <p className="mb-4">{item.content}</p>
+          <div className="text-xs text-slate-400 flex gap-4 uppercase tracking-widest">
+            <span>Autor: {item.author}</span>
+            <span>Data: {item.date}</span>
+            <span>Local: {item.location}</span>
+          </div>
+        </div>
+      )}
         <div className="flex flex-wrap items-center gap-4 text-[10px] font-black uppercase tracking-widest">
           <div className="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
             <Avatar className="h-5 w-5 ring-1 ring-emerald-500/50">
@@ -364,35 +427,51 @@ export default function SustainableNewsFeed() {
           className="relative h-[320px] rounded-[2.5rem] overflow-hidden group"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
+
+          
         >
 
       {/* SLIDE */}
       <AnimatePresence mode="wait">
         <motion.div
-          key={newsData[currentIndex].id}
-          initial={{ opacity: 0, x: 100 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -100 }}
-          transition={{ duration: 0.8 }}
-          className={`absolute inset-0 bg-gradient-to-br ${newsData[currentIndex].gradient}`}
-        >
-          {/* overlay */}
-          <div className="absolute inset-0 bg-black/50" />
+        key={newsData[currentIndex].id}
+        initial={{ opacity: 0, x: 100 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -100 }}
+        transition={{ duration: 0.8 }}
+        className="absolute inset-0"
+      >
+        {/* IMAGEM */}
+        {newsData[currentIndex].image ? (
+          <img
+            src={newsData[currentIndex].image}
+            alt={newsData[currentIndex].title}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className={`w-full h-full bg-gradient-to-br ${newsData[currentIndex].gradient}`} />
+        )}
 
-          {/* conteúdo */}
-          <div className="absolute bottom-0 p-10 space-y-3 max-w-2xl">
-            <span className="text-xs text-emerald-400 font-bold uppercase tracking-widest">
-              {newsData[currentIndex].category}
-            </span>
+        {/* OVERLAY ESCURO */}
+        <div className="absolute inset-0 bg-black/50" />
 
-            <h2 className="text-4xl font-black text-white leading-tight">
-              {newsData[currentIndex].title}
-            </h2>
+        {/* CONTEÚDO */}
+        <div className="absolute bottom-0 p-10 space-y-3 max-w-2xl">
+          <span className="text-xs text-emerald-400 font-bold uppercase tracking-widest">
+            {newsData[currentIndex].category}
+          </span>
 
-            <p className="text-white/80 text-sm">
-              {newsData[currentIndex].summary}
-            </p>
-          </div>
+        <h2 
+            onClick={() => setSelectedNews(newsData[currentIndex])} // ADICIONE ISSO
+            className="text-4xl font-black text-white leading-tight cursor-pointer hover:text-emerald-400 transition-colors"
+          >
+            {newsData[currentIndex].title}
+        </h2>
+
+          <p className="text-white/80 text-sm">
+            {newsData[currentIndex].summary}
+          </p>
+        </div>
         </motion.div>
       </AnimatePresence>
 
