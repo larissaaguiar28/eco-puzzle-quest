@@ -21,11 +21,11 @@ import MemoriaSustentavel from "@/components/games/MemoriaSustentavel";
 
 // --- DADOS DE CONFIGURAÇÃO ---
 const GAMES = [
-  { id: 1, title: "Recicla Quest", description: "Domine a economia circular e transforme resíduos em recursos.", icon: Recycle, color: "from-blue-600 to-indigo-900", image: "/images/ecoquest.png" },
-  { id: 2, title: "Oceano Limpo", description: "Recupere recifes de coral e remova microplásticos dos mares.", icon: Droplets, color: "from-cyan-400 to-blue-600", image: "/images/oceano.png" },
-  { id: 3, title: "Energia Verde", description: "Projete a rede elétrica do futuro com fontes 100% renováveis.", icon: Wind, color: "from-emerald-400 to-cyan-700", image: "/images/energia.png" },
+  { id: 1, title: "Recicla Quest", description: "Domine a economia circular e transforme resíduos em recursos.", icon: Recycle, color: "from-blue-600 to-indigo-900", image: "/images/ecoquist.png" },
+  { id: 2, title: "Oceano Limpo", description: "Recupere recifes de coral e remova microplásticos dos mares.", icon: Droplets, color: "from-cyan-400 to-blue-600", image: "/images/Uceano.png" },
+  { id: 3, title: "Energia Verde", description: "Projete a rede elétrica do futuro com fontes 100% renováveis.", icon: Wind, color: "from-emerald-400 to-cyan-700", image: "/images/Inergia.png" },
   { id: 4, title: "Guardião da Floresta", description: "Proteja a biodiversidade e restaure biomas degradados.", icon: TreePine, color: "from-cyan-500 to-emerald-600", image: "/images/guardiao.png" },
-  { id: 5, title: "Memória Sustentável", description: "Teste sua memória com conceitos ecológicos e sustentáveis.", icon: Brain, color: "from-indigo-500 to-purple-700", image: "/images/ecoquest.png" },
+  { id: 5, title: "Memória Sustentável", description: "Teste sua memória com conceitos ecológicos e sustentáveis.", icon: Brain, color: "from-indigo-500 to-purple-700", image: "/images/oie.png" },
 ];
 
 const INITIAL_BADGES = [
@@ -43,8 +43,9 @@ interface GameData {
   totalXp: number;
   matches: number;
   streakDays: number;
-  badges: any[]; // Ou o tipo específico do seu INITIAL_BADGES
-  user_id: string;
+  badges?: any[]; 
+  user_id?: string;
+  last_played_at?: string; 
 }
 
 // --- COMPONENTE: CONTADOR DE XP INTERATIVO (HEADER) ---
@@ -59,8 +60,6 @@ const XPCounter = ({ value }: { value: number }) => {
   }, [value]);
 
   const digits = Math.abs(value).toString().split("");
-
-
 
   return (
     <motion.div
@@ -166,20 +165,13 @@ const XPProgress = ({ xp, xpNext, level, streak, matches }: { xp: number; xpNext
   }
 
   const getStreakConfig = (days: number): StreakStyle => {
-    // Se não houver sequência, ícone apagado (cinza)
     if (days === 0) return { color: "text-slate-600", scale: 1, glow: "none" };
-
-    // Aumenta o brilho em 4px por dia (limite de 40px para não estourar o layout)
     const blur = Math.min(days * 4, 40);
-
-    // Aumenta a opacidade do brilho conforme a frequência cresce
     const opacity = Math.min(0.2 + (days * 0.1), 0.8);
-
-    // O ícone cresce 5% a cada dia (limite de 50% de aumento total)
     const scale = 1 + Math.min(days * 0.05, 0.5);
 
     return {
-      color: "text-orange-500", // Laranja fixo, o brilho que muda
+      color: "text-orange-500",
       scale: scale,
       glow: `drop-shadow(0 0 ${blur}px rgba(249, 115, 22, ${opacity}))`
     };
@@ -326,15 +318,16 @@ const XPProgress = ({ xp, xpNext, level, streak, matches }: { xp: number; xpNext
   );
 };
 
-
-
 // --- COMPONENTE PRINCIPAL ---
 export default function GamesPage() {
   const [index, setIndex] = useState(0);
   const [badges, setBadges] = useState(INITIAL_BADGES);
   const [totalXp, setTotalXp] = useState(0);
   const [matches, setMatches] = useState(12);
-  const [streakDays, setStreakDays] = useState(5);
+  const [streakDays, setStreakDays] = useState<number>(0);
+  const [activeMission, setActiveMission] = useState<number | null>(null);
+  
+  const [lastPlayedAt, setLastPlayedAt] = useState<string | null>(null);
 
   const featured = GAMES[index];
   const REWARD_XP = 120;
@@ -342,16 +335,14 @@ export default function GamesPage() {
   const currentLevel = Math.floor(totalXp / xpPerLevel) + 1;
   const xpInCurrentLevel = totalXp % xpPerLevel;
   const { user } = useAuth();
-  const [activeMission, setActiveMission] = useState<number | null>(null);
 
   useEffect(() => {
     const loadGameData = async () => {
       if (!user?.id) return;
 
-      // Tipamos o select com <GameData>
       const { data, error } = await supabase
         .from("games")
-        .select("totalXp, matches, streakDays")
+        .select("totalXp, matches, streakDays, last_played_at") 
         .eq("user_id", user.id)
         .single<GameData>();
 
@@ -364,6 +355,7 @@ export default function GamesPage() {
         setTotalXp(Number(data.totalXp) || 0);
         setMatches(Number(data.matches) || 0);
         setStreakDays(Number(data.streakDays) || 0);
+        setLastPlayedAt(data.last_played_at || null); 
       }
     };
 
@@ -389,7 +381,6 @@ export default function GamesPage() {
       alert(error.message);
       return;
     }
-
   };
 
   const handleStartMission = () => {
@@ -400,10 +391,31 @@ export default function GamesPage() {
     setTotalXp(prev => prev + amount);
   };
 
+  const updateStreakLogic = (lastDateStr: string | null, currentStreak: number) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); 
+
+    if (!lastDateStr) return 1; 
+
+    const lastDate = new Date(lastDateStr);
+    lastDate.setHours(0, 0, 0, 0);
+
+    const diffInMs = today.getTime() - lastDate.getTime();
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+    if (diffInDays === 0) {
+      return currentStreak; 
+    } else if (diffInDays === 1) {
+      return currentStreak + 1; 
+    } else {
+      return 1; 
+    }
+  };
+
   const handleExitMission = async () => {
     setMatches(prev => prev + 1);
     setActiveMission(null);
-    
+
     const finalXp = totalXp;
     const data = {
       totalXp: finalXp,
@@ -412,6 +424,27 @@ export default function GamesPage() {
       user_id: user?.id
     };
 
+    const calculateStreak = (lastPlayedStr: string | null, currentStreak: number) => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (!lastPlayedStr) return 1; 
+
+      const lastPlayed = new Date(lastPlayedStr);
+      lastPlayed.setHours(0, 0, 0, 0);
+
+      const diffInMs = today.getTime() - lastPlayed.getTime();
+      const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+      if (diffInDays === 0) {
+        return currentStreak; 
+      } else if (diffInDays === 1) {
+        return currentStreak + 1; 
+      } else {
+        return 1; 
+      }
+    };
+    
     await supabase.from("games").upsert(data, { onConflict: "user_id" });
   };
 
@@ -440,7 +473,7 @@ export default function GamesPage() {
     });
   };
 
-  // Render active mission
+  // Render active mission (Envolvido em Fragment para o compilador TS não chiar)
   if (activeMission !== null) {
     const MissionComponents: Record<number, React.ReactNode> = {
       0: <ReciclaQuest onExit={handleExitMission} onXP={handleMissionXP} />,
@@ -449,7 +482,7 @@ export default function GamesPage() {
       3: <GuardiaoFloresta onExit={handleExitMission} onXP={handleMissionXP} />,
       4: <MemoriaSustentavel onExit={handleExitMission} onXP={handleMissionXP} />,
     };
-    return MissionComponents[activeMission] || null;
+    return <>{MissionComponents[activeMission]}</>;
   }
 
   return (
@@ -568,25 +601,28 @@ export default function GamesPage() {
                 <div className="flex gap-5 items-center justify-center">
                   <AnimatePresence mode="popLayout">
                     {badges.slice(0, 4).map((badge) => (
-                      <Tooltip key={badge.name}>
-                        <TooltipTrigger asChild>
-                          <motion.div
-                            layout
-                            initial={{ opacity: 0, x: 50, scale: 0.8 }}
-                            animate={{ opacity: 1, x: 0, scale: 1 }}
-                            exit={{ opacity: 0, x: -50, scale: 0.8 }}
-                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                            whileHover={{ scale: 1.1, rotate: 2, borderColor: "#22d3ee" }}
-                            className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-[2rem] bg-slate-900 border border-white/5 flex items-center justify-center cursor-pointer group shadow-xl"
-                          >
-                            <badge.icon size={36} className="text-cyan-400 group-hover:text-white group-hover:drop-shadow-[0_0_10px_rgba(34,211,238,0.8)] transition-all" />
-                          </motion.div>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="bg-cyan-500 text-slate-950 font-black p-3 rounded-xl border-none shadow-[0_0_20px_rgba(34,211,238,0.5)]">
-                          <p className="uppercase text-[10px] tracking-wider">{badge.name}</p>
-                          <p className="text-[11px] font-medium opacity-80">{badge.description}</p>
-                        </TooltipContent>
-                      </Tooltip>
+                      <motion.div
+                        layout
+                        initial={{ opacity: 0, x: 50, scale: 0.8 }}
+                        animate={{ opacity: 1, x: 0, scale: 1 }}
+                        exit={{ opacity: 0, x: -50, scale: 0.8 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        whileHover={{ scale: 1.1, rotate: 2, borderColor: "#22d3ee" }}
+                        key={badge.name}
+                        className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-[2rem] bg-slate-900 border border-white/5 shadow-xl flex items-center justify-center cursor-pointer group"
+                      >
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="w-full h-full flex items-center justify-center rounded-[2rem]">
+                              <badge.icon size={36} className="text-cyan-400 group-hover:text-white group-hover:drop-shadow-[0_0_10px_rgba(34,211,238,0.8)] transition-all" />
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="bg-cyan-500 text-slate-950 font-black p-3 rounded-xl border-none shadow-[0_0_20px_rgba(34,211,238,0.5)]">
+                            <p className="uppercase text-[10px] tracking-wider">{badge.name}</p>
+                            <p className="text-[11px] font-medium opacity-80">{badge.description}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </motion.div>
                     ))}
                   </AnimatePresence>
                   <div className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-[2rem] border-2 border-dashed border-white/10 flex items-center justify-center bg-white/5">
