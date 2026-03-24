@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  TreePine, Recycle, Droplets, Wind, Leaf, Sun,
+  TreePine, Recycle, Droplets, Wind, Leaf, Sun, Brain,
   ChevronLeft, ChevronRight, Shield, Zap, Award, Trophy, Star, Sprout,
   Gamepad2, Flame
 } from "lucide-react";
@@ -10,13 +10,22 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import supabase from "../../../utils/supabase";
+import { useAuth } from "../../contexts/AuthContext";
+
+import ReciclaQuest from "@/components/games/ReciclaQuest";
+import OceanoLimpo from "@/components/games/OceanoLimpo";
+import EnergiaVerde from "@/components/games/EnergiaVerde";
+import GuardiaoFloresta from "@/components/games/GuardiaoFloresta";
+import MemoriaSustentavel from "@/components/games/MemoriaSustentavel";
 
 // --- DADOS DE CONFIGURAÇÃO ---
 const GAMES = [
-  { id: 1, title: "Guardião da Floresta", description: "Proteja a biodiversidade e restaure biomas degradados.", icon: TreePine, color: "from-cyan-500 to-emerald-600", image: "https://images.unsplash.com/photo-1508780709619-79562169bc64?auto=format&fit=crop&q=80&w=1000" },
-  { id: 2, title: "Recicla Quest", description: "Domine a economia circular e transforme resíduos em recursos.", icon: Recycle, color: "from-blue-600 to-indigo-900", image: "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&q=80&w=1000" },
-  { id: 3, title: "Oceano Limpo", description: "Recupere recifes de coral e remova microplásticos dos mares.", icon: Droplets, color: "from-cyan-400 to-blue-600", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=1000" },
-  { id: 4, title: "Energia Verde", description: "Projete a rede elétrica do futuro com fontes 100% renováveis.", icon: Wind, color: "from-emerald-400 to-cyan-700", image: "https://images.unsplash.com/photo-1466611653911-95081537e5b7?auto=format&fit=crop&q=80&w=1000" }
+  { id: 1, title: "Recicla Quest", description: "Domine a economia circular e transforme resíduos em recursos.", icon: Recycle, color: "from-blue-600 to-indigo-900", image: "/images/ecoquist.png" },
+  { id: 2, title: "Oceano Limpo", description: "Recupere recifes de coral e remova microplásticos dos mares.", icon: Droplets, color: "from-cyan-400 to-blue-600", image: "/images/Uceano.png" },
+  { id: 3, title: "Energia Verde", description: "Projete a rede elétrica do futuro com fontes 100% renováveis.", icon: Wind, color: "from-emerald-400 to-cyan-700", image: "/images/Inergia.png" },
+  { id: 4, title: "Guardião da Floresta", description: "Proteja a biodiversidade e restaure biomas degradados.", icon: TreePine, color: "from-cyan-500 to-emerald-600", image: "/images/guardiao.png" },
+  { id: 5, title: "Memória Sustentável", description: "Teste sua memória com conceitos ecológicos e sustentáveis.", icon: Brain, color: "from-indigo-500 to-purple-700", image: "/images/oie.png" },
 ];
 
 const INITIAL_BADGES = [
@@ -29,6 +38,15 @@ const INITIAL_BADGES = [
   { icon: Zap, name: "Energia Viva", description: "Gerou 1GW limpo" },
   { icon: Award, name: "Veterano", description: "30 dias seguidos" }
 ];
+
+interface GameData {
+  totalXp: number;
+  matches: number;
+  streakDays: number;
+  badges?: any[]; 
+  user_id?: string;
+  last_played_at?: string; 
+}
 
 // --- COMPONENTE: CONTADOR DE XP INTERATIVO (HEADER) ---
 const XPCounter = ({ value }: { value: number }) => {
@@ -58,8 +76,8 @@ const XPCounter = ({ value }: { value: number }) => {
               <motion.div
                 key={i}
                 initial={{ opacity: 0, scale: 0, x: 0, y: 0 }}
-                animate={{ 
-                  opacity: [0, 1, 0], 
+                animate={{
+                  opacity: [0, 1, 0],
                   scale: [0, 1.2, 0.2],
                   x: (i % 2 === 0 ? 1 : -1) * (Math.random() * 60 + 20),
                   y: (i < 4 ? 1 : -1) * (Math.random() * 60 + 20)
@@ -73,12 +91,12 @@ const XPCounter = ({ value }: { value: number }) => {
         )}
       </AnimatePresence>
 
-      <Badge 
+      <Badge
         className={cn(
           "relative z-10 px-6 py-3 rounded-full shadow-lg text-lg font-bold flex items-center gap-1 transition-all duration-500 overflow-hidden border-2",
-          isHovered 
-            ? "bg-cyan-600 text-white border-cyan-300 shadow-cyan-500/40" 
-            : isChanging 
+          isHovered
+            ? "bg-cyan-600 text-white border-cyan-300 shadow-cyan-500/40"
+            : isChanging
               ? "bg-slate-800 border-cyan-400 text-cyan-400 shadow-md"
               : "bg-slate-900 border-emerald-500/50 text-emerald-400"
         )}
@@ -98,11 +116,11 @@ const XPCounter = ({ value }: { value: number }) => {
                 initial={{ y: 25, opacity: 0, filter: "blur(4px)" }}
                 animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
                 exit={{ y: -25, opacity: 0, filter: "blur(4px)" }}
-                transition={{ 
-                  type: "spring", 
-                  stiffness: 500, 
+                transition={{
+                  type: "spring",
+                  stiffness: 500,
                   damping: 35,
-                  delay: (digits.length - index) * 0.04 
+                  delay: (digits.length - index) * 0.04
                 }}
                 className="inline-block"
               >
@@ -110,7 +128,7 @@ const XPCounter = ({ value }: { value: number }) => {
               </motion.span>
             ))}
           </AnimatePresence>
-          <motion.span 
+          <motion.span
             className="ml-1 text-xs opacity-70 uppercase tracking-widest"
             animate={isChanging ? { opacity: [0.7, 1, 0.7], scale: [1, 1.1, 1] } : {}}
           >
@@ -118,7 +136,7 @@ const XPCounter = ({ value }: { value: number }) => {
           </motion.span>
         </div>
 
-        <motion.div 
+        <motion.div
           className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent -translate-x-full"
           animate={isHovered ? { translateX: ["150%", "-150%"] } : {}}
           transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }}
@@ -140,22 +158,39 @@ const XPProgress = ({ xp, xpNext, level, streak, matches }: { xp: number; xpNext
   const [currentMessage, setCurrentMessage] = useState("");
   const prevLevel = useRef(level);
 
-  const getStreakConfig = (days: number) => {
+  interface StreakStyle {
+    color: string;
+    scale: number;
+    glow: string;
+  }
+
+  const getStreakConfig = (days: number): StreakStyle => {
     if (days === 0) return { color: "text-slate-600", scale: 1, glow: "none" };
-    if (days < 3) return { color: "text-cyan-400", scale: 1.1, glow: "drop-shadow(0 0 8px rgba(34, 211, 238, 0.4))" };
-    if (days < 7) return { color: "text-emerald-400", scale: 1.25, glow: "drop-shadow(0 0 12px rgba(16, 185, 129, 0.6))" };
-    return { color: "text-blue-500", scale: 1.4, glow: "drop-shadow(0 0 16px rgba(59, 130, 246, 0.8))" };
+    const blur = Math.min(days * 4, 40);
+    const opacity = Math.min(0.2 + (days * 0.1), 0.8);
+    const scale = 1 + Math.min(days * 0.05, 0.5);
+
+    return {
+      color: "text-orange-500",
+      scale: scale,
+      glow: `drop-shadow(0 0 ${blur}px rgba(249, 115, 22, ${opacity}))`
+    };
   };
 
   const streakConfig = getStreakConfig(streak);
 
   const evolutionMessages = [
-    "🎉 LEVEL UP! VOCÊ ESTÁ INSANO!",
-    "🌿 ECO-WARRIOR EVOLUÍDO!",
-    "🚀 GOD MODE ATIVADO!",
-    "✨ LENDÁRIO! PROTEÇÃO MÁXIMA!",
-    "🏆 MVP DA NATUREZA!",
-    "🌱 POWER-UP CONQUISTADO!"
+    "🌱 BROTOU! SUA INFLUÊNCIA ESTÁ CRESCENDO!",
+    "🌿 ECOSSISTEMA EM EXPANSÃO: VOCÊ SUBIU DE NÍVEL!",
+    "🌳 DE PROTECTOR A GUARDIÃO: EVOLUÇÃO CONCLUÍDA!",
+    "🍃 SOPRO DE VIDA! NOVO STATUS ALCANÇADO!",
+    "🌺 FLORESCER LENDÁRIO! VOCÊ É ESSENCIAL!",
+    "🌎 GAIA ESTÁ ORGULHOSA: NÍVEL MÁXIMO ATIVADO!",
+    "🌊 MARÉ ALTA! VOCÊ LIMPOU O CAMINHO PARA O FUTURO!",
+    "☀️ CLAREZA SOLAR! SUA ENERGIA REGENERA O MUNDO!",
+    "🦋 EFEITO BORBOLETA: PEQUENAS AÇÕES, GRANDES EVOLUÇÕES!",
+    "🏔️ FORÇA DA TERRA! SEU IMPACTO É AGORA INABALÁVEL!",
+    "🌌 EQUILÍBRIO ALCANÇADO: VOCÊ É UM ARQUITETO DA NATUREZA!"
   ];
 
   useEffect(() => {
@@ -176,7 +211,7 @@ const XPProgress = ({ xp, xpNext, level, streak, matches }: { xp: number; xpNext
     )}>
       <AnimatePresence>
         {showLevelUp && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
@@ -186,7 +221,7 @@ const XPProgress = ({ xp, xpNext, level, streak, matches }: { xp: number; xpNext
       </AnimatePresence>
 
       <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-cyan-500/10 blur-[80px] rounded-full" />
-      
+
       <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 mb-8 flex-1">
         <div className="relative shrink-0">
           <svg className="w-24 h-24 transform -rotate-90 overflow-visible">
@@ -201,7 +236,7 @@ const XPProgress = ({ xp, xpNext, level, streak, matches }: { xp: number; xpNext
             />
           </svg>
 
-          <motion.div 
+          <motion.div
             animate={showLevelUp ? { scale: [1, 1.4, 1], rotate: [0, 10, -10, 0] } : {}}
             className="absolute inset-0 flex flex-col items-center justify-center"
           >
@@ -215,11 +250,11 @@ const XPProgress = ({ xp, xpNext, level, streak, matches }: { xp: number; xpNext
 
         <div className="flex-1 space-y-4 text-center md:text-left w-full">
           <div className="flex justify-between items-end">
-            <motion.h3 
+            <motion.h3
               animate={showLevelUp ? { x: [0, 5, 0], color: ["#fff", "#22d3ee", "#fff"] } : {}}
               className="text-xl font-black text-white flex items-center gap-2 justify-center md:justify-start"
             >
-              {showLevelUp ? "NEW RANK UNLOCKED!" : "Eco-Warrior Status"} 
+              {showLevelUp ? "NEW RANK UNLOCKED!" : "Eco-Warrior Status"}
               <motion.div animate={showLevelUp ? { scale: [1, 1.5, 1], rotate: 360 } : {}}>
                 <Sprout size={20} className={showLevelUp ? "text-cyan-400" : "text-emerald-500"} />
               </motion.div>
@@ -228,16 +263,16 @@ const XPProgress = ({ xp, xpNext, level, streak, matches }: { xp: number; xpNext
           </div>
 
           <div className="h-4 w-full bg-slate-900 rounded-full overflow-hidden border border-white/5 p-0.5">
-            <motion.div 
-              initial={{ width: 0 }} 
-              animate={{ width: `${progress}%` }} 
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${progress}%` }}
               className={cn(
                 "h-full rounded-full shadow-[0_0_15px_rgba(34,211,238,0.5)] transition-all duration-500",
                 showLevelUp ? "bg-gradient-to-r from-cyan-400 to-blue-600 shadow-cyan-500/50" : "bg-gradient-to-r from-emerald-600 to-cyan-500"
               )}
             />
           </div>
-          
+
           <AnimatePresence mode="wait">
             {showLevelUp && (
               <motion.p
@@ -256,7 +291,7 @@ const XPProgress = ({ xp, xpNext, level, streak, matches }: { xp: number; xpNext
 
       <div className="relative z-10 pt-6 mt-auto border-t border-white/5 flex flex-wrap items-center justify-around md:justify-start gap-6 md:gap-12">
         <div className="flex items-center gap-3">
-          <motion.div 
+          <motion.div
             animate={{ scale: streakConfig.scale }}
             style={{ filter: streakConfig.glow }}
             className={cn("p-2 rounded-xl bg-slate-900", streakConfig.color)}
@@ -287,19 +322,130 @@ const XPProgress = ({ xp, xpNext, level, streak, matches }: { xp: number; xpNext
 export default function GamesPage() {
   const [index, setIndex] = useState(0);
   const [badges, setBadges] = useState(INITIAL_BADGES);
-  const [totalXp, setTotalXp] = useState(2350);
+  const [totalXp, setTotalXp] = useState(0);
   const [matches, setMatches] = useState(12);
-  const [streakDays, setStreakDays] = useState(5);
+  const [streakDays, setStreakDays] = useState<number>(0);
+  const [activeMission, setActiveMission] = useState<number | null>(null);
+  
+  const [lastPlayedAt, setLastPlayedAt] = useState<string | null>(null);
 
   const featured = GAMES[index];
   const REWARD_XP = 120;
-  const xpPerLevel = 1000; 
+  const xpPerLevel = 1000;
   const currentLevel = Math.floor(totalXp / xpPerLevel) + 1;
   const xpInCurrentLevel = totalXp % xpPerLevel;
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const loadGameData = async () => {
+      if (!user?.id) return;
+
+      const { data, error } = await supabase
+        .from("games")
+        .select("totalXp, matches, streakDays, last_played_at") 
+        .eq("user_id", user.id)
+        .single<GameData>();
+
+      if (error) {
+        alert(error.message)
+        return;
+      }
+
+      if (data) {
+        setTotalXp(Number(data.totalXp) || 0);
+        setMatches(Number(data.matches) || 0);
+        setStreakDays(Number(data.streakDays) || 0);
+        setLastPlayedAt(data.last_played_at || null); 
+      }
+    };
+
+    loadGameData();
+  }, [user?.id]);
+
+  const handleSave = async () => {
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    const data = {
+      totalXp,
+      level: currentLevel,
+      matches,
+      streakDays,
+      badges,
+      user_id: user?.id
+    };
+
+    const { error } = await supabase
+      .from("games")
+      .upsert(data, { onConflict: "user_id" });
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+  };
 
   const handleStartMission = () => {
-    setTotalXp(prev => prev + REWARD_XP);
+    setActiveMission(index);
+  };
+
+  const handleMissionXP = (amount: number) => {
+    setTotalXp(prev => prev + amount);
+  };
+
+  const updateStreakLogic = (lastDateStr: string | null, currentStreak: number) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); 
+
+    if (!lastDateStr) return 1; 
+
+    const lastDate = new Date(lastDateStr);
+    lastDate.setHours(0, 0, 0, 0);
+
+    const diffInMs = today.getTime() - lastDate.getTime();
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+    if (diffInDays === 0) {
+      return currentStreak; 
+    } else if (diffInDays === 1) {
+      return currentStreak + 1; 
+    } else {
+      return 1; 
+    }
+  };
+
+  const handleExitMission = async () => {
     setMatches(prev => prev + 1);
+    setActiveMission(null);
+
+    const finalXp = totalXp;
+    const data = {
+      totalXp: finalXp,
+      matches: matches + 1,
+      streakDays,
+      user_id: user?.id
+    };
+
+    const calculateStreak = (lastPlayedStr: string | null, currentStreak: number) => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (!lastPlayedStr) return 1; 
+
+      const lastPlayed = new Date(lastPlayedStr);
+      lastPlayed.setHours(0, 0, 0, 0);
+
+      const diffInMs = today.getTime() - lastPlayed.getTime();
+      const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+      if (diffInDays === 0) {
+        return currentStreak; 
+      } else if (diffInDays === 1) {
+        return currentStreak + 1; 
+      } else {
+        return 1; 
+      }
+    };
+    
+    await supabase.from("games").upsert(data, { onConflict: "user_id" });
   };
 
   useEffect(() => {
@@ -327,6 +473,18 @@ export default function GamesPage() {
     });
   };
 
+  // Render active mission (Envolvido em Fragment para o compilador TS não chiar)
+  if (activeMission !== null) {
+    const MissionComponents: Record<number, React.ReactNode> = {
+      0: <ReciclaQuest onExit={handleExitMission} onXP={handleMissionXP} />,
+      1: <OceanoLimpo onExit={handleExitMission} onXP={handleMissionXP} />,
+      2: <EnergiaVerde onExit={handleExitMission} onXP={handleMissionXP} />,
+      3: <GuardiaoFloresta onExit={handleExitMission} onXP={handleMissionXP} />,
+      4: <MemoriaSustentavel onExit={handleExitMission} onXP={handleMissionXP} />,
+    };
+    return <>{MissionComponents[activeMission]}</>;
+  }
+
   return (
     <div className="min-h-screen bg-[#020617] p-4 md:p-10 font-sans text-slate-100 overflow-x-hidden">
       <div className="max-w-7xl mx-auto space-y-12">
@@ -342,18 +500,18 @@ export default function GamesPage() {
           <div className="lg:col-span-8 relative">
             <Card className="h-[500px] md:h-[600px] rounded-[3.5rem] overflow-hidden border-none shadow-2xl bg-slate-900 relative">
               <AnimatePresence mode="wait">
-                <motion.div 
-                  key={index} 
-                  initial={{ opacity: 0 }} 
-                  animate={{ opacity: 1 }} 
-                  exit={{ opacity: 0 }} 
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
                   className="relative h-full w-full"
                 >
-                  <img src={featured.image} className="absolute inset-0 w-full h-full object-cover opacity-20 grayscale-[0.5]" alt={featured.title} />
+                  <img src={featured.image} className="absolute inset-0 w-full h-full object-cover grayscale-[0.5]" alt={featured.title} />
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-950/80 to-slate-950" />
-                  
+
                   <div className="absolute inset-0 flex flex-col items-center justify-center p-8 md:p-16 z-10 text-center">
-                    <motion.div 
+                    <motion.div
                       initial={{ y: -20, opacity: 0 }}
                       animate={{ y: 0, opacity: 1 }}
                       className={cn("inline-flex p-5 rounded-3xl bg-gradient-to-br mb-6 shadow-[0_0_30px_rgba(34,211,238,0.3)] border border-white/10", featured.color)}
@@ -369,7 +527,7 @@ export default function GamesPage() {
                       {featured.description}
                     </p>
 
-                    <motion.button 
+                    <motion.button
                       onClick={handleStartMission}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
@@ -402,11 +560,11 @@ export default function GamesPage() {
             {GAMES.map((game, i) => (
               <button key={game.id} onClick={() => setIndex(i)} className={cn("flex items-center gap-4 p-4 rounded-[2.5rem] transition-all border-2", i === index ? "bg-slate-900 border-cyan-500 shadow-[0_0_20px_rgba(34,211,238,0.2)]" : "bg-slate-950/50 border-white/5 opacity-50 hover:opacity-100 hover:bg-slate-900")}>
                 <div className={cn("p-3 rounded-2xl bg-gradient-to-br shadow-md", game.color)}>
-                    <game.icon size={20} className="text-white" />
+                  <game.icon size={20} className="text-white" />
                 </div>
                 <div className="text-left">
-                    <h4 className="font-bold text-white leading-none mb-1">{game.title}</h4>
-                    <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest">Explore Region</span>
+                  <h4 className="font-bold text-white leading-none mb-1">{game.title}</h4>
+                  <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest">Explore Region</span>
                 </div>
               </button>
             ))}
@@ -414,19 +572,19 @@ export default function GamesPage() {
         </section>
 
         <section className="grid lg:grid-cols-2 gap-8 items-stretch">
-          <XPProgress 
-            xp={xpInCurrentLevel} 
-            xpNext={xpPerLevel} 
-            level={currentLevel} 
-            matches={matches} 
-            streak={streakDays} 
+          <XPProgress
+            xp={xpInCurrentLevel}
+            xpNext={xpPerLevel}
+            level={currentLevel}
+            matches={matches}
+            streak={streakDays}
           />
 
           <Card className="bg-slate-950 border border-white/5 rounded-[3rem] p-8 shadow-2xl relative flex flex-col justify-center overflow-hidden min-h-[250px] transition-all duration-300 hover:scale-[1.02] hover:shadow-cyan-500/10">
             <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 blur-[60px] rounded-full" />
             <div className="flex items-center justify-between mb-8 z-10">
               <h3 className="text-xl font-black text-white flex items-center gap-2 uppercase tracking-tight">
-                Collection <Trophy className="text-cyan-400 animate-pulse" size={20} />
+                Eco-Conquistas <Trophy className="text-cyan-400 animate-pulse" size={20} />
               </h3>
               <div className="flex gap-2">
                 <button onClick={handlePrevBadge} className="p-2 rounded-xl bg-slate-900 hover:bg-cyan-500 text-white transition-all border border-white/5">
@@ -437,31 +595,34 @@ export default function GamesPage() {
                 </button>
               </div>
             </div>
-            
+
             <div className="relative h-24 overflow-hidden">
               <TooltipProvider delayDuration={0}>
                 <div className="flex gap-5 items-center justify-center">
                   <AnimatePresence mode="popLayout">
                     {badges.slice(0, 4).map((badge) => (
-                      <Tooltip key={badge.name}>
-                        <TooltipTrigger asChild>
-                          <motion.div 
-                            layout
-                            initial={{ opacity: 0, x: 50, scale: 0.8 }}
-                            animate={{ opacity: 1, x: 0, scale: 1 }}
-                            exit={{ opacity: 0, x: -50, scale: 0.8 }}
-                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                            whileHover={{ scale: 1.1, rotate: 2, borderColor: "#22d3ee" }}
-                            className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-[2rem] bg-slate-900 border border-white/5 flex items-center justify-center cursor-pointer group shadow-xl"
-                          >
-                            <badge.icon size={36} className="text-cyan-400 group-hover:text-white group-hover:drop-shadow-[0_0_10px_rgba(34,211,238,0.8)] transition-all" />
-                          </motion.div>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="bg-cyan-500 text-slate-950 font-black p-3 rounded-xl border-none shadow-[0_0_20px_rgba(34,211,238,0.5)]">
-                          <p className="uppercase text-[10px] tracking-wider">{badge.name}</p>
-                          <p className="text-[11px] font-medium opacity-80">{badge.description}</p>
-                        </TooltipContent>
-                      </Tooltip>
+                      <motion.div
+                        layout
+                        initial={{ opacity: 0, x: 50, scale: 0.8 }}
+                        animate={{ opacity: 1, x: 0, scale: 1 }}
+                        exit={{ opacity: 0, x: -50, scale: 0.8 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        whileHover={{ scale: 1.1, rotate: 2, borderColor: "#22d3ee" }}
+                        key={badge.name}
+                        className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-[2rem] bg-slate-900 border border-white/5 shadow-xl flex items-center justify-center cursor-pointer group"
+                      >
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="w-full h-full flex items-center justify-center rounded-[2rem]">
+                              <badge.icon size={36} className="text-cyan-400 group-hover:text-white group-hover:drop-shadow-[0_0_10px_rgba(34,211,238,0.8)] transition-all" />
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="bg-cyan-500 text-slate-950 font-black p-3 rounded-xl border-none shadow-[0_0_20px_rgba(34,211,238,0.5)]">
+                            <p className="uppercase text-[10px] tracking-wider">{badge.name}</p>
+                            <p className="text-[11px] font-medium opacity-80">{badge.description}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </motion.div>
                     ))}
                   </AnimatePresence>
                   <div className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-[2rem] border-2 border-dashed border-white/10 flex items-center justify-center bg-white/5">
