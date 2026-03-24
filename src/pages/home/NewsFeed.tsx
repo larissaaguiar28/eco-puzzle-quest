@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   ThumbsUp, Heart, Lightbulb, MessageCircle, Share2,
   CloudRain, Landmark, TreePine, MapPin, Search, Leaf, Sun, LucideIcon, Send,
-  Activity, ArrowUpRight, X
+  Activity, ArrowUpRight, X, ChevronLeft, ChevronRight 
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,10 +14,6 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import supabase from "../../../utils/supabase";
 import { useAuth } from "../../contexts/AuthContext";
-import {
-  // ... outros ícones
-  ChevronLeft, ChevronRight 
-} from "lucide-react";
 
 // --- INTERFACES ---
 interface NewsItem {
@@ -31,7 +27,6 @@ interface NewsItem {
   location: string;
   gradient: string;
   image?: string;
-  likes?: number;
 }
 
 interface SidebarItem {
@@ -41,43 +36,19 @@ interface SidebarItem {
   bg: string;
 }
 
-// --- DADOS ---
+// --- DADOS ESTÁTICOS (CARROSSEL) ---
 const newsData: NewsItem[] = [
   {
-    id: "1",
+    id: "17002176-f5e8-4c29-86ae-784ca93f72af",
     title: "Brasil bate recorde histórico em geração de energia solar e eólica",
     summary: "O país alcançou a marca de 90% da matriz elétrica renovável neste mês, impulsionando a economia verde.",
     content: "Com novos parques eólicos no Nordeste e fazendas solares no Sudeste, o Brasil não apenas reduziu suas emissões de carbono em 15% no último trimestre, mas também gerou mais de 50 mil novos empregos diretos no setor.",
     category: "Energia Solar",
     author: "EcoS",
-    date: "05 Mar 2026",
+    date: new Date().toISOString(),
     location: "Nordeste, BR",
     gradient: "from-amber-500 to-orange-600",
     image: "https://images.unsplash.com/photo-1509395176047-4a66953fd231"
-  },
-  {
-    id: "2",
-    title: "Startup desenvolve bioplástico a partir de algas marinhas",
-    summary: "Nova embalagem 100% biodegradável se dissolve na água em semanas e já atrai gigantes do varejo.",
-    content: "Pesquisadores em parceria com uma startup de biotecnologia criaram um material revolucionário que substitui o plástico de uso único. Feito de sargaço e resíduos da indústria pesqueira.",
-    category: "Inovação",
-    author: "EcoS",
-    date: "04 Mar 2026",
-    location: "Rio de Janeiro, BR",
-    gradient: "from-cyan-500 to-blue-600",
-    image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e"
-  },
-  {
-    id: "3",
-    title: "Hortas urbanas verticais transformam telhados em São Paulo",
-    summary: "Projeto de agricultura urbana reduz a temperatura dos prédios e fornece alimentos frescos para a comunidade.",
-    content: "Uma iniciativa comunitária mapeou e transformou mais de 200 telhados ociosos no centro da capital paulista em fazendas urbanas produtivas. Além de mitigar as ilhas de calor.",
-    category: "Conservação",
-    author: "EcoS",
-    date: "02 Mar 2026",
-    location: "São Paulo, BR",
-    gradient: "from-emerald-500 to-green-600",
-    image: "https://images.unsplash.com/photo-1464226184884-fa280b87c399"
   }
 ];
 
@@ -100,59 +71,43 @@ const NewsCard = ({ item }: { item: NewsItem; }) => {
   const [expanded, setExpanded] = useState(false);
   const { user } = useAuth();
 
-
-useEffect(() => {
-  loadReactions();
-  loadComments();
-}, [item.id]);
-
- async function handleReaction(type: "like" | "heart" | "idea") {
-  if (!user) {
-    alert("Você precisa estar logado!");
-    return;
-  }
-
-  const { error } = await supabase
-    .from("reactions")
-    .insert({
-      user_id: user.id,
-      news_id: item.id,
-      type
-    });
-
-  if (!error) {
+  useEffect(() => {
     loadReactions();
- } else if (error && error.code === "23505") {
-    await supabase
+    loadComments();
+  }, [item.id]);
+
+  async function loadReactions() {
+    const { data, error } = await supabase
       .from("reactions")
-      .delete()
-      .eq("user_id", user.id)
-      .eq("news_id", item.id)
-      .eq("type", type);
-      
+      .select("type")
+      .eq("news_id", item.id);
+
+    if (!error && data) {
+      setLikes(data.filter(r => r.type === "like").length);
+      setHearts(data.filter(r => r.type === "heart").length);
+      setIdeas(data.filter(r => r.type === "idea").length);
+    }
+  }
+
+  async function handleReaction(type: "like" | "heart" | "idea") {
+    if (!user) {
+      alert("Você precisa estar logado!");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("reactions")
+      .insert({ user_id: user.id, news_id: item.id, type: type });
+
+    if (error && error.code === "23505") {
+      await supabase
+        .from("reactions")
+        .delete()
+        .match({ user_id: user.id, news_id: item.id, type: type });
+    }
 
     loadReactions();
-  } else {
-    console.error(error.message);
   }
-}
-
-async function loadReactions() {
-  const { data, error } = await supabase
-    .from("reactions")
-    .select("type")
-    .eq("news_id", item.id);
-
-  if (error || !data) return;
-
-  const likeCount = data.filter(r => r.type === "like").length;
-  const heartCount = data.filter(r => r.type === "heart").length;
-  const ideaCount = data.filter(r => r.type === "idea").length;
-
-  setLikes(likeCount);
-  setHearts(heartCount);
-  setIdeas(ideaCount);
-}
 
   async function loadComments() {
     const { data, error } = await supabase
@@ -174,6 +129,19 @@ async function loadReactions() {
     if (!error) {
       setNewComment("");
       loadComments();
+    }
+  };
+
+  // Formatação segura da data
+  const formatDate = (dateStr: string) => {
+    try {
+      return new Date(dateStr).toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      });
+    } catch {
+      return dateStr;
     }
   };
 
@@ -204,10 +172,6 @@ async function loadReactions() {
               <img src={item.image} alt={item.title} className="w-full h-60 object-cover rounded-xl mb-4 border border-white/10" />
             )}
             <p className="mb-4 text-sm leading-relaxed">{item.content}</p>
-            <div className="text-[10px] text-slate-500 flex gap-4 uppercase font-black tracking-widest border-t border-white/5 pt-4">
-              <span>Autor: {item.author}</span>
-              <span>Local: {item.location}</span>
-            </div>
           </motion.div>
         )}
 
@@ -220,28 +184,28 @@ async function loadReactions() {
             </Avatar>
             <span className="text-slate-300">{item.author}</span>
           </div>
-          <span className="text-slate-600">{item.date}</span>
+          <span className="text-slate-600">{formatDate(item.date)}</span>
           <span className="flex items-center gap-1.5 text-cyan-400 bg-cyan-400/10 px-3 py-1.5 rounded-full border border-cyan-400/20">
             <MapPin size={12} /> {item.location}
           </span>
         </div>
 
         <div className="flex flex-wrap items-center gap-3 pt-6 border-t border-white/5">
-          <button onClick={() => handleReaction("like")}>
-            <ThumbsUp size={14} /> {likes}
+          <button onClick={() => handleReaction("like")} className={`flex items-center gap-1.5 transition-colors ${likes > 0 ? 'text-emerald-400' : 'text-slate-400'}`}>
+            <ThumbsUp size={14} className={likes > 0 ? "fill-emerald-400/20" : ""} /> 
+            <span className="font-black">{likes}</span>
           </button>
-          
-          <button onClick={() => handleReaction("heart")}>
-            <Heart size={14} /> {hearts}
+          <button onClick={() => handleReaction("heart")} className={`flex items-center gap-1.5 transition-colors ${hearts > 0 ? 'text-pink-500' : 'text-slate-400'}`}>
+            <Heart size={14} className={hearts > 0 ? "fill-pink-500/20" : ""} /> 
+            <span className="font-black">{hearts}</span>
           </button>
-
-          <button onClick={() => handleReaction("idea")}>
-            <Lightbulb size={14} /> {ideas}
+          <button onClick={() => handleReaction("idea")} className={`flex items-center gap-1.5 transition-colors ${ideas > 0 ? 'text-amber-400' : 'text-slate-400'}`}>
+            <Lightbulb size={14} className={ideas > 0 ? "fill-amber-400/20" : ""} /> 
+            <span className="font-black">{ideas}</span>
           </button>
-          
-          <div className="flex-1" />
-          <button onClick={() => setShowComments(!showComments)} className={`p-3 rounded-xl transition-all border ${showComments ? 'bg-emerald-500 text-black border-emerald-500' : 'bg-white/5 text-slate-400 border-white/5 hover:text-white hover:bg-white/10'}`}>
-            <MessageCircle size={18} />
+          <button onClick={() => setShowComments(!showComments)} className="ml-auto text-slate-400 hover:text-white flex items-center gap-2">
+            <MessageCircle size={14} />
+            <span className="font-black text-[10px]">{comments.length}</span>
           </button>
         </div>
 
@@ -249,7 +213,7 @@ async function loadReactions() {
           {showComments && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="space-y-4 pt-4">
               <form onSubmit={handleAddComment} className="flex gap-2">
-                <Input placeholder="DIGITE SEU COMENTARIO..." value={newComment} onChange={(e) => setNewComment(e.target.value)} className="rounded-xl border-white/10 bg-black/20 text-white focus-visible:ring-emerald-500 text-xs font-bold uppercase tracking-widest" />
+                <Input placeholder="DIGITE SEU COMENTARIO..." value={newComment} onChange={(e) => setNewComment(e.target.value)} className="rounded-xl border-white/10 bg-black/20 text-white text-xs font-bold uppercase tracking-widest" />
                 <Button size="icon" type="submit" className="rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black shrink-0"><Send size={16} /></Button>
               </form>
               <div className="max-h-40 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
@@ -275,7 +239,7 @@ export default function SustainableNewsFeed() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [showForm, setShowForm] = useState(false);
-  const [expandedCarousel, setExpandedCarousel] = useState(false); // 🔥 NOVO ESTADO
+  const [expandedCarousel, setExpandedCarousel] = useState(false);
   const [newNews, setNewNews] = useState({ title: "", summary: "", content: "", category: "", location: "" });
 
   useEffect(() => {
@@ -283,7 +247,7 @@ export default function SustainableNewsFeed() {
   }, []);
 
   useEffect(() => {
-    if (isPaused || expandedCarousel) return; // 🔥 PAUSA CARROSSEL SE EXPANDIDO
+    if (isPaused || expandedCarousel || newsData.length === 0) return;
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % newsData.length);
     }, 7000);
@@ -294,7 +258,7 @@ export default function SustainableNewsFeed() {
     const { data, error } = await supabase
       .from("newsfeed")
       .select("*")
-      .order("date", { ascending: false });
+      .order("date", { ascending: false }); 
     if (!error && data) setNewsfeed(data);
   }
 
@@ -308,8 +272,10 @@ export default function SustainableNewsFeed() {
       category: newNews.category,
       location: newNews.location,
       author: user.email?.split('@')[0],
-      gradient: "from-emerald-500 to-green-600"
+      gradient: "from-emerald-500 to-green-600",
+      date: new Date().toISOString() // CORREÇÃO: Envia formato ISO aceito pelo Postgres
     });
+
     if (error) {
       alert(error.message);
     } else {
@@ -332,7 +298,7 @@ export default function SustainableNewsFeed() {
         <div className="absolute bottom-0 right-0 w-[40%] h-[40%] bg-blue-900/10 blur-[120px] rounded-full" />
       </div>
 
-      {/* CARROSSEL AJUSTADO PARA EXPANSÃO */}
+      {/* CARROSSEL */}
       <div className="max-w-7xl mx-auto px-6 pt-6">
         <div 
           className={`relative rounded-[2.5rem] overflow-hidden group transition-all duration-700 ease-in-out ${expandedCarousel ? 'h-[600px]' : 'h-[320px]'}`} 
@@ -349,72 +315,28 @@ export default function SustainableNewsFeed() {
               className="absolute inset-0 cursor-pointer"
               onClick={() => setExpandedCarousel(!expandedCarousel)}
             >
-              {newsData[currentIndex].image ? (
-                <img src={newsData[currentIndex].image} alt={newsData[currentIndex].title} className="w-full h-full object-cover" />
-              ) : (
-                <div className={`w-full h-full bg-gradient-to-br ${newsData[currentIndex].gradient}`} />
-              )}
+              <div className={`w-full h-full bg-gradient-to-br ${newsData[currentIndex].gradient}`} />
               <div className={`absolute inset-0 bg-black/50 transition-opacity ${expandedCarousel ? 'bg-black/70' : 'bg-black/40'}`} />
               
               <div className={`absolute bottom-0 p-10 space-y-3 transition-all duration-500 ${expandedCarousel ? 'max-w-4xl' : 'max-w-2xl'}`}>
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-emerald-400 font-bold uppercase tracking-widest bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">{newsData[currentIndex].category}</span>
-                  {expandedCarousel && (
-                    <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-[10px] text-white/40 uppercase font-black">Clique para fechar</motion.span>
-                  )}
-                </div>
+                <span className="text-xs text-emerald-400 font-bold uppercase tracking-widest bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">{newsData[currentIndex].category}</span>
                 <h2 className={`font-black text-white leading-tight uppercase italic tracking-tighter transition-all ${expandedCarousel ? 'text-6xl' : 'text-4xl'}`}>
                   {newsData[currentIndex].title}
                 </h2>
                 <p className="text-white/80 text-sm font-medium uppercase tracking-wide">{newsData[currentIndex].summary}</p>
-                
-                {/* 🔥 CONTEÚDO EXTRA NO CARROSSEL */}
-                <AnimatePresence>
-                  {expandedCarousel && (
-                    <motion.div 
-                      initial={{ opacity: 0, y: 20 }} 
-                      animate={{ opacity: 1, y: 0 }} 
-                      className="pt-6 mt-6 border-t border-white/10 space-y-4"
-                    >
-                      <p className="text-slate-300 leading-relaxed text-lg max-w-3xl">
-                        {newsData[currentIndex].content}
-                      </p>
-                      <div className="flex gap-6 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500">
-                        <span className="flex items-center gap-2"><MapPin size={14}/> {newsData[currentIndex].location}</span>
-                        <span>{newsData[currentIndex].date}</span>
-                        <span>BY {newsData[currentIndex].author}</span>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                {expandedCarousel && (
+                  <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-slate-300 pt-4 border-t border-white/10">{newsData[currentIndex].content}</motion.p>
+                )}
               </div>
             </motion.div>
           </AnimatePresence>
-
-          {!expandedCarousel && (
-  <>
-    <button 
-      onClick={(e) => { e.stopPropagation(); setCurrentIndex((prev) => prev === 0 ? newsData.length - 1 : prev - 1); }} 
-      className="absolute left-6 top-1/2 -translate-y-1/2 bg-white/5 hover:bg-emerald-500 hover:text-black text-white p-3 rounded-full opacity-0 group-hover:opacity-100 transition-all border border-white/10 backdrop-blur-md active:scale-90"
-    >
-      <ChevronLeft size={24} strokeWidth={3} />
-    </button>
-    
-    <button 
-      onClick={(e) => { e.stopPropagation(); setCurrentIndex((prev) => (prev + 1) % newsData.length); }} 
-      className="absolute right-6 top-1/2 -translate-y-1/2 bg-white/5 hover:bg-emerald-500 hover:text-black text-white p-3 rounded-full opacity-0 group-hover:opacity-100 transition-all border border-white/10 backdrop-blur-md active:scale-90"
-    >
-      <ChevronRight size={24} strokeWidth={3} />
-    </button>
-  </>
-)}
         </div>
       </div>
 
       <header className="sticky top-0 z-40 backdrop-blur-2xl bg-[#020617]/80 border-b border-white/5 mt-6">
         <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
           <div className="flex items-center gap-4 cursor-pointer" onClick={() => setSelectedCategory(null)}>
-            <div className="bg-emerald-500 p-2.5 rounded-2xl shadow-lg shadow-emerald-500/20 group-hover:rotate-12 transition-transform"><Leaf size={24} className="text-black" /></div>
+            <div className="bg-emerald-500 p-2.5 rounded-2xl"><Leaf size={24} className="text-black" /></div>
             <div>
               <h1 className="text-2xl font-black text-white uppercase italic tracking-tighter leading-none">Eco'S <span className="text-emerald-500">FEED+</span></h1>
               <p className="text-[10px] font-black text-emerald-500/60 uppercase tracking-[0.3em]">Ecoando Noticias</p>
@@ -422,24 +344,26 @@ export default function SustainableNewsFeed() {
           </div>
           <div className="relative w-80 hidden md:block">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-500/50" size={16} />
-            <Input placeholder="PESQUISAR NOTICIAS..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-11 rounded-xl border-white/10 bg-white/5 focus-visible:ring-emerald-500 text-xs font-black tracking-widest text-white uppercase placeholder:text-slate-600" />
+            <Input placeholder="PESQUISAR..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-11 rounded-xl border-white/10 bg-white/5 text-white uppercase text-xs font-black tracking-widest" />
           </div>
-          <Button onClick={() => setShowForm(true)} className="bg-emerald-500 text-black font-black uppercase text-[10px] tracking-widest rounded-xl px-6 hover:bg-emerald-400 transition-all">Publicar Notícia</Button>
+          <Button onClick={() => setShowForm(true)} className="bg-emerald-500 text-black font-black uppercase text-[10px] tracking-widest rounded-xl px-6">Publicar Notícia</Button>
         </div>
       </header>
 
-      {/* RESTANTE DO CÓDIGO (ASIDE E MAIN) PERMANECE IGUAL AO ANTERIOR */}
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8 px-6 py-10">
         <aside className="hidden lg:block col-span-1">
           <div className="sticky top-32 space-y-6">
-            <div className="bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[2rem] p-6 space-y-4 shadow-xl">
-              <h2 className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.3em] mb-4 flex items-center gap-2"><Activity size={14} /> Filtros de Campo</h2>
+            <div className="bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[2rem] p-6 space-y-4">
+              <h2 className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.3em] flex items-center gap-2"><Activity size={14} /> Filtros</h2>
               <div className="space-y-2">
                 {sidebarItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = selectedCategory === item.label;
                   return (
-                    <button key={item.label} onClick={() => setSelectedCategory(isActive ? null : item.label)} className={`flex items-center gap-3 w-full px-5 py-3.5 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 border ${isActive ? 'bg-emerald-500 text-black border-emerald-500 shadow-lg italic' : `text-slate-400 border-transparent hover:border-white/10 ${item.bg}`}`}><Icon size={18} className={isActive ? 'text-black' : item.color} />{item.label}</button>
+                    <button key={item.label} onClick={() => setSelectedCategory(isActive ? null : item.label)} className={`flex items-center gap-3 w-full px-5 py-3.5 rounded-2xl text-[11px] font-black uppercase tracking-widest border transition-all ${isActive ? 'bg-emerald-500 text-black border-emerald-500 italic' : 'text-slate-400 border-transparent hover:border-white/10'}`}>
+                      <Icon size={18} className={isActive ? 'text-black' : item.color} />
+                      {item.label}
+                    </button>
                   );
                 })}
               </div>
@@ -456,9 +380,8 @@ export default function SustainableNewsFeed() {
             ))}
           </AnimatePresence>
           {filteredNews.length === 0 && (
-            <div className="text-center py-32 bg-slate-900/20 rounded-[3rem] border-2 border-dashed border-white/5 backdrop-blur-sm">
-              <p className="text-slate-500 font-black uppercase tracking-widest text-xs italic">Nenhum registro encontrado no Database</p>
-              <Button variant="link" onClick={() => setSelectedCategory(null)} className="text-emerald-400 uppercase font-black text-[10px] tracking-widest mt-4">Resetar Conexão</Button>
+            <div className="text-center py-32 bg-slate-900/20 rounded-[3rem] border-2 border-dashed border-white/5">
+              <p className="text-slate-500 font-black uppercase tracking-widest text-[10px]">Database Vazio ou Sem Resultados</p>
             </div>
           )}
         </main>
@@ -468,10 +391,10 @@ export default function SustainableNewsFeed() {
         {showForm && (
           <>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40" onClick={() => setShowForm(false)} />
-            <motion.div initial={{ scale: 0.9, opacity: 0, y: 40 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 40 }} className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-gradient-to-br from-slate-900 to-slate-800 border border-white/10 rounded-[2rem] p-8 z-50 shadow-2xl">
+            <motion.div initial={{ scale: 0.9, opacity: 0, y: 40 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 40 }} className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-slate-900 border border-white/10 rounded-[2rem] p-8 z-50">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-black text-white uppercase italic italic">✨ Criar Broadcast</h2>
-                <button onClick={() => setShowForm(false)} className="text-white/60 hover:text-white transition-colors"><X size={24} /></button>
+                <h2 className="text-2xl font-black text-white uppercase italic">✨ Criar Broadcast</h2>
+                <button onClick={() => setShowForm(false)} className="text-white/60 hover:text-white"><X size={24} /></button>
               </div>
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -480,10 +403,10 @@ export default function SustainableNewsFeed() {
                 </div>
                 <Input placeholder="Resumo" value={newNews.summary} onChange={(e) => setNewNews({ ...newNews, summary: e.target.value })} className="bg-black/30 border-white/10 text-white rounded-xl" />
                 <Input placeholder="Localização" value={newNews.location} onChange={(e) => setNewNews({ ...newNews, location: e.target.value })} className="bg-black/30 border-white/10 text-white rounded-xl" />
-                <textarea placeholder="Conteúdo completo..." className="w-full p-4 rounded-2xl bg-black/30 text-white border border-white/10 min-h-[120px] focus:outline-none focus:border-emerald-500/50 transition-colors" value={newNews.content} onChange={(e) => setNewNews({ ...newNews, content: e.target.value })} />
+                <textarea placeholder="Conteúdo..." className="w-full p-4 rounded-2xl bg-black/30 text-white border border-white/10 min-h-[120px] focus:outline-none" value={newNews.content} onChange={(e) => setNewNews({ ...newNews, content: e.target.value })} />
                 <div className="flex justify-end gap-3 pt-4">
-                  <Button variant="ghost" onClick={() => setShowForm(false)} className="text-slate-400 hover:text-white">Cancelar</Button>
-                  <Button onClick={handlePublish} className="bg-emerald-500 hover:bg-emerald-400 text-black font-black uppercase px-8 rounded-xl italic">Publicar 🚀</Button>
+                  <Button variant="ghost" onClick={() => setShowForm(false)} className="text-slate-400">Cancelar</Button>
+                  <Button onClick={handlePublish} className="bg-emerald-500 hover:bg-emerald-400 text-black font-black uppercase px-8 rounded-xl italic">Publicar </Button>
                 </div>
               </div>
             </motion.div>
