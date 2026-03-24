@@ -101,52 +101,57 @@ const NewsCard = ({ item }: { item: NewsItem; }) => {
   const { user } = useAuth();
 
 
-  useEffect(() => {
-  loadLikes();
+useEffect(() => {
+  loadReactions();
   loadComments();
-}, [item.id]); // Recarrega se o ID mudar
+}, [item.id]);
 
-  async function loadLikes() {
-  const { count, error } = await supabase
-    .from("likes")
-    .select("*", { count: "exact", head: true })
-    .eq("news_id", item.id);
-  
-  if (!error) setLikes(count || 0);
-}
-
-async function handleLike() {
+ async function handleReaction(type: "like" | "heart" | "idea") {
   if (!user) {
-    alert("Você precisa estar logado para curtir!");
+    alert("Você precisa estar logado!");
     return;
   }
 
-  try {
-    // 1. Tenta inserir o like
-    const { error } = await supabase
-      .from("likes")
-      .insert({ 
-        user_id: user.id, 
-        news_id: item.id 
-      });
+  const { error } = await supabase
+    .from("reactions")
+    .insert({
+      user_id: user.id,
+      news_id: item.id,
+      type
+    });
 
-    if (!error) {
-      // Sucesso: Recarrega a contagem real do banco
-      loadLikes();
-    } else if (error.code === '23505') {
-      // Se já curtiu (erro de duplicidade), nós removemos (Toggle)
-      await supabase
-        .from("likes")
-        .delete()
-        .eq("user_id", user.id)
-        .eq("news_id", item.id);
-      loadLikes();
-    } else {
-      console.error("Erro ao curtir:", error.message);
-    }
-  } catch (err) {
-    console.error("Erro inesperado:", err);
+  if (!error) {
+    loadReactions();
+ } else if (error && error.code === "23505") {
+    await supabase
+      .from("reactions")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("news_id", item.id)
+      .eq("type", type);
+      
+
+    loadReactions();
+  } else {
+    console.error(error.message);
   }
+}
+
+async function loadReactions() {
+  const { data, error } = await supabase
+    .from("reactions")
+    .select("type")
+    .eq("news_id", item.id);
+
+  if (error || !data) return;
+
+  const likeCount = data.filter(r => r.type === "like").length;
+  const heartCount = data.filter(r => r.type === "heart").length;
+  const ideaCount = data.filter(r => r.type === "idea").length;
+
+  setLikes(likeCount);
+  setHearts(heartCount);
+  setIdeas(ideaCount);
 }
 
   async function loadComments() {
@@ -222,15 +227,18 @@ async function handleLike() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3 pt-6 border-t border-white/5">
-          <button onClick={handleLike} className="flex items-center gap-2 px-4 py-2 text-[10px] font-black rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 transition-all uppercase italic tracking-widest active:scale-95">
+          <button onClick={() => handleReaction("like")}>
             <ThumbsUp size={14} /> {likes}
           </button>
-          <button onClick={() => setHearts(hearts + 1)} className="flex items-center gap-2 px-4 py-2 text-[10px] font-black rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20 hover:bg-rose-500/20 transition-all uppercase italic tracking-widest active:scale-95">
+          
+          <button onClick={() => handleReaction("heart")}>
             <Heart size={14} /> {hearts}
           </button>
-          <button onClick={() => setIdeas(ideas + 1)} className="flex items-center gap-2 px-4 py-2 text-[10px] font-black rounded-xl bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 hover:bg-yellow-500/20 transition-all uppercase italic tracking-widest active:scale-95">
+
+          <button onClick={() => handleReaction("idea")}>
             <Lightbulb size={14} /> {ideas}
           </button>
+          
           <div className="flex-1" />
           <button onClick={() => setShowComments(!showComments)} className={`p-3 rounded-xl transition-all border ${showComments ? 'bg-emerald-500 text-black border-emerald-500' : 'bg-white/5 text-slate-400 border-white/5 hover:text-white hover:bg-white/10'}`}>
             <MessageCircle size={18} />
