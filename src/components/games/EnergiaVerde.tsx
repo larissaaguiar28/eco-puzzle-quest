@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Zap, Wind, Battery, Car } from "lucide-react";
+// Adicionado 'Star' ao import abaixo
+import { ArrowLeft, Zap, Wind, Battery, Car, Trophy, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface Props {
@@ -8,7 +9,7 @@ interface Props {
   onXP: (amount: number) => void;
 }
 
-const QUESTIONS = [
+const ALL_QUESTIONS = [
   { q: "Qual fonte de energia utiliza a luz do sol para gerar eletricidade?", opts: ["Eólica", "Solar", "Nuclear", "Hidrelétrica"], correct: 1 },
   { q: "Turbinas eólicas convertem a energia do ______ em eletricidade.", opts: ["Calor", "Vento", "Água", "Carvão"], correct: 1 },
   { q: "Qual é considerada a fonte de energia mais limpa?", opts: ["Gás natural", "Petróleo", "Solar", "Carvão"], correct: 2 },
@@ -17,9 +18,38 @@ const QUESTIONS = [
   { q: "Biomassa é uma fonte de energia derivada de:", opts: ["Minerais", "Matéria orgânica", "Combustíveis fósseis", "Energia nuclear"], correct: 1 },
   { q: "Qual país lidera a produção mundial de energia eólica?", opts: ["Brasil", "Alemanha", "China", "EUA"], correct: 2 },
   { q: "O que é 'net zero' em termos de energia?", opts: ["Zero consumo", "Emissões líquidas zero", "Zero investimento", "Zero importação"], correct: 1 },
+  { q: "Qual destes é um combustível fóssil?", opts: ["Biodiesel", "Gás Natural", "Etanol", "Hidrogênio"], correct: 1 },
+  { q: "A energia geotérmica é obtida através do calor de onde?", opts: ["Do Sol", "Dos Oceanos", "Do interior da Terra", "Da queima de lixo"], correct: 2 },
+  { q: "O que o inversor solar faz num sistema fotovoltaico?", opts: ["Armazena energia", "Converte CC para CA", "Limpa os painéis", "Gira as placas"], correct: 1 },
+  { q: "Qual o principal componente das células solares?", opts: ["Ferro", "Cobre", "Silício", "Prata"], correct: 2 },
+  { q: "A energia das marés também é conhecida como:", opts: ["Energia Maremotriz", "Energia Térmica", "Energia Cinética", "Energia Eólica"], correct: 0 },
+  { q: "O que é o efeito estufa?", opts: ["Resfriamento global", "Aquecimento da atmosfera", "Um tipo de energia", "Limpeza do ar"], correct: 1 },
+  { q: "Qual destes transportes é mais sustentável?", opts: ["Carro a diesel", "Avião", "Bicicleta", "Navio cargueiro"], correct: 2 },
+  { q: "Qual gás é o principal responsável pelo efeito estufa?", opts: ["Oxigênio", "Nitrogênio", "Dióxido de Carbono", "Hélio"], correct: 2 },
+  { q: "O que é hidrogênio verde?", opts: ["Hidrogênio colorido", "Produzido com energia renovável", "Extraído de plantas", "Gás tóxico"], correct: 1 },
+  { q: "Qual a principal vantagem dos carros elétricos?", opts: ["Mais lentos", "Zero emissão local", "Não precisam de carga", "Usam gasolina"], correct: 1 },
+  { q: "O que são fontes renováveis?", opts: ["Esgotam rápido", "Se regeneram na natureza", "São artificiais", "Causam muita poluição"], correct: 1 },
+  { q: "Qual fonte usa o calor do sol para aquecer água diretamente?", opts: ["Fotovoltaica", "Térmica Solar", "Nuclear", "Biomassa"], correct: 1 },
+  { q: "A queima de carvão mineral libera muito:", opts: ["Vapor de água", "Oxigênio", "CO2", "Argônio"], correct: 2 },
+  { q: "Onde se localizam as usinas 'offshore'?", opts: ["No deserto", "No mar", "Nas montanhas", "Subterrâneas"], correct: 1 },
+  { q: "Qual a função de uma bateria em sistemas renováveis?", opts: ["Criar energia", "Destruir resíduos", "Armazenar energia", "Aumentar o vento"], correct: 2 },
+  { q: "O 'lixo eletrônico' deve ser descartado em:", opts: ["Lixo comum", "Pontos específicos", "Rios", "Canteiros"], correct: 1 },
+  { q: "A energia nuclear é considerada de qual tipo?", opts: ["Renovável", "Baixa emissão de carbono", "Orgânica", "Infinita"], correct: 1 },
+  { q: "Qual o benefício da iluminação LED?", opts: ["Gasta mais energia", "Menor consumo e maior vida útil", "Esquenta muito", "É feita de vidro"], correct: 1 },
+  { q: "O que é eficiência energética?", opts: ["Usar mais energia", "Gastar energia à toa", "Fazer o mesmo com menos energia", "Desligar tudo"], correct: 2 },
+  { q: "Qual destes materiais é reciclável?", opts: ["Papel sujo", "Alumínio", "Espelho", "Cerâmica"], correct: 1 },
+  { q: "O biogás é produzido a partir de:", opts: ["Pedras", "Decomposição de matéria orgânica", "Vento forte", "Congelamento"], correct: 1 },
+  { q: "Qual o maior impacto ambiental de grandes hidrelétricas?", opts: ["Fumaça", "Alagamento de grandes áreas", "Barulho excessivo", "Radiação"], correct: 1 },
+  { q: "Painéis solares funcionam em dias nublados?", opts: ["Não, param totalmente", "Sim, mas com menor eficiência", "Funcionam melhor", "Explodem"], correct: 1 },
+  { q: "O que é o Acordo de Paris?", opts: ["Um tratado de paz", "Tratado sobre mudanças climáticas", "Uma festa na França", "Acordo comercial"], correct: 1 },
+  { q: "Qual cor de lixeira representa o papel?", opts: ["Verde", "Azul", "Vermelho", "Amarelo"], correct: 1 },
+  { q: "Qual cor de lixeira representa o plástico?", opts: ["Verde", "Azul", "Vermelho", "Amarelo"], correct: 2 },
+  { q: "O que é 'smart grid'?", opts: ["Rede elétrica inteligente", "Uma grade de metal", "Rede de pesca", "Um novo celular"], correct: 0 },
+  { q: "A energia cinética vem de onde?", opts: ["Do calor", "Do movimento", "Do repouso", "Dos átomos"], correct: 1 },
+  { q: "Qual o principal combustível do Sol?", opts: ["Oxigênio", "Hidrogênio", "Hélio", "Carbono"], correct: 1 },
+  { q: "A reciclagem de latinhas economiza quanta energia?", opts: ["10%", "50%", "95%", "0%"], correct: 2 },
 ];
 
-// Configuração única para os 8 prédios parecerem um skyline real
 const BUILDINGS = [
   { height: "h-32", width: "w-12", cols: 2, rows: 6 },
   { height: "h-48", width: "w-16", cols: 3, rows: 8 },
@@ -32,15 +62,22 @@ const BUILDINGS = [
 ];
 
 export default function EnergiaVerde({ onExit, onXP }: Props) {
+  const selectedQuestions = useMemo(() => {
+    return [...ALL_QUESTIONS]
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 8);
+  }, []);
+
   const [currentQ, setCurrentQ] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [answered, setAnswered] = useState(false);
   const [litSectors, setLitSectors] = useState<number[]>([]);
   const [finished, setFinished] = useState(false);
   const [errorFlicker, setErrorFlicker] = useState(false);
+  const [score, setScore] = useState(0);
 
-  const question = QUESTIONS[currentQ];
-  const energyLevel = litSectors.length / QUESTIONS.length;
+  const question = selectedQuestions[currentQ];
+  const energyLevel = litSectors.length / selectedQuestions.length;
 
   const handleAnswer = (idx: number) => {
     if (answered) return;
@@ -49,16 +86,16 @@ export default function EnergiaVerde({ onExit, onXP }: Props) {
     
     if (idx === question.correct) {
       setLitSectors((prev) => [...prev, currentQ]);
+      setScore(prev => prev + 1);
       onXP(20);
     } else {
-      // Efeito de apagão se errar
       setErrorFlicker(true);
       setTimeout(() => setErrorFlicker(false), 400);
     }
   };
 
   const handleNext = () => {
-    if (currentQ >= QUESTIONS.length - 1) {
+    if (currentQ >= selectedQuestions.length - 1) {
       setFinished(true);
     } else {
       setCurrentQ((p) => p + 1);
@@ -67,223 +104,119 @@ export default function EnergiaVerde({ onExit, onXP }: Props) {
     }
   };
 
-  const isCorrect = selected === question?.correct;
-
   return (
     <div 
       className={`min-h-screen transition-colors duration-1000 relative overflow-hidden flex flex-col ${
-        errorFlicker ? "bg-black" : "bg-slate-950"
+        errorFlicker ? "bg-black" : "bg-[#020617]"
       }`}
       style={{
-        // O céu ganha uma aurora verde conforme a energia sobe
-        background: errorFlicker ? "#000" : `radial-gradient(circle at 50% 100%, rgba(16, 185, 129, ${energyLevel * 0.4}) 0%, #020617 100%)`
+        background: errorFlicker 
+          ? "#000" 
+          : `radial-gradient(circle at 50% 120%, rgba(16, 185, 129, ${energyLevel * 0.2}) 0%, #020617 100%)`
       }}
     >
-      {/* Estrelas no fundo */}
-      <div className="absolute inset-0 opacity-30 pointer-events-none">
-        {[...Array(20)].map((_, i) => (
-          <div 
-            key={i} 
-            className="absolute bg-white rounded-full animate-pulse"
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {[...Array(70)].map((_, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: Math.random() }}
+            animate={{ opacity: [0.1, 0.7, 0.1] }}
+            transition={{ duration: Math.random() * 4 + 3, repeat: Infinity, delay: Math.random() * 5 }}
+            className="absolute bg-white rounded-full"
             style={{
-              top: `${Math.random() * 50}%`,
+              top: `${Math.random() * 70}%`,
               left: `${Math.random() * 100}%`,
-              width: `${Math.random() * 3}px`,
-              height: `${Math.random() * 3}px`,
-              animationDelay: `${Math.random() * 3}s`
+              width: `${Math.random() * 2 + 0.5}px`,
+              height: `${Math.random() * 2 + 0.5}px`,
             }}
           />
         ))}
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10 pointer-events-none" />
       </div>
 
       <div className="max-w-5xl mx-auto w-full p-4 md:p-8 relative z-10 flex-1 flex flex-col">
-        {/* Header HUD */}
-        <div className="flex items-center justify-between mb-6 bg-slate-900/40 p-4 rounded-2xl backdrop-blur-md border border-slate-800/50">
-          <Button variant="ghost" onClick={onExit} className="text-slate-300 hover:text-white hover:bg-slate-800">
+        <div className="flex items-center justify-between mb-6 bg-slate-900/40 p-4 rounded-2xl backdrop-blur-md border border-white/5 shadow-inner">
+          <Button variant="ghost" onClick={onExit} className="text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
             <ArrowLeft className="mr-2 h-4 w-4" /> Base Central
           </Button>
-          
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2 text-slate-300 font-mono text-sm">
-              <Battery className="h-5 w-5 text-emerald-400" />
-              <span>CARGA: {Math.round(energyLevel * 100)}%</span>
-            </div>
-            <div className="h-2 w-32 bg-slate-800 rounded-full overflow-hidden">
-              <motion.div 
-                className="h-full bg-emerald-400 shadow-[0_0_10px_#34d399]"
-                initial={{ width: 0 }}
-                animate={{ width: `${energyLevel * 100}%` }}
-                transition={{ duration: 1 }}
-              />
+          <div className="flex items-center gap-6 bg-slate-950/50 p-2 px-4 rounded-xl border border-white/5">
+            <div className="flex items-center gap-2.5 text-emerald-400 font-mono text-sm font-bold tracking-tight">
+              <Zap className="h-4 w-4 animate-pulse text-emerald-300" />
+              <span>SISTEMA: {Math.round(energyLevel * 100)}%</span>
             </div>
           </div>
         </div>
 
-        {/* Skyline da Cidade */}
-        <div className="relative h-72 border-b-4 border-slate-800 flex items-end justify-center gap-1 md:gap-4 mb-8 px-4">
-          
-          {/* Moinhos de Vento ao Fundo */}
-          <div className="absolute left-10 bottom-4 opacity-50 flex gap-12 z-0">
-            {[1, 2, 3].map((_, i) => (
-              <div key={`wind-${i}`} className="flex flex-col items-center">
-                <Wind 
-                  className="h-12 w-12 text-slate-500" 
-                  style={{ 
-                    animation: energyLevel > 0 ? `spin ${3 - energyLevel}s linear infinite` : 'none',
-                    marginBottom: '-14px'
-                  }} 
-                />
-                <div className="w-1 h-16 bg-slate-700" />
-              </div>
-            ))}
-          </div>
-
-          {/* Prédios (Interativos) */}
+        <div className="relative h-72 border-b-2 border-slate-800/60 flex items-end justify-center gap-1.5 md:gap-4 mb-8">
           {BUILDINGS.map((b, i) => {
             const isLit = litSectors.includes(i);
-            const isActiveQuestion = i === currentQ && !finished;
-
             return (
-              <motion.div
-                key={i}
-                whileHover={isLit ? { scale: 1.05, y: -5 } : {}}
-                className={`relative flex flex-col justify-end p-1 rounded-t-md transition-all duration-700 z-10 cursor-default ${b.height} ${b.width} ${
+              <div 
+                key={i} 
+                className={`relative ${b.height} ${b.width} transition-all duration-1000 rounded-t-lg ${
                   isLit 
-                    ? "bg-slate-800 shadow-[0_0_30px_rgba(52,211,153,0.3)] border-t border-x border-emerald-500/50" 
-                    : "bg-slate-900 border-t border-x border-slate-800"
-                } ${isActiveQuestion ? "ring-2 ring-blue-500/50 ring-offset-2 ring-offset-slate-950" : ""}`}
+                    ? "bg-slate-800 shadow-[0_-15px_50px_rgba(52,211,153,0.12)] border-t border-x border-emerald-500/30" 
+                    : "bg-slate-900/90 border-t border-x border-slate-800"
+                }`}
               >
-                {/* Janelas */}
-                <div className="grid gap-1 w-full h-full p-1" style={{ gridTemplateColumns: `repeat(${b.cols}, minmax(0, 1fr))` }}>
+                <div className="grid gap-1.5 p-2 h-full" style={{ gridTemplateColumns: `repeat(${b.cols}, 1fr)` }}>
                   {[...Array(b.cols * b.rows)].map((_, j) => (
-                    <motion.div 
-                      key={j}
-                      initial={false}
-                      animate={{
-                        backgroundColor: isLit 
-                          ? (Math.random() > 0.2 ? "#fef08a" : "#0f172a") // 80% das janelas acesas se isLit
-                          : "#020617",
-                        boxShadow: isLit ? "0 0 8px rgba(254,240,138,0.5)" : "none"
-                      }}
-                      className="w-full h-full rounded-[1px] opacity-80"
-                    />
+                    <div key={j} className={`rounded transition-all duration-700 ${isLit ? "bg-yellow-100 shadow-[0_0_10px_rgba(254,240,138,0.5)]" : "bg-slate-950/60"}`} />
                   ))}
                 </div>
-                
-                {/* Antenas/Detalhes no topo */}
-                {i % 2 === 0 && (
-                  <div className={`absolute -top-4 left-1/2 -translate-x-1/2 w-1 h-4 ${isLit ? "bg-emerald-400" : "bg-slate-800"}`}>
-                    {isLit && <div className="absolute -top-1 -left-1 w-3 h-3 bg-red-500 rounded-full animate-ping" />}
-                  </div>
-                )}
-              </motion.div>
+              </div>
             );
           })}
-
-          {/* Trânsito (Carros passando se houver energia) */}
-          {energyLevel > 0.2 && (
-            <motion.div 
-              className="absolute bottom-1 left-0 right-0 h-4 flex items-center z-20 overflow-hidden"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-            >
-              <motion.div 
-                animate={{ x: ["-10%", "110%"] }} 
-                transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
-              >
-                <Car className="text-yellow-400 h-4 w-4 drop-shadow-[0_0_5px_rgba(250,204,21,0.8)]" />
-              </motion.div>
-              <motion.div 
-                animate={{ x: ["110%", "-10%"] }} 
-                transition={{ duration: 7, repeat: Infinity, ease: "linear", delay: 2 }}
-              >
-                <Car className="text-red-400 h-4 w-4 drop-shadow-[0_0_5px_rgba(248,113,113,0.8)] transform scale-x-[-1]" />
-              </motion.div>
-            </motion.div>
-          )}
+          <div className="absolute -bottom-px left-0 right-0 h-10 bg-gradient-to-t from-[#020617] to-transparent opacity-60 pointer-events-none" />
         </div>
 
-        {/* Área de Jogo / Questões */}
-        <div className="flex-1 flex flex-col justify-center">
+        <div className="flex-1 flex flex-col justify-center relative z-20">
           {finished ? (
-            <motion.div 
-              initial={{ opacity: 0, y: 30 }} 
-              animate={{ opacity: 1, y: 0 }} 
-              className="bg-slate-900/60 backdrop-blur-xl border border-emerald-500/30 p-10 rounded-3xl text-center shadow-[0_0_50px_rgba(16,185,129,0.15)]"
-            >
-              <Zap className="h-20 w-20 text-emerald-400 mx-auto mb-6 animate-pulse drop-shadow-[0_0_15px_rgba(52,211,153,0.8)]" />
-              <h2 className="text-5xl font-black mb-4 bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
-                Metrópole Energizada!
-              </h2>
-              <p className="text-slate-300 text-xl mb-8">
-                Você implementou soluções sustentáveis em {litSectors.length} setores da cidade. O futuro agradece!
-              </p>
-              <Button onClick={() => window.location.reload()} className="bg-emerald-500 text-slate-950 hover:bg-emerald-400 px-8 py-6 text-lg font-bold rounded-xl shadow-lg shadow-emerald-500/20">
-                Iniciar Nova Simulação
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-slate-900/90 border border-emerald-500/30 p-12 rounded-3xl text-center backdrop-blur-xl shadow-[0_0_60px_rgba(16,185,129,0.1)]">
+              <Trophy className="h-24 w-24 text-yellow-400 mx-auto mb-6 drop-shadow-[0_0_20px_rgba(250,204,21,0.6)]" />
+              <h1 className="text-5xl font-black mb-3 text-white tracking-tighter">Missão Concluída!</h1>
+              <p className="text-emerald-300 text-7xl font-black mb-8 drop-shadow-[0_0_15px_rgba(52,211,153,0.6)]">{score} <span className="text-3xl text-slate-400 font-medium">/ 8 Acertos</span></p>
+              <Button onClick={() => window.location.reload()} className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-12 py-7 text-xl rounded-2xl shadow-lg transition-transform hover:scale-105">
+                Reiniciar Simulação
               </Button>
             </motion.div>
           ) : (
             <AnimatePresence mode="wait">
-              <motion.div
-                key={currentQ}
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 1.05, opacity: 0 }}
-                className="bg-slate-900/60 backdrop-blur-xl border border-slate-700/50 p-6 md:p-8 rounded-3xl shadow-2xl mx-auto w-full max-w-2xl"
-              >
-                <div className="flex justify-between items-center mb-6">
-                  <span className="text-cyan-400 text-xs font-bold tracking-widest uppercase bg-cyan-950/50 px-3 py-1 rounded-full border border-cyan-800">
-                    Setor {currentQ + 1}
-                  </span>
+              <motion.div key={currentQ} initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -30, opacity: 0 }} className="bg-slate-900/70 p-10 rounded-3xl border border-slate-700/50 max-w-2xl mx-auto w-full backdrop-blur-sm shadow-2xl relative">
+                <div className="absolute top-0 left-0 right-0 h-1 rounded-t-3xl overflow-hidden bg-slate-800">
+                    <motion.div className="h-full bg-emerald-500" initial={{ width: "0%" }} animate={{ width: `${((currentQ + 1) / 8) * 100}%` }} />
                 </div>
-                
-                <h3 className="text-2xl font-bold mb-8 leading-relaxed text-slate-100">{question.q}</h3>
-
+                <div className="flex justify-between items-center mb-6 pt-2">
+                   <p className="text-cyan-400 font-mono text-xs font-bold tracking-widest uppercase bg-cyan-950/50 px-3 py-1 rounded-full border border-cyan-800/50">SETOR {currentQ + 1} DE 8</p>
+                   <p className="text-slate-400 text-sm font-medium">Acertos: <span className="text-emerald-400 font-bold">{score}</span></p>
+                </div>
+                <h3 className="text-3xl font-extrabold mb-10 text-white leading-tight tracking-tight">{question.q}</h3>
                 <div className="grid gap-4">
                   {question.opts.map((opt, i) => {
-                    const isThisSelected = selected === i;
-                    const isThisCorrect = i === question.correct;
-                    
-                    let btnStyle = "bg-slate-800/50 border-slate-600 hover:bg-slate-700 hover:border-slate-400 text-slate-200";
-                    
-                    if (answered) {
-                      if (isThisCorrect) {
-                        btnStyle = "bg-emerald-500/20 border-emerald-500 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.2)]";
-                      } else if (isThisSelected) {
-                        btnStyle = "bg-red-500/20 border-red-500 text-red-300";
-                      } else {
-                        btnStyle = "bg-slate-900/50 border-slate-800 text-slate-600 opacity-50";
-                      }
-                    }
-
+                    const isCorrectBtn = i === question.correct;
+                    const isSelectedBtn = selected === i;
                     return (
                       <button
                         key={i}
                         disabled={answered}
                         onClick={() => handleAnswer(i)}
-                        className={`w-full p-4 rounded-xl text-left border-2 transition-all duration-300 font-medium text-lg flex items-center justify-between group ${btnStyle}`}
+                        className={`p-5 rounded-xl text-left border-2 transition-all duration-300 text-lg font-semibold flex items-center justify-between group ${
+                          answered 
+                            ? isCorrectBtn ? "bg-emerald-600/30 border-emerald-500 text-emerald-200" : isSelectedBtn ? "bg-red-600/30 border-red-500 text-red-200" : "bg-slate-900/40 border-slate-800 text-slate-600 opacity-60"
+                            : "bg-slate-800/60 border-slate-700 hover:border-emerald-700 hover:bg-slate-800 text-slate-100"
+                        }`}
                       >
                         {opt}
-                        {answered && isThisCorrect && <Zap className="h-5 w-5 text-emerald-400" />}
+                        {answered && isCorrectBtn && <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />}
                       </button>
                     );
                   })}
                 </div>
-
                 {answered && (
-                  <motion.div 
-                    initial={{ opacity: 0, height: 0 }} 
-                    animate={{ opacity: 1, height: "auto" }} 
-                    className="mt-8 pt-6 border-t border-slate-700/50 flex flex-col sm:flex-row items-center justify-between gap-4"
-                  >
-                    <p className={`font-bold text-lg ${isCorrect ? "text-emerald-400" : "text-red-400"}`}>
-                      {isCorrect ? "✨ Rede conectada com sucesso!" : "⚠️ Falha crítica no gerador."}
-                    </p>
-                    <Button 
-                      onClick={handleNext} 
-                      className="w-full sm:w-auto px-8 py-6 text-md font-bold bg-white text-slate-950 hover:bg-slate-200 rounded-xl"
-                    >
-                      {currentQ === QUESTIONS.length - 1 ? "Analisar Sistema" : "Próximo Setor"}
+                  <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="mt-10 pt-8 border-t border-slate-800 flex justify-end">
+                    <Button onClick={handleNext} className="py-7 px-10 bg-white text-slate-950 font-extrabold text-xl hover:bg-emerald-50 rounded-2xl shadow-xl transition-all group hover:scale-105">
+                      {currentQ === 7 ? "Ver Diagnóstico Final" : "Avançar para Próximo Setor"}
+                      <Zap className="ml-2.5 h-5 w-5 text-emerald-600 group-hover:animate-bounce" />
                     </Button>
                   </motion.div>
                 )}
