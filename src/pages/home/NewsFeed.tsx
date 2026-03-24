@@ -40,7 +40,7 @@ interface SidebarItem {
 // --- DADOS (Mantidos) ---
 const newsData: NewsItem[] = [
   {
-    id:"1",
+    id: "1",
     title: "Brasil bate recorde histórico em geração de energia solar e eólica",
     summary: "O país alcançou a marca de 90% da matriz elétrica renovável neste mês, impulsionando a economia verde.",
     content: "Com novos parques eólicos no Nordeste e fazendas solares no Sudeste, o Brasil não apenas reduziu suas emissões de carbono em 15% no último trimestre, mas também gerou mais de 50 mil novos empregos diretos no setor.",
@@ -64,7 +64,7 @@ const newsData: NewsItem[] = [
     image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e"
   },
   {
-    id: "3",
+    id:" 3",
     title: "Hortas urbanas verticais transformam telhados em São Paulo",
     summary: "Projeto de agricultura urbana reduz a temperatura dos prédios e fornece alimentos frescos para a comunidade.",
     content: "Uma iniciativa comunitária mapeou e transformou mais de 200 telhados ociosos no centro da capital paulista em fazendas urbanas produtivas. Além de mitigar as ilhas de calor.",
@@ -88,8 +88,9 @@ const sidebarItems: SidebarItem[] = [
 // --- COMPONENTE DE NOTÍCIA INDIVIDUAL (DESIGN ATUALIZADO) ---
 const NewsCard = ({ item }: { item: NewsItem;  }) => {
   const [likes, setLikes] = useState(0);
-  const [hearts, setHearts] = useState(Math.floor(item.likes / 3));
-  const [ideas, setIdeas] = useState(Math.floor(item.likes / 5));
+  const [hearts, setHearts] = useState(0);
+  const [ideas, setIdeas] = useState(0);
+  
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState("");
@@ -102,6 +103,7 @@ const NewsCard = ({ item }: { item: NewsItem;  }) => {
 }, []);
 
 async function loadLikes() {
+  console.log("ID da notícia:", item.id);
   const { count } = await supabase
     .from("likes")
     .select("*", { count: "exact", head: true })
@@ -112,16 +114,34 @@ async function loadLikes() {
 
 
 async function handleLike() {
-  if (!user) return;
+  if (!user) return alert("Precisa estar logado");
 
-  await supabase.from("likes").insert({
+  // Checa se o usuário já deu like
+  const { data: existingLike, error: checkError } = await supabase
+    .from("likes")
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("news_id", item.id)
+    .single();
+
+  if (checkError && checkError.code !== "PGRST116") { // ignora 'not found'
+    return alert(checkError.message);
+  }
+
+  if (existingLike) {
+    alert("Você já deu like nessa notícia!");
+    return;
+  }
+
+  const { error } = await supabase.from("likes").insert({
     user_id: user.id,
     news_id: item.id
   });
 
+  if (error) return alert("Erro ao dar like: " + error.message);
+
   setLikes((prev) => prev + 1);
 }
-
  
  /* Buscando comentarios  */
   useEffect(() => {
@@ -146,7 +166,7 @@ async function handleLike() {
   const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
 
-     // 🔥 COLOCA AQUI
+     //  COLOCA AQUI
     if (!user) {
       alert("Você precisa estar logado!");
       return;
@@ -410,9 +430,7 @@ export default function SustainableNewsFeed() {
 
 });
 
-
   return (
-
 
     <div className="min-h-screen bg-[#020617] text-slate-300 font-sans selection:bg-emerald-500/30 overflow-x-hidden">
       
@@ -421,7 +439,7 @@ export default function SustainableNewsFeed() {
         <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-emerald-900/10 blur-[140px] rounded-full" />
         <div className="absolute bottom-0 right-0 w-[40%] h-[40%] bg-blue-900/10 blur-[120px] rounded-full" />
       </div>
-       {/* 🔥 CARROSSEL */}
+       {/*  CARROSSEL */}
       <div className="max-w-7xl mx-auto px-6 pt-6">
         <div
           className="relative h-[320px] rounded-[2.5rem] overflow-hidden group"
@@ -462,7 +480,7 @@ export default function SustainableNewsFeed() {
           </span>
 
         <h2 
-            onClick={() => setSelectedNews(newsData[currentIndex])} // ADICIONE ISSO
+            onClick={() => setSelectedNews(newsData[currentIndex])} 
             className="text-4xl font-black text-white leading-tight cursor-pointer hover:text-emerald-400 transition-colors"
           >
             {newsData[currentIndex].title}
@@ -484,7 +502,7 @@ export default function SustainableNewsFeed() {
         }
         className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white p-3 rounded-full opacity-0 group-hover:opacity-100 transition"
       >
-        ◀
+        
       </button>
 
       {/* BOTÃO DIREITA */}
@@ -496,7 +514,7 @@ export default function SustainableNewsFeed() {
         }
         className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white p-3 rounded-full opacity-0 group-hover:opacity-100 transition"
       >
-        ▶
+        
       </button>
 
       {/* INDICADORES */}
@@ -542,7 +560,7 @@ export default function SustainableNewsFeed() {
             onClick={() => setShowForm(true)}
             className="bg-emerald-500 text-black font-bold uppercase text-xs"
             >
-                + Publicar Notícia
+                Publicar Notícia
             </Button>
         </div>
         
@@ -605,14 +623,14 @@ export default function SustainableNewsFeed() {
         {/* HEADER */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-black text-white">
-            ✨ Criar Notícia
+             Criar Notícia
           </h2>
 
           <button
             onClick={() => setShowForm(false)}
             className="text-white/60 hover:text-white text-xl"
           >
-            ✕
+            
           </button>
         </div>
 
@@ -671,7 +689,7 @@ export default function SustainableNewsFeed() {
               onClick={handlePublish}
               className="bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-6"
             >
-              Publicar 🚀
+              Publicar 
             </Button>
           </div>
 
@@ -697,7 +715,7 @@ export default function SustainableNewsFeed() {
               </motion.div>
             ))}
           </AnimatePresence>
-          
+
           {filteredNews.length === 0 && (
             <div className="text-center py-32 bg-slate-900/20 rounded-[3rem] border-2 border-dashed border-white/5 backdrop-blur-sm">
                <p className="text-slate-500 font-black uppercase tracking-widest text-xs italic">Nenhum registro encontrado no Database</p>
