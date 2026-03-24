@@ -50,7 +50,7 @@ const newsData: NewsItem[] = [
     gradient: "from-amber-500 to-orange-600",
     image: "https://images.unsplash.com/photo-1509395176047-4a66953fd231"
   }
-];
+];;
 
 const sidebarItems: SidebarItem[] = [
   { label: "Energia Solar", icon: Sun, color: "text-amber-400", bg: "hover:bg-amber-400/10" },
