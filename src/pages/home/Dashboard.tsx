@@ -119,13 +119,6 @@ export default function EcoNexus() {
                 </div>
                 <div className="bg-white/5 border border-white/10 rounded-2xl px-5 py-3 backdrop-blur-md">
                   <p className="text-emerald-400 font-black text-2xl italic tracking-tighter leading-none">{eco?.eco} <span className="text-[10px] text-slate-400 not-italic">EcoS</span></p>
-                  <div className="flex items-center gap-1 mt-1 text-[9px] font-bold text-slate-500 uppercase tracking-widest">
-                    <Zap size={10} fill="currentColor" /> <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-black text-[11px] font-black px-2.5 py-1 rounded-lg shadow-xl ring-4 ring-[#020617]">
-                      <span key={game?.streakDays ?? 'loading'}>
-                        LVL {game?.streakDays ?? 0}
-                      </span>
-                    </div> Dias de Streak
-                  </div>
                 </div>
               </div>
 
