@@ -131,7 +131,7 @@ export function Report() {
           <ReportAction icon={MapPin} label="Localização" onClick={() => handleLocation()} highlight />
           <ReportAction icon={Camera} label="Evidência" onClick={(e) => fileInputRef.current.click()} highlight />
           <ReportAction icon={Send} label="Emitir Alerta" onClick={() => handleReport()} highlight />
-          <input placeholder="descreva sua denúncia" onChange={(e) => setReport({ ...report, message: e.target.value })}
+          <input value={report?.message || ""} placeholder="descreva sua denúncia" onChange={(e) => setReport({ ...report, message: e.target.value })}
             className="sm:col-span-3 bg-white/5 border border-white/10 rounded-2xl p-4 text-[10px] font-black uppercase tracking-[0.2em] text-white placeholder:text-slate-600 focus:outline-none focus:border-emerald-500/50 transition-all mt-2"
           />
 
