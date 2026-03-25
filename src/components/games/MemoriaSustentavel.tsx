@@ -9,12 +9,12 @@ interface Props {
 }
 
 const PAIRS = [
-  { id: "solar", emoji: "☀️", match: "painel", matchEmoji: "🔲", color: "from-amber-300 to-orange-500", shadow: "shadow-orange-500/40" },
-  { id: "vento", emoji: "💨", match: "turbina", matchEmoji: "🌀", color: "from-cyan-300 to-blue-500", shadow: "shadow-blue-500/40" },
-  { id: "agua", emoji: "💧", match: "hidro", matchEmoji: "🌊", color: "from-blue-400 to-indigo-500", shadow: "shadow-indigo-500/40" },
+  { id: "solar", emoji: "☀️", match: "painel", matchEmoji: "🌡️", color: "from-amber-300 to-orange-500", shadow: "shadow-orange-500/40" },
+  { id: "vento", emoji: "💨", match: "turbina", matchEmoji: "🌪️", color: "from-cyan-300 to-blue-500", shadow: "shadow-blue-500/40" },
+  { id: "agua", emoji: "💧", match: "hidro", matchEmoji: "🌧️", color: "from-blue-400 to-indigo-500", shadow: "shadow-indigo-500/40" },
   { id: "planta", emoji: "🌱", match: "arvore", matchEmoji: "🌳", color: "from-lime-400 to-emerald-600", shadow: "shadow-emerald-500/40" },
   { id: "recicla", emoji: "♻️", match: "lixeira", matchEmoji: "🗑️", color: "from-teal-300 to-emerald-500", shadow: "shadow-teal-500/40" },
-  { id: "bici", emoji: "🚲", match: "verde", matchEmoji: "🟢", color: "from-green-300 to-emerald-500", shadow: "shadow-green-500/40" },
+  { id: "bici", emoji: "🥕", match: "verde", matchEmoji: "🐇", color: "from-green-300 to-emerald-500", shadow: "shadow-green-500/40" },
 ];
 
 interface Card {

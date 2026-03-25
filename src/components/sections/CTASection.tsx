@@ -28,7 +28,7 @@ export function CTASection() {
 
   async function checkedLogin() { console.log('checkedLogin')
     if (tentativa < 3) {
-      setTentativa(tentativa + 1);
+      setTentativa(tentativa + 1); 
 
     } else {
       alert('volte mais tarde');
