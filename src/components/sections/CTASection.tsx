@@ -145,22 +145,7 @@ export function CTASection() {
 
                 <div className="space-y-4">
                   {/* CAMPO NOME DE USUÁRIO (Apenas no registro) */}
-                  <AnimatePresence>
-                    {formMode === "register" && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0, marginBottom: 0 }}
-                        animate={{ opacity: 1, height: "auto", marginBottom: 16 }}
-                        exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-                        className="space-y-2 overflow-hidden"
-                      >
-                        <label className="text-xs font-bold text-emerald-400/80 ml-2 uppercase tracking-widest">Nome de Usuário</label>
-                        <Input
-                          placeholder="Como quer ser chamado?"
-                          className="bg-white/5 border-white/10 text-white placeholder:text-gray-600 h-14 rounded-2xl focus:ring-[#4ADE80] transition-all"
-                        />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  
 
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-emerald-400/80 ml-2 uppercase tracking-widest">E-mail</label>
