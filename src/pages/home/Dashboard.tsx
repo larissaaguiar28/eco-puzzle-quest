@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Gamepad2, Megaphone, ChevronRight,
@@ -10,22 +10,64 @@ import {
 } from "lucide-react";
 import { Link } from 'react-router-dom';
 import { Report } from "@/components/Report";
+import supabase from "../../../utils/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 
-const PLAYER = {
-  name: "Mariana Costa",
-  rank: "Sentinela de Brotos",
-  level: 12,
-  xp: 2450,
-  nextXp: 3000,
-  nextRank: "Guardião das Copas",
-  ecos: 850,
-  streak: 5
-};
+type Game = {
+  name?: string;
+  level?: number;
+  streakDays?: number;
+  totalXp?: number;
+}
 
+type User = {
+  eco?: number;
+}
 
 
 export default function EcoNexus() {
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
+  const { user, signOutUser } = useAuth();
+  const [game, setGame] = useState<Game>();
+  const [eco, setEco] = useState<User>();
+
+  const xpNoNivelAtual = (game?.totalXp ?? 0) % 1000;
+  const porcentagemProgresso = (xpNoNivelAtual / 1000) * 100;
+
+  useEffect(() => {
+    if (user) {
+      syncEcos(user.id);
+      syncGame(user.id);
+    }
+  }, [user]);
+
+  async function syncEcos(user_id: string): Promise<void> {
+    const { data, error } = await supabase.from('profiles')
+      .select('eco').eq("user_id", user_id)
+      .maybeSingle();
+
+    if (error) {
+      alert(error.message)
+      return
+    }
+    if (data) {
+      setEco(data);
+    }
+  }
+
+  async function syncGame(user_id: string): Promise<void> {
+    const { data, error } = await supabase.from('games')
+      .select("totalXp, level, streakDays").eq("user_id", user_id)
+      .maybeSingle();
+
+    if (error) {
+      alert(error.message)
+      return
+    }
+    if (data) {
+      setGame(data);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#020617] text-slate-300 font-sans selection:bg-emerald-500/30 overflow-x-hidden selection:text-white">
@@ -58,7 +100,9 @@ export default function EcoNexus() {
                 </div>
               </motion.div>
               <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-black text-[11px] font-black px-2.5 py-1 rounded-lg shadow-xl ring-4 ring-[#020617]">
-                LVL {PLAYER.level}
+                <span key={game?.level ?? 'loading'}>
+                  LVL {game?.level ?? 0}
+                </span>
               </div>
             </div>
 
@@ -70,26 +114,27 @@ export default function EcoNexus() {
                     <p className="text-emerald-500 text-[10px] font-black uppercase tracking-[0.3em]">Operador Online</p>
                   </div>
                   <h2 className="text-4xl font-black tracking-tighter text-white uppercase italic leading-none drop-shadow-sm">
-                    {PLAYER.rank}
+                    {/* {PLAYER.rank} */}
                   </h2>
                 </div>
                 <div className="bg-white/5 border border-white/10 rounded-2xl px-5 py-3 backdrop-blur-md">
-                  <p className="text-emerald-400 font-black text-2xl italic tracking-tighter leading-none">{PLAYER.ecos} <span className="text-[10px] text-slate-400 not-italic">EcoS</span></p>
-                  <div className="flex items-center gap-1 mt-1 text-[9px] font-bold text-slate-500 uppercase tracking-widest">
-                    <Zap size={10} fill="currentColor" /> {PLAYER.streak} Dias de Streak
-                  </div>
+                  <p className="text-emerald-400 font-black text-2xl italic tracking-tighter leading-none">{eco?.eco} <span className="text-[10px] text-slate-400 not-italic">EcoS</span></p>
                 </div>
               </div>
 
               <div className="space-y-3">
                 <div className="flex justify-between items-end text-[10px] font-black uppercase tracking-widest">
                   <span className="text-slate-400">Progresso de Carreira</span>
-                  <span className="text-emerald-400/80">Meta: {PLAYER.nextRank}</span>
+                  {/* 2. Mostramos a meta de forma dinâmica e segura */}
+                  <span className="text-emerald-400/80" key={game?.totalXp}>
+                    Meta: {xpNoNivelAtual} / 1000 XP
+                  </span>
                 </div>
+
                 <div className="h-3 w-full bg-slate-800/50 rounded-full overflow-hidden p-[2px] border border-white/5">
                   <motion.div
                     initial={{ width: 0 }}
-                    animate={{ width: `${(PLAYER.xp / PLAYER.nextXp) * 100}%` }}
+                    animate={{ width: `${porcentagemProgresso}%` }}
                     transition={{ duration: 2, ease: "circOut" }}
                     className="h-full rounded-full bg-gradient-to-r from-emerald-600 via-emerald-400 to-cyan-400 relative"
                   >
@@ -169,7 +214,7 @@ export default function EcoNexus() {
         {/* --- 3. PATRULHA & TASKS --- */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-          <Report/>
+          <Report />
 
           {/* QUADRO DE MISSÕES (DAILIES) */}
           <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 flex flex-col">
