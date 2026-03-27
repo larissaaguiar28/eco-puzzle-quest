@@ -19,7 +19,8 @@ export type Database = {
           created_at: string
           id: string
           message_count: number
-          storage_path: string
+          messages: Json
+          storage_path: string | null
           updated_at: string
           user_id: string
         }
@@ -27,7 +28,8 @@ export type Database = {
           created_at?: string
           id?: string
           message_count?: number
-          storage_path: string
+          messages?: Json
+          storage_path?: string | null
           updated_at?: string
           user_id: string
         }
@@ -35,7 +37,8 @@ export type Database = {
           created_at?: string
           id?: string
           message_count?: number
-          storage_path?: string
+          messages?: Json
+          storage_path?: string | null
           updated_at?: string
           user_id?: string
         }
