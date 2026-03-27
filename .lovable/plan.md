@@ -1,78 +1,44 @@
 
-# Atualização de 3 Páginas: Feed, Jogos e Perfil
 
-## 1. Feed de Noticias - Redesign Completo
+## Plano: Persistir conversas do EcoBot no banco de dados + Storage
 
-**Mudancas na estrutura de dados:**
-- Adicionar campos: `subtitle`, `location`, `imageUrl` (placeholder) a cada noticia
-- Todos os autores passam a ser "Eco'S" com iniciais "ES"
-- Manter campos existentes: title, summary, date, category, reactions, comments
+### Resumo
+Criar uma tabela `chatbot_conversations` no banco de dados para armazenar metadados de cada conversa, e um bucket no Storage (`chatbot`) para salvar o JSON completo das mensagens. A tabela guarda o `user_id`, timestamps e a URL do arquivo JSON no Storage.
 
-**Novo layout de cada card de noticia:**
-- Area de imagem placeholder no topo (fundo cinza com icone de imagem, altura fixa ~200px)
-- Badge de categoria no canto da imagem
-- Abaixo da imagem: titulo em destaque (font-bold, text-lg)
-- Subtitulo em texto medio (text-sm, muted)
-- Linha com autor "Eco'S" + data + localizacao (com icone MapPin)
-- Resumo/descricao do conteudo
-- Barra de reacoes e comentarios (manter logica existente)
+### 1. Criar bucket de Storage `chatbot`
+Migration SQL para criar o bucket e políticas RLS permitindo que usuários autenticados façam upload/leitura dos seus próprios arquivos.
 
-**Filtro por palavras-chave:**
-- Adicionar campo de busca (Input com icone Search) acima do feed
-- Filtrar dinamicamente por titulo, subtitulo e resumo
-- Combinar com filtro de categoria existente
-- Responsivo: funciona em mobile e desktop
+### 2. Criar tabela `chatbot_conversations`
+```sql
+create table public.chatbot_conversations (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  storage_path text not null,
+  message_count integer not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+alter table public.chatbot_conversations enable row level security;
+-- Users can only see/manage their own conversations
+create policy "Users manage own conversations"
+  on public.chatbot_conversations for all to authenticated
+  using (user_id = auth.uid()) with check (user_id = auth.uid());
+```
 
-**Dados das noticias atualizados:**
-- Adicionar subtitulo e localizacao a todas as 6 noticias existentes
+### 3. Atualizar `ChatContext.tsx`
+- Importar `supabase` client e `useAuth` para obter `user.id`.
+- Adicionar estado `conversationId` para rastrear a conversa atual.
+- **Função `saveConversation`**: Após cada resposta completa do bot (no `finally` do `sendMessage`), serializar `messages` como JSON, fazer upload para `chatbot/{user_id}/{conversation_id}.json` via `supabase.storage`, e fazer upsert na tabela `chatbot_conversations` com o `storage_path` e `message_count`.
+- **No `clearChat`**: Salvar a conversa atual antes de limpar, e criar um novo `conversationId`.
+- **Na inicialização**: Carregar a última conversa do usuário (se existir) buscando o JSON do Storage.
 
-## 2. Pagina de Jogos - Redesign Gamer Premium
+### 4. Atualizar `ChatProvider` no `HomeLayout.tsx`
+O `ChatProvider` precisa estar dentro do `AuthProvider` para ter acesso ao usuário. Verificar que a hierarquia está correta (já parece estar, pois `AuthProvider` provavelmente envolve o app todo).
 
-**Secao Hero com Carrossel (topo):**
-- Carrossel ocupando ~60% da largura (lado esquerdo) com jogos ficticios
-- Cada slide: imagem placeholder com overlay escuro em degrade, titulo e descricao do jogo
-- Indicadores de slide (bolinhas) abaixo do carrossel
-- Transicao suave automatica + manual
-- Lado direito (~40%): card de "jogo em destaque" ou informacao adicional
+### Detalhes técnicos
+- O arquivo JSON no Storage terá o formato: `chatbot/{user_id}/{conversation_id}.json`
+- O upload usa `supabase.storage.from('chatbot').upload(path, blob, { upsert: true })`
+- A URL pública é obtida via `supabase.storage.from('chatbot').getPublicUrl(path)`
+- O save é debounced (salva após 2s de inatividade) para não sobrecarregar com uploads a cada token do streaming
+- Bucket com RLS: usuários só acessam pasta com seu próprio `user_id`
 
-**Secao de Perfil do Jogador (abaixo):**
-- Avatar do usuario com nome da conta
-- Nivel da conta com barra de progresso visual (Progress component)
-- XP atual / XP necessario para proximo nivel
-- Layout em card com bordas arredondadas (rounded-2xl)
-
-**Insignias do Jogador:**
-- Icones circulares em linha horizontal
-- Cada insignia com icone, nome e tooltip (usando Tooltip component existente)
-- Scroll lateral se necessario (overflow-x-auto)
-- Insignias tematicas de sustentabilidade (ex: Guardiao da Floresta, Mestre da Reciclagem)
-
-**Design geral:**
-- Bordas arredondadas (16px), sombras suaves
-- Estetica gamer premium com animacoes framer-motion
-- Efeitos hover elegantes nos cards
-- Responsivo desktop-first
-
-## 3. Pagina de Perfil - Fundo Gradiente
-
-**Fundo da pagina:**
-- Gradiente vertical de 3 cores:
-  - Topo: bege (#d4a373 / beige-start)
-  - Meio: azul celeste (#87CEEB / light sky blue)
-  - Baixo: verde fantasma (~#c8e6c9 / ghost green)
-- Aplicado como background no container principal
-- Cards mantem fundo branco/card para contraste e legibilidade
-
-## Detalhes Tecnicos
-
-**Arquivos modificados:**
-- `src/pages/home/NewsFeed.tsx` - Redesign completo com busca, novos campos, layout profissional
-- `src/pages/home/Games.tsx` - Reescrita total com carrossel, perfil gamer, insignias
-- `src/pages/home/Profile.tsx` - Adicionar gradiente de fundo tricolor
-
-**Dependencias utilizadas (ja instaladas):**
-- framer-motion (animacoes e carrossel)
-- lucide-react (icones)
-- recharts (nao necessario aqui)
-- Radix UI Tooltip, Progress (ja disponiveis)
-- embla-carousel-react (disponivel mas usarei framer-motion para simplicidade)
