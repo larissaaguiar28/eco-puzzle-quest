@@ -148,6 +148,14 @@ const NewsCard = ({ item }: { item: NewsItem; }) => {
   return (
     <Card className="rounded-[2.5rem] overflow-hidden border border-white/5 bg-slate-900/40 backdrop-blur-xl shadow-2xl group transition-all duration-500 hover:border-white/10">
       <div className={`h-40 bg-gradient-to-br ${item.gradient} relative overflow-hidden`}>
+      {/* ✅ AQUI: A imagem inserida dentro da parte verde */}
+    {item.image && (
+      <img 
+        src={item.image} 
+        alt={item.title} 
+        className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-50 group-hover:scale-110 transition-transform duration-700" 
+      />
+    )}
         <div className="absolute inset-0 bg-black/20" />
         <Badge className="absolute top-6 left-6 bg-black/40 text-white backdrop-blur-md border border-white/10 rounded-xl px-4 py-1.5 font-black uppercase italic tracking-tighter">
           {item.category}
