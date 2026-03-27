@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useCallback, useRef, useEff
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import supabaseOld from "../../utils/supabase";
 
 export type Sender = "user" | "bot";
 
@@ -45,42 +46,41 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const loadedRef = useRef(false);
 
-  // --- PERSISTENCE: Save conversation to Storage + DB ---
+  // --- PERSISTENCE: Save conversation directly to DB as JSONB ---
   const saveConversation = useCallback(async (msgs: ChatMessage[]) => {
     if (!user?.id || msgs.length <= 1) return;
 
     const convId = conversationIdRef.current;
     const storagePath = `${user.id}/${convId}.json`;
 
-    // Strip file blob URLs (not serializable / not useful in storage)
+    // Strip file blob URLs (not serializable)
     const serializable = msgs.map(({ file, ...rest }) => ({
       ...rest,
       ...(file ? { file: { name: file.name, type: file.type } } : {}),
     }));
 
+    // Upload JSON to storage
     const blob = new Blob([JSON.stringify(serializable, null, 2)], { type: "application/json" });
-
-    const { error: uploadError } = await supabase.storage
+    
+    await supabase.storage
       .from("chatbot")
-      .upload(storagePath, blob, { upsert: true });
+      .upload(storagePath, blob, { upsert: true })
+      .catch(() => null); // Storage upload is best-effort
 
-    if (uploadError) {
-      console.error("Failed to upload conversation:", uploadError);
-      return;
-    }
-
+    // Save to DB table with messages as JSONB
     const { error: dbError } = await supabase
       .from("chatbot_conversations")
       .upsert({
         id: convId,
         user_id: user.id,
         storage_path: storagePath,
+        messages: serializable,
         message_count: msgs.length,
         updated_at: new Date().toISOString(),
-      }, { onConflict: "id" });
+      } as any, { onConflict: "id" });
 
     if (dbError) {
-      console.error("Failed to save conversation metadata:", dbError);
+      console.error("Failed to save conversation:", dbError);
     }
   }, [user?.id]);
 
@@ -105,23 +105,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
       if (error || !convRows?.length) return;
 
-      const conv = convRows[0];
+      const conv = convRows[0] as any;
       conversationIdRef.current = conv.id;
 
-      const { data: fileData, error: dlError } = await supabase.storage
-        .from("chatbot")
-        .download(conv.storage_path);
-
-      if (dlError || !fileData) return;
-
-      try {
-        const text = await fileData.text();
-        const loaded: ChatMessage[] = JSON.parse(text);
-        if (Array.isArray(loaded) && loaded.length > 0) {
-          setMessages(loaded);
-        }
-      } catch {
-        console.error("Failed to parse conversation JSON");
+      // Load messages from JSONB column
+      if (conv.messages && Array.isArray(conv.messages) && conv.messages.length > 0) {
+        setMessages(conv.messages as ChatMessage[]);
       }
     })();
   }, [user?.id]);
@@ -141,7 +130,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     setMessages((prev) => [...prev, userMsg]);
     setTyping(true);
 
-    // Build history for API
     const history = messages
       .filter((m) => m.text.trim())
       .map((m) => ({ role: m.sender === "user" ? "user" as const : "assistant" as const, content: m.text }));
@@ -208,7 +196,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      // Final flush
       if (buffer.trim()) {
         for (let raw of buffer.split("\n")) {
           if (!raw) continue;
@@ -243,7 +230,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setTyping(false);
       abortRef.current = null;
-      // Save after bot response completes
       setMessages((prev) => {
         debouncedSave(prev);
         return prev;
@@ -253,9 +239,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
   const clearChat = useCallback(async () => {
     abortRef.current?.abort();
-    // Save current conversation before clearing
     await saveConversation(messages);
-    // Start new conversation
     conversationIdRef.current = crypto.randomUUID();
     setMessages([{ id: crypto.randomUUID(), sender: "bot", text: "🌿 Conversa reiniciada! Vamos falar sobre sustentabilidade.", time: getTime() }]);
     setTyping(false);
