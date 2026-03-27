@@ -14,6 +14,8 @@ import Profile from "./pages/home/Profile";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AuthRoute from "./components/AuthRoute";
+import { Report } from "./components/Report";
+import ReportD from "./pages/home/ReportD";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +44,7 @@ const App = () => (
               <Route path="feed" element={<NewsFeed />} />
               <Route path="chatbot" element={<Chatbot />} />
               <Route path="games" element={<Games />} />
+              <Route path="report" element={<ReportD />} />
               <Route path="profile" element={<Profile />} />
             </Route>
             <Route path="*" element={<NotFound />} />
