@@ -84,7 +84,7 @@ const newsData: NewsItem[] = [
     location: "Nordeste, BR",
     gradient: "from-amber-500 to-orange-600",
     image: "https://images.unsplash.com/photo-1509395176047-4a66953fd231"
-
+},
   {
 
     id: "2",
@@ -454,8 +454,8 @@ const NewsCard = ({ item }: { item: NewsItem; }) => {
 
              <div key={c.id} className="bg-white/5 p-3 rounded-xl text-[10px] font-bold text-slate-300 border border-white/5 tracking-wider uppercase">
   <span className="text-emerald-400 italic">
-    {c.user?.email?.split('@')[0] || "Usuari"}: 
-  </span>
+  {c.displayAuthor}: 
+</span>
   {" "}{c.text}
 </div>
 
