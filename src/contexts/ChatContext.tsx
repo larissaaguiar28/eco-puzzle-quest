@@ -1,5 +1,7 @@
-import React, { createContext, useContext, useState, useCallback, useRef } from "react";
+import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from "react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 export type Sender = "user" | "bot";
 
@@ -33,15 +35,104 @@ export function useChatContext() {
 }
 
 export function ChatProvider({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([
     { id: crypto.randomUUID(), sender: "bot", text: "Olá! 🌿 Eu sou o EcoBot. Vamos conversar sobre sustentabilidade?", time: getTime() },
   ]);
   const [typing, setTyping] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+  const conversationIdRef = useRef<string>(crypto.randomUUID());
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const loadedRef = useRef(false);
+
+  // --- PERSISTENCE: Save conversation to Storage + DB ---
+  const saveConversation = useCallback(async (msgs: ChatMessage[]) => {
+    if (!user?.id || msgs.length <= 1) return;
+
+    const convId = conversationIdRef.current;
+    const storagePath = `${user.id}/${convId}.json`;
+
+    // Strip file blob URLs (not serializable / not useful in storage)
+    const serializable = msgs.map(({ file, ...rest }) => ({
+      ...rest,
+      ...(file ? { file: { name: file.name, type: file.type } } : {}),
+    }));
+
+    const blob = new Blob([JSON.stringify(serializable, null, 2)], { type: "application/json" });
+
+    const { error: uploadError } = await supabase.storage
+      .from("chatbot")
+      .upload(storagePath, blob, { upsert: true });
+
+    if (uploadError) {
+      console.error("Failed to upload conversation:", uploadError);
+      return;
+    }
+
+    const { error: dbError } = await supabase
+      .from("chatbot_conversations")
+      .upsert({
+        id: convId,
+        user_id: user.id,
+        storage_path: storagePath,
+        message_count: msgs.length,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "id" });
+
+    if (dbError) {
+      console.error("Failed to save conversation metadata:", dbError);
+    }
+  }, [user?.id]);
+
+  // Debounced save (2s after last change)
+  const debouncedSave = useCallback((msgs: ChatMessage[]) => {
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => saveConversation(msgs), 2000);
+  }, [saveConversation]);
+
+  // --- PERSISTENCE: Load last conversation on mount ---
+  useEffect(() => {
+    if (!user?.id || loadedRef.current) return;
+    loadedRef.current = true;
+
+    (async () => {
+      const { data: convRows, error } = await supabase
+        .from("chatbot_conversations")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("updated_at", { ascending: false })
+        .limit(1);
+
+      if (error || !convRows?.length) return;
+
+      const conv = convRows[0];
+      conversationIdRef.current = conv.id;
+
+      const { data: fileData, error: dlError } = await supabase.storage
+        .from("chatbot")
+        .download(conv.storage_path);
+
+      if (dlError || !fileData) return;
+
+      try {
+        const text = await fileData.text();
+        const loaded: ChatMessage[] = JSON.parse(text);
+        if (Array.isArray(loaded) && loaded.length > 0) {
+          setMessages(loaded);
+        }
+      } catch {
+        console.error("Failed to parse conversation JSON");
+      }
+    })();
+  }, [user?.id]);
 
   const addBotMessage = useCallback((text: string) => {
-    setMessages((prev) => [...prev, { id: crypto.randomUUID(), sender: "bot", text, time: getTime() }]);
-  }, []);
+    setMessages((prev) => {
+      const next = [...prev, { id: crypto.randomUUID(), sender: "bot" as Sender, text, time: getTime() }];
+      debouncedSave(next);
+      return next;
+    });
+  }, [debouncedSave]);
 
   const sendMessage = useCallback(async (text: string, file?: ChatMessage["file"]) => {
     if ((!text.trim() && !file) || typing) return;
@@ -50,7 +141,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     setMessages((prev) => [...prev, userMsg]);
     setTyping(true);
 
-    // Build history for API (exclude files, map sender to role)
+    // Build history for API
     const history = messages
       .filter((m) => m.text.trim())
       .map((m) => ({ role: m.sender === "user" ? "user" as const : "assistant" as const, content: m.text }));
@@ -82,7 +173,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       const decoder = new TextDecoder();
       let buffer = "";
 
-      // Add empty bot message
       setMessages((prev) => [...prev, { id: botId, sender: "bot", text: "", time: getTime() }]);
 
       while (true) {
@@ -143,7 +233,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       if (e.name === "AbortError") return;
       console.error("EcoBot error:", e);
       toast.error(e.message || "Erro ao se comunicar com o EcoBot");
-      // If no text was streamed, add error message
       if (!botText) {
         setMessages((prev) =>
           prev.map((m) =>
@@ -154,14 +243,23 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setTyping(false);
       abortRef.current = null;
+      // Save after bot response completes
+      setMessages((prev) => {
+        debouncedSave(prev);
+        return prev;
+      });
     }
-  }, [typing, messages]);
+  }, [typing, messages, debouncedSave]);
 
-  const clearChat = useCallback(() => {
+  const clearChat = useCallback(async () => {
     abortRef.current?.abort();
+    // Save current conversation before clearing
+    await saveConversation(messages);
+    // Start new conversation
+    conversationIdRef.current = crypto.randomUUID();
     setMessages([{ id: crypto.randomUUID(), sender: "bot", text: "🌿 Conversa reiniciada! Vamos falar sobre sustentabilidade.", time: getTime() }]);
     setTyping(false);
-  }, []);
+  }, [messages, saveConversation]);
 
   return (
     <ChatContext.Provider value={{ messages, typing, sendMessage, addBotMessage, clearChat }}>
