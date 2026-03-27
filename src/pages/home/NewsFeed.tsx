@@ -39,18 +39,42 @@ interface SidebarItem {
 // --- DADOS ESTÁTICOS (CARROSSEL) ---
 const newsData: NewsItem[] = [
   {
-    id: "17002176-f5e8-4c29-86ae-784ca93f72af",
+    id: "1",
     title: "Brasil bate recorde histórico em geração de energia solar e eólica",
-    summary: "O país alcançou a marca de 90% da matriz elétrica renovável neste mês, impulsionando a economia verde.",
-    content: "Com novos parques eólicos no Nordeste e fazendas solares no Sudeste, o Brasil não apenas reduziu suas emissões de carbono em 15% no último trimestre, mas também gerou mais de 50 mil novos empregos diretos no setor.",
+    summary: "O país alcançou a marca de 90% da matriz elétrica renovável neste mês, consolidando liderança global.",
+    content: "O Brasil atingiu um marco histórico ao registrar aproximadamente 90% de sua matriz elétrica composta por fontes renováveis, com destaque para a energia solar e eólica. O avanço é resultado de investimentos contínuos em infraestrutura energética, inovação tecnológica e incentivos governamentais ao setor.\n\nRegiões como o Nordeste têm se consolidado como grandes polos de geração eólica, aproveitando ventos constantes e de alta intensidade. Já o Sudeste lidera a expansão da energia solar, com grandes fazendas fotovoltaicas e o crescimento acelerado da geração distribuída em residências e empresas.\n\nSegundo especialistas, esse avanço não apenas reduz significativamente as emissões de gases de efeito estufa, mas também fortalece a segurança energética do país, diminuindo a dependência de fontes fósseis e hidrelétricas em períodos de seca.\n\nO setor também tem impacto direto na economia, com a geração de milhares de empregos diretos e indiretos, além de atrair investimentos internacionais e impulsionar o desenvolvimento de novas tecnologias limpas.\n\nApesar dos avanços, desafios ainda permanecem, como a necessidade de expansão das redes de transmissão, armazenamento de energia e integração eficiente das fontes renováveis ao sistema elétrico nacional.\n\nA tendência é que o Brasil continue ampliando sua participação em energias limpas, se posicionando como uma das principais referências globais na transição energética e no combate às mudanças climáticas.",
     category: "Energia Solar",
     author: "EcoS",
     date: new Date().toISOString(),
     location: "Nordeste, BR",
     gradient: "from-amber-500 to-orange-600",
-    image: "https://images.unsplash.com/photo-1509395176047-4a66953fd231"
+    image: "https://images.unsplash.com/photo-1509395176047-4a66953fd231?w=1600&q=80"
+  },
+  {
+    id: "2",
+    title: "Amazônia registra queda no desmatamento",
+    summary: "Dados mostram redução significativa e avanço nas políticas de conservação.",
+    content: "A Amazônia registrou uma queda expressiva nos índices de desmatamento nos últimos meses, segundo dados recentes de monitoramento ambiental por satélite. A redução é atribuída principalmente ao aumento das operações de fiscalização, uso de tecnologia avançada e maior rigor na aplicação de multas e sanções.\n\nÓrgãos ambientais intensificaram ações em áreas críticas, combatendo atividades ilegais como extração de madeira, garimpo clandestino e expansão irregular da agropecuária. Além disso, parcerias entre governos, organizações ambientais e comunidades locais têm fortalecido estratégias de preservação e uso sustentável dos recursos naturais.\n\nEspecialistas destacam que, apesar do avanço positivo, o cenário ainda exige atenção contínua. A floresta amazônica desempenha um papel fundamental na regulação do clima global, na preservação da biodiversidade e no equilíbrio dos ciclos hídricos.\n\nOutro fator importante para a redução foi a pressão internacional por práticas mais sustentáveis, incentivando políticas públicas voltadas à conservação e ao desenvolvimento sustentável da região.\n\nA expectativa é que, com a manutenção dessas ações e o fortalecimento das políticas ambientais, o Brasil consiga consolidar uma trajetória de queda contínua no desmatamento, garantindo a proteção de um dos ecossistemas mais importantes do planeta.",
+    category: "Conservação",
+    author: "EcoS",
+    date: new Date().toISOString(),
+    location: "Amazônia, BR",
+    gradient: "from-emerald-500 to-green-700",
+    image: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1600&q=80"
+  },
+  {
+    id: "3",
+    title: "Chuvas intensas no Sudeste",
+    summary: "Eventos extremos estão mais frequentes e preocupam especialistas.",
+    content: "As chuvas intensas registradas nos últimos meses na região Sudeste do Brasil têm acendido um alerta entre meteorologistas e autoridades. Cidades enfrentam alagamentos recorrentes, deslizamentos de terra e impactos diretos na mobilidade urbana e na economia local.\n\nSegundo especialistas, esses eventos estão diretamente ligados às mudanças climáticas, que aumentam a frequência e a intensidade de fenômenos extremos. O aquecimento global contribui para uma maior evaporação da água, resultando em tempestades mais fortes e concentradas em curtos períodos de tempo.\n\nAlém disso, fatores como urbanização desordenada, impermeabilização do solo e falta de infraestrutura adequada de drenagem agravam ainda mais os impactos das chuvas.\n\nEspecialistas reforçam a necessidade de políticas públicas voltadas para adaptação climática, incluindo investimentos em infraestrutura resiliente, planejamento urbano sustentável e sistemas de alerta antecipado para reduzir riscos à população.\n\nA tendência é que esses eventos se tornem cada vez mais comuns, exigindo ação imediata tanto do poder público quanto da sociedade.",
+    category: "Clima",
+    author: "EcoS",
+    date: new Date().toISOString(),
+    location: "Sudeste, BR",
+    gradient: "from-cyan-500 to-blue-700",
+    image: "https://chatgpt.com/backend-api/estuary/content?id=file_00000000baf8720ebe511bd49ab7d008&ts=492905&p=fs&cid=1&sig=f8bb41d5f4d7e57682cbf74cb76f918df066c051644645ddf8db294a6eefd6ee&v=0"
   }
-];;
+];
 
 const sidebarItems: SidebarItem[] = [
   { label: "Energia Solar", icon: Sun, color: "text-amber-400", bg: "hover:bg-amber-400/10" },
@@ -249,6 +273,7 @@ export default function SustainableNewsFeed() {
   const [showForm, setShowForm] = useState(false);
   const [expandedCarousel, setExpandedCarousel] = useState(false);
   const [newNews, setNewNews] = useState({ title: "", summary: "", content: "", category: "", location: "" });
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   useEffect(() => {
     loadNewsFeed();
@@ -271,33 +296,67 @@ export default function SustainableNewsFeed() {
   }
 
   async function handlePublish() {
-    if (!user) return;
-    const { error } = await supabase.from("newsfeed").insert({
-      user_id: user.id,
-      title: newNews.title,
-      summary: newNews.summary,
-      content: newNews.content,
-      category: newNews.category,
-      location: newNews.location,
-      author: user.email?.split('@')[0],
-      gradient: "from-emerald-500 to-green-600",
-      date: new Date().toISOString() // CORREÇÃO: Envia formato ISO aceito pelo Postgres
+  if (!user) return;
+
+  let imageUrl = null;
+
+  // 🔥 UPLOAD DA IMAGEM
+ if (imageFile) {
+  const fileName = `${Date.now()}-${imageFile.name}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("news-images")
+    .upload(fileName, imageFile, {
+      upsert: true
     });
 
-    if (error) {
-      alert(error.message);
-    } else {
-      setNewNews({ title: "", summary: "", content: "", category: "", location: "" });
-      setShowForm(false);
-      loadNewsFeed();
-    }
+  if (uploadError) {
+    console.error("ERRO UPLOAD:", uploadError);
+    alert(uploadError.message);
+    return;
   }
 
-  const filteredNews = newsfeed.filter((item) => {
-    const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory ? item.category === selectedCategory : true;
-    return matchesSearch && matchesCategory;
+  const { data } = supabase.storage
+    .from("news-images")
+    .getPublicUrl(fileName);
+
+  imageUrl = data.publicUrl;
+}
+
+  // 🔥 SALVA NO BANCO
+  const { error } = await supabase.from("newsfeed").insert({
+    user_id: user.id,
+    title: newNews.title,
+    summary: newNews.summary,
+    content: newNews.content,
+    category: newNews.category,
+    location: newNews.location,
+    author: user.email?.split('@')[0],
+    gradient: "from-emerald-500 to-green-600",
+    date: new Date().toISOString(),
+    image: imageUrl // ✅ AQUI ESTÁ O SEGREDO
   });
+
+  if (error) {
+    alert(error.message);
+  } else {
+    setNewNews({ title: "", summary: "", content: "", category: "", location: "" });
+    setImageFile(null);
+    setShowForm(false);
+    loadNewsFeed();
+  }
+}
+
+const filteredNews = newsfeed.filter((item) => {
+  const matchesSearch =
+    item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.summary.toLowerCase().includes(searchQuery.toLowerCase());
+
+  const matchesCategory =
+    !selectedCategory || item.category === selectedCategory;
+
+  return matchesSearch && matchesCategory;
+});
 
   return (
     <div className="min-h-screen bg-[#020617] text-slate-300 font-sans selection:bg-emerald-500/30 overflow-x-hidden">
@@ -315,28 +374,65 @@ export default function SustainableNewsFeed() {
         >
           <AnimatePresence mode="wait">
             <motion.div 
-              key={newsData[currentIndex].id} 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }} 
-              exit={{ opacity: 0 }} 
-              transition={{ duration: 0.8 }} 
-              className="absolute inset-0 cursor-pointer"
-              onClick={() => setExpandedCarousel(!expandedCarousel)}
-            >
-              <div className={`w-full h-full bg-gradient-to-br ${newsData[currentIndex].gradient}`} />
-              <div className={`absolute inset-0 bg-black/50 transition-opacity ${expandedCarousel ? 'bg-black/70' : 'bg-black/40'}`} />
-              
-              <div className={`absolute bottom-0 p-10 space-y-3 transition-all duration-500 ${expandedCarousel ? 'max-w-4xl' : 'max-w-2xl'}`}>
-                <span className="text-xs text-emerald-400 font-bold uppercase tracking-widest bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">{newsData[currentIndex].category}</span>
-                <h2 className={`font-black text-white leading-tight uppercase italic tracking-tighter transition-all ${expandedCarousel ? 'text-6xl' : 'text-4xl'}`}>
-                  {newsData[currentIndex].title}
-                </h2>
-                <p className="text-white/80 text-sm font-medium uppercase tracking-wide">{newsData[currentIndex].summary}</p>
-                {expandedCarousel && (
-                  <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-slate-300 pt-4 border-t border-white/10">{newsData[currentIndex].content}</motion.p>
-                )}
-              </div>
-            </motion.div>
+  key={newsData[currentIndex].id} 
+  initial={{ opacity: 0 }} 
+  animate={{ opacity: 1 }} 
+  exit={{ opacity: 0 }} 
+  transition={{ duration: 0.8 }} 
+  className="absolute inset-0 cursor-pointer"
+  onClick={() => setExpandedCarousel(!expandedCarousel)}
+>
+
+  {/* ✅ AQUI FICA A IMAGEM */}
+  <div
+    className="w-full h-full bg-cover bg-center"
+    style={{
+      backgroundImage: `url(${newsData[currentIndex].image || 'https://via.placeholder.com/1600'})`
+    }}
+  />
+
+  {/* overlay escuro */}
+  <div className={`absolute inset-0 ${expandedCarousel ? 'bg-black/70' : 'bg-black/40'}`} />
+
+  {/* conteúdo */}
+  <div className={`absolute bottom-0 p-10 space-y-3 ${expandedCarousel ? 'max-w-4xl' : 'max-w-2xl'}`}>
+
+  {/* TÍTULO - sempre visível */}
+ <h2 className={`font-black uppercase italic transition-all duration-500 
+  ${expandedCarousel ? 'text-4xl' : 'text-3xl'}
+  bg-gradient-to-r from-white via-emerald-300 to-emerald-500 
+  bg-clip-text text-transparent 
+  drop-shadow-[0_2px_10px_rgba(16,185,129,0.4)]
+`}>
+  {newsData[currentIndex].title}
+</h2>
+
+  {/* CONTEÚDO - só aparece ao clicar */}
+
+
+  {expandedCarousel && (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="mt-4"
+    >
+      <p className="text-xl md:text-2xl font-semibold leading-snug
+  bg-gradient-to-r from-white/90 to-emerald-300
+  bg-clip-text text-transparent
+  transition-all duration-500
+">
+  {newsData[currentIndex].summary}
+</p>
+
+      <p className="text-white/70 text-base bg:text-sm leading-relaxed mt-1">
+        {newsData[currentIndex].content}
+      </p>
+    </motion.div>
+  )}
+
+</div>
+</motion.div>
           </AnimatePresence>
         </div>
       </div>
@@ -405,6 +501,19 @@ export default function SustainableNewsFeed() {
                 <button onClick={() => setShowForm(false)} className="text-white/60 hover:text-white"><X size={24} /></button>
               </div>
               <div className="space-y-4">
+                <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                className="bg-black/30 border-white/10 text-white rounded-xl"
+              />
+
+              {imageFile && (
+                <img
+                  src={URL.createObjectURL(imageFile)}
+                  className="w-full h-40 object-cover rounded-xl border border-white/10"
+                />
+              )}
                 <div className="grid grid-cols-2 gap-4">
                   <Input placeholder="Título" value={newNews.title} onChange={(e) => setNewNews({ ...newNews, title: e.target.value })} className="bg-black/30 border-white/10 text-white rounded-xl" />
                   <Input placeholder="Categoria" value={newNews.category} onChange={(e) => setNewNews({ ...newNews, category: e.target.value })} className="bg-black/30 border-white/10 text-white rounded-xl" />
