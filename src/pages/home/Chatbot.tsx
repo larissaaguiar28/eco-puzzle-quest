@@ -40,9 +40,13 @@ export default function EcoChat() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
 
-  useEffect(() => {
-   if (user) syncEcoChat(user.id);
- }, [user]);
+ useEffect(() => {
+  // Sempre que as mensagens do contexto mudarem e houver um usuário,
+  // nós sincronizamos com o Supabase e o Storage.
+  if (user && messages.length > 0) {
+    handleEcoChat(messages);
+  }
+}, [messages, user]);
 
 
  async function syncEcoChat(user_id: string) {
@@ -63,23 +67,78 @@ export default function EcoChat() {
  }
 
 
- async function handleEcoChat(updatedChat: EcoChat[]) {
-   if (!user) return;
+async function handleEcoChat(updatedChat: any[]) {
+  if (!user) return;
 
+  try {
+    // Tenta o Storage
+    const publicUrl = await uploadChatHistory(user.id, updatedChat);
+    console.log("1. Sucesso no Storage:", publicUrl);
 
-   const { error } = await supabase
-     .from("chatbot")
-     .upsert({
-       user_id: user.id,
-       messages: updatedChat
-     });
+    // Tenta o Banco
+    const { error: dbError } = await supabase
+      .from("chatbot")
+      .upsert({
+        user_id: user.id,
+        message: updatedChat,
+        file_url: publicUrl
+      }, { onConflict: 'user_id' });
 
+    if (dbError) throw new Error("Erro no Banco: " + dbError.message);
+    console.log("2. Sucesso no Banco de Dados!");
 
-   if (error) showToast(error.message);
- }
+  } catch (error: any) {
+    console.error("Erro detalhado:", error);
+    showToast("Falha: " + (error.message || "Erro desconhecido"));
+  }
+}
+useEffect(() => {
+  async function loadHistory() {
+    if (!user) return;
 
+    const { data, error } = await supabase
+      .from("chatbot")
+      .select("message")
+      .eq("user_id", user.id)
+      .single();
 
- // 📎 selecionar arquivo
+    if (error && error.code !== 'PGRST116') { // Ignora erro de "nenhum resultado encontrado"
+      console.error("Erro ao carregar histórico:", error.message);
+      return;
+    }
+
+    // Se houver dados, sincroniza com o seu contexto de chat
+    if (data?.message) {
+      // Aqui você deve usar uma função do seu ChatContext para definir as mensagens iniciais
+      // Exemplo: setMessages(data.message);
+    }
+  }
+
+  loadHistory();
+}, [user]);
+
+  async function uploadChatHistory(userId: string, history: any[]) {
+  const fileName = `chat_${userId}.json`;
+  const fileContent = JSON.stringify(history, null, 2);
+  const file = new Blob([fileContent], { type: "application/json" });
+
+  // 1. Faz o upload (upsert: true para sobrescrever o histórico anterior)
+  const { data, error: uploadError } = await supabase.storage
+    .from("chat-files")
+    .upload(`${userId}/${fileName}`, file, {
+      contentType: "application/json",
+      upsert: true,
+    });
+
+  if (uploadError) throw uploadError;
+
+  // 2. Pega a URL pública
+  const { data: urlData } = supabase.storage
+    .from("chat-files")
+    .getPublicUrl(`${userId}/${fileName}`);
+
+  return urlData.publicUrl;
+}
 
   // Scroll Automático
   useEffect(() => {
