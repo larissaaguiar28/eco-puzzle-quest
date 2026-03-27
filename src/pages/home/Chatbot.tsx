@@ -8,17 +8,78 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useChatContext } from "@/contexts/ChatContext";
+import supabase from "../../../utils/supabase";
+import {useAuth}from "../../contexts/AuthContext";
+import { useToast, Toast } from "../../components/ecomessage";
 
 // --- CONSTANTES DE CONTEÚDO ---
 const suggestions = ["Energia renovável", "Reciclagem", "Mudanças climáticas"];
 const tips = ["💧 Feche a torneira ao escovar os dentes.", "🚲 Use bicicleta.", "🔌 Desconecte aparelhos.", "🛍️ Use ecobags."];
 
+
+
+interface EcoChat {
+ sender: "user" | "bot";
+ message: string;
+ created_at?: string;
+ file_url?: string
+}
+
+
 export default function EcoChat() {
   const { messages, typing, sendMessage, addBotMessage, clearChat } = useChatContext();
   const [input, setInput] = useState("");
+
+  const{user}= useAuth();
+  const[chat,setChat]=useState<EcoChat[]>([]);
+  const { message, showToast } = useToast();
+
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+
+  useEffect(() => {
+   if (user) syncEcoChat(user.id);
+ }, [user]);
+
+
+ async function syncEcoChat(user_id: string) {
+   const { data, error } = await supabase
+     .from("chatbot")
+     .select("*")
+     .eq("user_id", user_id)
+     .single();
+
+
+   if (error) {
+     showToast(error.message);
+     return;
+   }
+
+
+   if (data?.messages) setChat(data.messages);
+ }
+
+
+ async function handleEcoChat(updatedChat: EcoChat[]) {
+   if (!user) return;
+
+
+   const { error } = await supabase
+     .from("chatbot")
+     .upsert({
+       user_id: user.id,
+       messages: updatedChat
+     });
+
+
+   if (error) showToast(error.message);
+ }
+
+
+ // 📎 selecionar arquivo
 
   // Scroll Automático
   useEffect(() => {
@@ -54,6 +115,10 @@ export default function EcoChat() {
   };
 
   return (
+
+    <>
+    <Toast message={message} />
+
     <div className="min-h-screen flex flex-col items-center bg-[#020617] p-4 relative overflow-hidden font-sans">
       
       {/* --- BACKGROUND DECORATION --- */}
@@ -239,5 +304,6 @@ export default function EcoChat() {
         <div className="h-[1px] w-20 bg-gradient-to-l from-transparent to-cyan-500" />
       </footer>
     </div>
+    </>
   );
 }
