@@ -171,7 +171,7 @@ const NewsCard = ({ item }: { item: NewsItem; }) => {
 
   return (
     <Card className="rounded-[2.5rem] overflow-hidden border border-white/5 bg-slate-900/40 backdrop-blur-xl shadow-2xl group transition-all duration-500 hover:border-white/10">
-      <div className={`h-40 bg-gradient-to-br ${item.gradient} relative overflow-hidden`}>
+      <div className={`h-40 bg-gradient-to-br from-emerald-500/80 to-slate-900 relative overflow-hidden`}>
         <div className="absolute inset-0 bg-black/20" />
         <Badge className="absolute top-6 left-6 bg-black/40 text-white backdrop-blur-md border border-white/10 rounded-xl px-4 py-1.5 font-black uppercase italic tracking-tighter">
           {item.category}
@@ -193,7 +193,7 @@ const NewsCard = ({ item }: { item: NewsItem; }) => {
         {expanded && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="mt-4 text-slate-300">
             {item.image && (
-              <img src={item.image} alt={item.title} className="w-full h-60 object-cover rounded-xl mb-4 border border-white/10" />
+              <img src={item.image} alt={item.title} className="w-full h-4 object-cover rounded-xl mb-4 border border-white/10" />
             )}
             <p className="mb-4 text-sm leading-relaxed">{item.content}</p>
           </motion.div>
@@ -324,7 +324,6 @@ export default function SustainableNewsFeed() {
     category: newNews.category,
     location: newNews.location,
     author: user.email?.split('@')[0],
-    gradient: "from-emerald-500 to-green-600",
     date: new Date().toISOString(),
     image: imageUrl // ✅ AQUI ESTÁ O SEGREDO
   });
@@ -366,68 +365,76 @@ const filteredNews = newsfeed.filter((item) => {
         >
           <AnimatePresence mode="wait">
             <motion.div 
-  key={newsData[currentIndex].id} 
-  initial={{ opacity: 0 }} 
-  animate={{ opacity: 1 }} 
-  exit={{ opacity: 0 }} 
-  transition={{ duration: 0.8 }} 
-  className="absolute inset-0 cursor-pointer"
-  onClick={() => setExpandedCarousel(!expandedCarousel)}
->
+              key={newsData[currentIndex].id} 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              transition={{ duration: 0.8 }} 
+              className="absolute inset-0 cursor-pointer"
+              onClick={() => setExpandedCarousel(!expandedCarousel)}
+            >
+              <div
+                className="w-full h-full bg-cover bg-center"
+                style={{
+                  backgroundImage: `url(${newsData[currentIndex].image || 'https://via.placeholder.com/1600'})`
+                }}
+              />
 
-  {/* ✅ AQUI FICA A IMAGEM */}
-  <div
-    className="w-full h-full bg-cover bg-center"
-    style={{
-      backgroundImage: `url(${newsData[currentIndex].image || 'https://via.placeholder.com/1600'})`
-    }}
-  />
+              <div className={`absolute inset-0 ${expandedCarousel ? 'bg-black/70' : 'bg-black/40'}`} />
 
-  {/* overlay escuro */}
-  <div className={`absolute inset-0 ${expandedCarousel ? 'bg-black/70' : 'bg-black/40'}`} />
+              <div className={`absolute bottom-0 p-10 space-y-3 ${expandedCarousel ? 'max-w-4xl' : 'max-w-2xl'}`}>
+                <h2 className={`font-black uppercase italic transition-all duration-500 
+                  ${expandedCarousel ? 'text-4xl' : 'text-3xl'}
+                  bg-gradient-to-r from-white via-emerald-300 to-emerald-500 
+                  bg-clip-text text-transparent 
+                  drop-shadow-[0_2px_10px_rgba(16,185,129,0.4)]
+                `}>
+                  {newsData[currentIndex].title}
+                </h2>
 
-  {/* conteúdo */}
-  <div className={`absolute bottom-0 p-10 space-y-3 ${expandedCarousel ? 'max-w-4xl' : 'max-w-2xl'}`}>
-
-  {/* TÍTULO - sempre visível */}
- <h2 className={`font-black uppercase italic transition-all duration-500 
-  ${expandedCarousel ? 'text-4xl' : 'text-3xl'}
-  bg-gradient-to-r from-white via-emerald-300 to-emerald-500 
-  bg-clip-text text-transparent 
-  drop-shadow-[0_2px_10px_rgba(16,185,129,0.4)]
-`}>
-  {newsData[currentIndex].title}
-</h2>
-
-  {/* CONTEÚDO - só aparece ao clicar */}
-
-
-  {expandedCarousel && (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="mt-4"
-    >
-      <p className="text-xl md:text-2xl font-semibold leading-snug
-  bg-gradient-to-r from-white/90 to-emerald-300
-  bg-clip-text text-transparent
-  transition-all duration-500
-">
-  {newsData[currentIndex].summary}
-</p>
-
-      <p className="text-white/70 text-base bg:text-sm leading-relaxed mt-1">
-        {newsData[currentIndex].content}
-      </p>
-    </motion.div>
-  )}
-
-</div>
-</motion.div>
+                {expandedCarousel && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="mt-4"
+                  >
+                    <p className="text-xl md:text-2xl font-semibold leading-snug bg-gradient-to-r from-white/90 to-emerald-300 bg-clip-text text-transparent transition-all duration-500">
+                      {newsData[currentIndex].summary}
+                    </p>
+                    <p className="text-white/70 text-base bg:text-sm leading-relaxed mt-1">
+                      {newsData[currentIndex].content}
+                    </p>
+                  </motion.div>
+                )}
+              </div>
+            </motion.div>
           </AnimatePresence>
+
+          {/* BOTOES DE NAVEGAÇÃO */}
+          <div className="absolute top-1/2 -translate-y-1/2 w-full flex justify-between px-6 pointer-events-none">
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                setCurrentIndex((prev) => (prev === 0 ? newsData.length - 1 : prev - 1));
+              }}
+              className="p-3 rounded-full bg-black/20 backdrop-blur-md border border-white/10 text-white/50 hover:text-emerald-400 hover:bg-black/40 transition-all pointer-events-auto group-hover:opacity-100 opacity-0"
+            >
+              <ChevronLeft size={32} />
+            </button>
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                setCurrentIndex((prev) => (prev + 1) % newsData.length);
+              }}
+              className="p-3 rounded-full bg-black/20 backdrop-blur-md border border-white/10 text-white/50 hover:text-emerald-400 hover:bg-black/40 transition-all pointer-events-auto group-hover:opacity-100 opacity-0"
+            >
+              <ChevronRight size={32} />
+            </button>
+          </div>
         </div>
       </div>
+        
 
       <header className="sticky top-0 z-40 backdrop-blur-2xl bg-[#020617]/80 border-b border-white/5 mt-6">
         <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
