@@ -240,21 +240,27 @@ const NewsCard = ({ item }: { item: NewsItem; }) => {
 
   }
 
-
-  async function loadComments() {
-
+async function loadComments() {
+    // Fazemos o join com a tabela profiles buscando o campo 'name'
     const { data, error } = await supabase
-
       .from("newscomments")
-
-      .select("*")
-
+      .select(`
+        *,
+        profiles ( name )
+      `)
       .eq("news_id", item.id)
-
       .order("created_at", { ascending: false });
 
-    if (!error && data) setComments(data);
-
+    if (!error && data) {
+      // Mapeamos o resultado para criar a propriedade displayAuthor que o seu JSX usa
+      const formattedComments = data.map((c: any) => ({
+        ...c,
+        displayAuthor: c.profiles?.name || "Usuário EcoVida" // Fallback caso o usuário não tenha nome cadastrado
+      }));
+      setComments(formattedComments);
+    } else if (error) {
+      console.error("Erro ao carregar comentários:", error);
+    }
   }
 
 
