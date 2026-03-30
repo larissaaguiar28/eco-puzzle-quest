@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useRef } from "react";
+import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from "react"; // Adicionado useEffect aqui
 import { toast } from "sonner";
 
 export type Sender = "user" | "bot";
@@ -22,6 +22,7 @@ interface ChatContextType {
   sendMessage: (text: string, file?: ChatMessage["file"]) => void;
   addBotMessage: (text: string) => void;
   clearChat: () => void;
+  setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
 }
 
 const ChatContext = createContext<ChatContextType | null>(null);
@@ -33,11 +34,22 @@ export function useChatContext() {
 }
 
 export function ChatProvider({ children }: { children: React.ReactNode }) {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    { id: crypto.randomUUID(), sender: "bot", text: "Olá! 🌿 Eu sou o EcoBot. Vamos conversar sobre sustentabilidade?", time: getTime() },
-  ]);
+  // 1. Iniciamos vazio para não conflitar com o carregamento do banco
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [typing, setTyping] = useState(false);
-  const abortRef = useRef<AbortController | null>(null);
+  const abortRef = useRef<AbortController | null>(null); // Garantido que o ref existe
+
+  // 2. Só coloca a saudação se o chat continuar vazio após carregar
+  useEffect(() => {
+    if (messages.length === 0) {
+      setMessages([{ 
+        id: crypto.randomUUID(), 
+        sender: "bot", 
+        text: "Olá! 🌿 Eu sou o EcoBot. Vamos conversar sobre sustentabilidade?", 
+        time: getTime() 
+      }]);
+    }
+  }, [messages.length]);
 
   const addBotMessage = useCallback((text: string) => {
     setMessages((prev) => [...prev, { id: crypto.randomUUID(), sender: "bot", text, time: getTime() }]);
@@ -50,7 +62,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     setMessages((prev) => [...prev, userMsg]);
     setTyping(true);
 
-    // Build history for API (exclude files, map sender to role)
     const history = messages
       .filter((m) => m.text.trim())
       .map((m) => ({ role: m.sender === "user" ? "user" as const : "assistant" as const, content: m.text }));
@@ -82,7 +93,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       const decoder = new TextDecoder();
       let buffer = "";
 
-      // Add empty bot message
       setMessages((prev) => [...prev, { id: botId, sender: "bot", text: "", time: getTime() }]);
 
       while (true) {
@@ -117,37 +127,14 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           }
         }
       }
-
-      // Final flush
-      if (buffer.trim()) {
-        for (let raw of buffer.split("\n")) {
-          if (!raw) continue;
-          if (raw.endsWith("\r")) raw = raw.slice(0, -1);
-          if (!raw.startsWith("data: ")) continue;
-          const jsonStr = raw.slice(6).trim();
-          if (jsonStr === "[DONE]") continue;
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-            if (content) {
-              botText += content;
-              const captured = botText;
-              setMessages((prev) =>
-                prev.map((m) => (m.id === botId ? { ...m, text: captured } : m))
-              );
-            }
-          } catch { /* ignore */ }
-        }
-      }
     } catch (e: any) {
       if (e.name === "AbortError") return;
       console.error("EcoBot error:", e);
       toast.error(e.message || "Erro ao se comunicar com o EcoBot");
-      // If no text was streamed, add error message
       if (!botText) {
         setMessages((prev) =>
           prev.map((m) =>
-            m.id === botId ? { ...m, text: "😔 Desculpe, não consegui responder. Tente novamente." } : m
+            m.id === botId ? { ...m, text: "😔 Desculpe, não consegui responder." } : m
           )
         );
       }
@@ -159,12 +146,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
   const clearChat = useCallback(() => {
     abortRef.current?.abort();
-    setMessages([{ id: crypto.randomUUID(), sender: "bot", text: "🌿 Conversa reiniciada! Vamos falar sobre sustentabilidade.", time: getTime() }]);
+    setMessages([{ id: crypto.randomUUID(), sender: "bot", text: "🌿 Conversa reiniciada!", time: getTime() }]);
     setTyping(false);
   }, []);
 
   return (
-    <ChatContext.Provider value={{ messages, typing, sendMessage, addBotMessage, clearChat }}>
+    <ChatContext.Provider value={{ messages, typing, sendMessage, addBotMessage, clearChat, setMessages }}>
       {children}
     </ChatContext.Provider>
   );
