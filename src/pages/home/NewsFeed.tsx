@@ -77,13 +77,13 @@ const newsData: NewsItem[] = [
     id: "17002176-f5e8-4c29-86ae-784ca93f72af",
     title: "Brasil bate recorde histórico em geração de energia solar e eólica",
     summary: "O país alcançou a marca de 90% da matriz elétrica renovável neste mês, impulsionando a economia verde.",
-    content: "Com novos parques eólicos no Nordeste e fazendas solares no Sudeste, o Brasil não apenas reduziu suas emissões de carbono em 15% no último trimestre, mas também gerou mais de 50 mil novos empregos diretos no setor.",
+    content: "O Brasil atingiu um marco histórico ao registrar que 90% de sua matriz elétrica é proveniente de fontes renováveis. O avanço é impulsionado principalmente pela expansão acelerada de novos parques eólicos na região Nordeste e pela proliferação de grandes fazendas solares no Sudeste, consolidando o país como líder global em transição energética. Dados recentes indicam que essa transição permitiu uma redução de 15% nas emissões de carbono apenas no último trimestre, devido à menor dependência de usinas termelétricas fósseis. Além do benefício ambiental, a expansão do setor injetou dinamismo na economia nacional, resultando na criação de mais de 50 mil novos empregos diretos em áreas de engenharia, instalação e manutenção tecnológica. Especialistas destacam que a complementaridade entre o potencial eólico do Nordeste e o solar do Sudeste tem garantido maior segurança e estabilidade ao sistema elétrico brasileiro. O uso de tecnologias de monitoramento e a atração de investimentos internacionais foram fundamentais para acelerar a implementação dessas infraestruturas de energia limpa. A expectativa é que, com a continuidade dos leilões de energia e o barateamento das tecnologias fotovoltaicas e eólicas, o Brasil fortaleça ainda mais sua posição na economia de baixo carbono. O fortalecimento dessa matriz sustentável é visto como essencial para o cumprimento das metas climáticas globais e para a promoção de um desenvolvimento econômico que respeite os limites ambientais do planeta.",
     category: "Energia Solar",
     author: "EcoS",
     date: new Date().toISOString(),
     location: "Nordeste, BR",
     gradient: "from-amber-500 to-orange-600",
-    image: "https://images.unsplash.com/photo-1509395176047-4a66953fd231"
+    image: "https://ecoa.org.br/wp-content/uploads/2017/05/usinas-eolicas-de-osorio-s.jpg"
 },
   {
 
