@@ -19,36 +19,86 @@ import EnergiaVerde from "@/components/games/EnergiaVerde";
 import GuardiaoFloresta from "@/components/games/GuardiaoFloresta";
 import MemoriaSustentavel from "@/components/games/MemoriaSustentavel";
 
-// --- DADOS DE CONFIGURAÇÃO ---
+// --- DADOS DE CONFIGURAÇÃO COM IMAGENS ATUALIZADAS ---
 const GAMES = [
-  { id: 1, title: "Recicla Quest", description: "Domine a economia circular e transforme resíduos em recursos.", icon: Recycle, color: "from-blue-600 to-indigo-900", image: "/images/ecoquist.png" },
+  { id: 1, title: "Recicla Quest", description: "Domine a economia circular e transforme resíduos em recursos.", icon: Recycle, color: "from-blue-600 to-indigo-900", image: "/images/ecoquest.png" },
   { id: 2, title: "Oceano Limpo", description: "Recupere recifes de coral e remova microplásticos dos mares.", icon: Droplets, color: "from-cyan-400 to-blue-600", image: "/images/Uceano.png" },
-  { id: 3, title: "Energia Verde", description: "Projete a rede elétrica do futuro com fontes 100% renováveis.", icon: Wind, color: "from-emerald-400 to-cyan-700", image: "/images/Inergia.png" },
+  { id: 3, title: "Energia Verde", description: "Projete a rede elétrica do futuro com fontes 100% renováveis.", icon: Wind, color: "from-emerald-400 to-cyan-700", image: "/images/energia.png" },
   { id: 4, title: "Guardião da Floresta", description: "Proteja a biodiversidade e restaure biomas degradados.", icon: TreePine, color: "from-cyan-500 to-emerald-600", image: "/images/guardiao.png" },
   { id: 5, title: "Memória Sustentável", description: "Teste sua memória com conceitos ecológicos e sustentáveis.", icon: Brain, color: "from-indigo-500 to-purple-700", image: "/images/oie.png" },
 ];
 
-const INITIAL_BADGES = [
-  { icon: TreePine, name: "Guardião", description: "10 missões de reflorestamento" },
-  { icon: Recycle, name: "Mestre", description: "Reciclou 500 itens" },
-  { icon: Droplets, name: "Protetor", description: "Limpou 3 oceanos" },
-  { icon: Leaf, name: "Eco Iniciante", description: "Completou o tutorial" },
-  { icon: Sun, name: "Solar Champion", description: "100 painéis solares" },
-  { icon: Shield, name: "Defensor", description: "Bloqueou 50 ameaças" },
-  { icon: Zap, name: "Energia Viva", description: "Gerou 1GW limpo" },
-  { icon: Award, name: "Veterano", description: "30 dias seguidos" }
+interface BadgeType {
+  imageUrl: string;
+  name: string;
+  description: string;
+}
+
+const INITIAL_BADGES: BadgeType[] = [
+  { 
+    imageUrl: "/images/badges/guardiao.png", 
+    name: "Guardião", 
+    description: "10 missões de reflorestamento" 
+  },
+  { 
+    imageUrl: "/images/badges/mestre.png", 
+    name: "Mestre", 
+    description: "Reciclou 500 itens" 
+  },
+  { 
+    imageUrl: "/images/badges/protetor.png", 
+    name: "Protetor", 
+    description: "Limpou 3 oceanos" 
+  },
+  { 
+    imageUrl: "/images/badges/eco-iniciante.png", 
+    name: "Eco Iniciante", 
+    description: "Completou o tutorial" 
+  },
+  { 
+    imageUrl: "/images/solar.png", 
+    name: "Solar Champion", 
+    description: "100 painéis solares" 
+  },
+  { 
+    imageUrl: "/images/badges/defensor.png", 
+    name: "Defensor", 
+    description: "Bloqueou 50 ameaças" 
+  },
+  { 
+    imageUrl: "/images/badges/energia-viva.png", 
+    name: "Energia Viva", 
+    description: "Gerou 1GW limpo" 
+  },
+  { 
+    imageUrl: "/images/badges/veterano.png", 
+    name: "Veterano", 
+    description: "30 dias seguidos" 
+  }
+];
+
+const ECO_RANKS = [
+  { maxLvl: 5, title: "Semente de Broto", icon: Sprout },
+  { maxLvl: 10, title: "Broto Inicial", icon: Sprout },
+  { maxLvl: 15, title: "Planta Jovem", icon: Leaf },
+  { maxLvl: 20, title: "Planta Forte", icon: Leaf },
+  { maxLvl: 25, title: "Árvore em Crescimento", icon: TreePine },
+  { maxLvl: 30, title: "Árvore Saudável", icon: TreePine },
+  { maxLvl: 35, title: "Árvore Frondosa", icon: TreePine },
+  { maxLvl: 40, title: "Guardião Verde", icon: Shield },
+  { maxLvl: 45, title: "Protetor da Natureza", icon: Shield },
+  { maxLvl: Infinity, title: "Defensor do Planeta 🌍", icon: Trophy },
 ];
 
 interface GameData {
   totalXp: number;
   matches: number;
   streakDays: number;
-  badges?: any[]; 
+  badges?: any[];
   user_id?: string;
-  last_played_at?: string; 
+  last_played_at?: string;
 }
 
-// --- COMPONENTE: CONTADOR DE XP INTERATIVO (HEADER) ---
 const XPCounter = ({ value }: { value: number }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isChanging, setIsChanging] = useState(false);
@@ -151,7 +201,6 @@ const XPCounter = ({ value }: { value: number }) => {
   );
 };
 
-// --- COMPONENTE DE PROGRESSO ---
 const XPProgress = ({ xp, xpNext, level, streak, matches }: { xp: number; xpNext: number; level: number; streak: number; matches: number }) => {
   const progress = (xp / xpNext) * 100;
   const [showLevelUp, setShowLevelUp] = useState(false);
@@ -318,16 +367,13 @@ const XPProgress = ({ xp, xpNext, level, streak, matches }: { xp: number; xpNext
   );
 };
 
-// --- COMPONENTE PRINCIPAL ---
 export default function GamesPage() {
   const [index, setIndex] = useState(0);
   const [badges, setBadges] = useState(INITIAL_BADGES);
   const [totalXp, setTotalXp] = useState(0);
-  const [matches, setMatches] = useState(12);
+  const [matches, setMatches] = useState(0);
   const [streakDays, setStreakDays] = useState<number>(0);
   const [activeMission, setActiveMission] = useState<number | null>(null);
-  
-  const [lastPlayedAt, setLastPlayedAt] = useState<string | null>(null);
 
   const featured = GAMES[index];
   const REWARD_XP = 120;
@@ -339,119 +385,34 @@ export default function GamesPage() {
   useEffect(() => {
     const loadGameData = async () => {
       if (!user?.id) return;
-
       const { data, error } = await supabase
         .from("games")
-        .select("totalXp, matches, streakDays, last_played_at") 
+        .select("totalXp, matches, streakDays")
         .eq("user_id", user.id)
         .single<GameData>();
-
-      if (error) {
-        alert(error.message)
-        return;
-      }
 
       if (data) {
         setTotalXp(Number(data.totalXp) || 0);
         setMatches(Number(data.matches) || 0);
         setStreakDays(Number(data.streakDays) || 0);
-        setLastPlayedAt(data.last_played_at || null); 
       }
     };
-
     loadGameData();
   }, [user?.id]);
 
-  const handleSave = async () => {
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    const data = {
-      totalXp,
-      level: currentLevel,
-      matches,
-      streakDays,
-      badges,
-      user_id: user?.id
-    };
-
-    const { error } = await supabase
-      .from("games")
-      .upsert(data, { onConflict: "user_id" });
-
-    if (error) {
-      alert(error.message);
-      return;
-    }
-  };
-
-  const handleStartMission = () => {
-    setActiveMission(index);
-  };
-
-  const handleMissionXP = (amount: number) => {
-    setTotalXp(prev => prev + amount);
-  };
-
-  const updateStreakLogic = (lastDateStr: string | null, currentStreak: number) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); 
-
-    if (!lastDateStr) return 1; 
-
-    const lastDate = new Date(lastDateStr);
-    lastDate.setHours(0, 0, 0, 0);
-
-    const diffInMs = today.getTime() - lastDate.getTime();
-    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
-
-    if (diffInDays === 0) {
-      return currentStreak; 
-    } else if (diffInDays === 1) {
-      return currentStreak + 1; 
-    } else {
-      return 1; 
-    }
-  };
+  const handleStartMission = () => setActiveMission(index);
+  const handleMissionXP = (amount: number) => setTotalXp(prev => prev + amount);
 
   const handleExitMission = async () => {
-    setMatches(prev => prev + 1);
+    const newMatches = matches + 1;
+    setMatches(newMatches);
     setActiveMission(null);
-
-    const finalXp = totalXp;
-    const data = {
-      totalXp: finalXp,
-      matches: matches + 1,
-      streakDays,
-      user_id: user?.id
-    };
-
-    const calculateStreak = (lastPlayedStr: string | null, currentStreak: number) => {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      if (!lastPlayedStr) return 1; 
-
-      const lastPlayed = new Date(lastPlayedStr);
-      lastPlayed.setHours(0, 0, 0, 0);
-
-      const diffInMs = today.getTime() - lastPlayed.getTime();
-      const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
-
-      if (diffInDays === 0) {
-        return currentStreak; 
-      } else if (diffInDays === 1) {
-        return currentStreak + 1; 
-      } else {
-        return 1; 
-      }
-    };
-    
+    const data = { totalXp, matches: newMatches, streakDays, user_id: user?.id };
     await supabase.from("games").upsert(data, { onConflict: "user_id" });
   };
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      handleNextBadge();
-    }, 4000);
+    const interval = setInterval(() => handleNextBadge(), 4000);
     return () => clearInterval(interval);
   }, [badges]);
 
@@ -473,7 +434,6 @@ export default function GamesPage() {
     });
   };
 
-  // Render active mission (Envolvido em Fragment para o compilador TS não chiar)
   if (activeMission !== null) {
     const MissionComponents: Record<number, React.ReactNode> = {
       0: <ReciclaQuest onExit={handleExitMission} onXP={handleMissionXP} />,
@@ -572,13 +532,7 @@ export default function GamesPage() {
         </section>
 
         <section className="grid lg:grid-cols-2 gap-8 items-stretch">
-          <XPProgress
-            xp={xpInCurrentLevel}
-            xpNext={xpPerLevel}
-            level={currentLevel}
-            matches={matches}
-            streak={streakDays}
-          />
+          <XPProgress xp={xpInCurrentLevel} xpNext={xpPerLevel} level={currentLevel} matches={matches} streak={streakDays} />
 
           <Card className="bg-slate-950 border border-white/5 rounded-[3rem] p-8 shadow-2xl relative flex flex-col justify-center overflow-hidden min-h-[250px] transition-all duration-300 hover:scale-[1.02] hover:shadow-cyan-500/10">
             <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 blur-[60px] rounded-full" />
@@ -587,34 +541,36 @@ export default function GamesPage() {
                 Eco-Conquistas <Trophy className="text-cyan-400 animate-pulse" size={20} />
               </h3>
               <div className="flex gap-2">
-                <button onClick={handlePrevBadge} className="p-2 rounded-xl bg-slate-900 hover:bg-cyan-500 text-white transition-all border border-white/5">
-                  <ChevronLeft size={20} />
-                </button>
-                <button onClick={handleNextBadge} className="p-2 rounded-xl bg-slate-900 hover:bg-cyan-500 text-white transition-all border border-white/5">
-                  <ChevronRight size={20} />
-                </button>
+                <button onClick={handlePrevBadge} className="p-2 rounded-xl bg-slate-900 hover:bg-cyan-500 text-white transition-all border border-white/5"><ChevronLeft size={20} /></button>
+                <button onClick={handleNextBadge} className="p-2 rounded-xl bg-slate-900 hover:bg-cyan-500 text-white transition-all border border-white/5"><ChevronRight size={20} /></button>
               </div>
             </div>
 
-            <div className="relative h-24 overflow-hidden">
+            <div className="relative h-32 flex items-center overflow-visible">
               <TooltipProvider delayDuration={0}>
-                <div className="flex gap-5 items-center justify-center">
+                <div className="flex gap-5 items-center justify-center w-full">
                   <AnimatePresence mode="popLayout">
                     {badges.slice(0, 4).map((badge) => (
                       <motion.div
                         layout
+                        key={badge.name}
                         initial={{ opacity: 0, x: 50, scale: 0.8 }}
                         animate={{ opacity: 1, x: 0, scale: 1 }}
                         exit={{ opacity: 0, x: -50, scale: 0.8 }}
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                        whileHover={{ scale: 1.1, rotate: 2, borderColor: "#22d3ee" }}
-                        key={badge.name}
-                        className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-[2rem] bg-slate-900 border border-white/5 shadow-xl flex items-center justify-center cursor-pointer group"
+                        whileHover={{ scale: 1.1, rotate: 2 }}
+                        className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-[2rem] bg-slate-900 border border-white/5 shadow-xl flex items-center justify-center cursor-pointer group relative overflow-hidden"
                       >
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <div className="w-full h-full flex items-center justify-center rounded-[2rem]">
-                              <badge.icon size={36} className="text-cyan-400 group-hover:text-white group-hover:drop-shadow-[0_0_10px_rgba(34,211,238,0.8)] transition-all" />
+                            <div className="w-full h-full flex items-center justify-center p-3">
+                              <img
+                                src={badge.imageUrl}
+                                alt={badge.name}
+                                className="w-full h-full object-contain transition-all duration-300 group-hover:scale-110 drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]"
+                                loading="eager"
+                                onError={(e) => { (e.currentTarget as HTMLImageElement).src = "https://placehold.co/100x100/0f172a/22d3ee?text=Eco"; }}
+                              />
                             </div>
                           </TooltipTrigger>
                           <TooltipContent side="top" className="bg-cyan-500 text-slate-950 font-black p-3 rounded-xl border-none shadow-[0_0_20px_rgba(34,211,238,0.5)]">
@@ -625,7 +581,7 @@ export default function GamesPage() {
                       </motion.div>
                     ))}
                   </AnimatePresence>
-                  <div className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-[2rem] border-2 border-dashed border-white/10 flex items-center justify-center bg-white/5">
+                  <div className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-[2rem] border-2 border-dashed border-white/10 flex items-center justify-center bg-white/5 opacity-50">
                     <Star size={24} className="text-white/10 animate-pulse" />
                   </div>
                 </div>
