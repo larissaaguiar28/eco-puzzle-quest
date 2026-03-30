@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, color } from "framer-motion";
 import {
   Home, Newspaper, Bot, Gamepad2, UserCircle, Leaf,
-  ChevronLeft, ChevronRight, LogOut, ShieldCheck
+  ChevronLeft, ChevronRight, LogOut, ShieldCheck,
+  FileText
 } from "lucide-react";
 
 // Definição interna do 'cn' caso você não tenha o arquivo utils
@@ -14,6 +15,7 @@ const navItems = [
   { icon: Newspaper, label: "Feed de Notícias", path: "/home/feed", color: "from-blue-500 to-indigo-600" },
   { icon: Bot, label: "Chatbot", path: "/home/chatbot", color: "from-purple-500 to-fuchsia-600" },
   { icon: Gamepad2, label: "Jogos", path: "/home/games", color: "from-orange-500 to-red-600" },
+  { icon: FileText, label: "Denúncias", path: "/home/report", color: "from-red-500 to-blue-600"},
   { icon: UserCircle, label: "Meu Perfil", path: "/home/profile", color: "from-cyan-500 to-blue-600" },
 ];
 
