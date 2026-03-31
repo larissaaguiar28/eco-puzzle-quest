@@ -36,17 +36,22 @@ export default function OceanoLimpoSideScroller({ onExit, onXP }: Props) {
 
   const [objects, setObjects] = useState<OceanObject[]>([]);
   const [particles, setParticles] = useState<Particle[]>([]);
-  const [bubbles, setBubbles] = useState<{id: number, x: number, size: number}[]>([]);
+  const [bubbles, setBubbles] = useState<{ id: number, x: number, size: number }[]>([]);
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
   const [gameOver, setGameOver] = useState(false);
   const [timer, setTimer] = useState(60);
   const [lastAction, setLastAction] = useState<"hit" | "miss" | null>(null);
   const [shake, setShake] = useState(false);
-  
+
+  const objectsRef = useRef<OceanObject[]>([]);
+  useEffect(() => {
+    objectsRef.current = objects;
+  }, [objects]);
+
   const nextId = useRef(0);
   const keysPressed = useRef<{ [key: string]: boolean }>({});
-  
+
   const timerRef = useRef(timer);
   useEffect(() => { timerRef.current = timer; }, [timer]);
 
@@ -64,10 +69,10 @@ export default function OceanoLimpoSideScroller({ onExit, onXP }: Props) {
 
     const handleKeyDown = (e: KeyboardEvent) => { keysPressed.current[e.key] = true; };
     const handleKeyUp = (e: KeyboardEvent) => { keysPressed.current[e.key] = false; };
-    
+
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
-    
+
     let animationFrameId: number;
 
     const gameLoop = () => {
@@ -83,9 +88,9 @@ export default function OceanoLimpoSideScroller({ onExit, onXP }: Props) {
         currentY = Math.min(90, currentY + speed);
         targetRot = 15;
       }
-      
+
       playerY.set(currentY);
-      
+
       // Interpolação suave de rotação (suaviza o "embicar" do barco)
       const currentRot = playerRotation.get();
       playerRotation.set(currentRot + (targetRot - currentRot) * 0.15);
@@ -95,10 +100,10 @@ export default function OceanoLimpoSideScroller({ onExit, onXP }: Props) {
         const next: OceanObject[] = [];
         for (const obj of prev) {
           const newX = obj.x - obj.speed;
-          const newWobble = obj.wobble + 0.05; 
-          
+          const newWobble = obj.wobble + 0.05;
+
           const boatX = 15;
-          
+
           // Lendo a posição exata do barco direto do MotionValue
           if (newX <= boatX + 6 && newX >= boatX - 6 && Math.abs(obj.y - currentY) < 10) {
             if (obj.type === "trash") {
@@ -138,7 +143,7 @@ export default function OceanoLimpoSideScroller({ onExit, onXP }: Props) {
   // Spawn de Objetos 
   useEffect(() => {
     if (gameOver) return;
-    const spawnRateMs = 2000; 
+    const spawnRateMs = 2000;
 
     const interval = setInterval(() => {
       const isTrash = Math.random() > 0.4;
@@ -151,14 +156,14 @@ export default function OceanoLimpoSideScroller({ onExit, onXP }: Props) {
           id: nextId.current++,
           x: 110,
           y: 10 + Math.random() * 80,
-          type: (isTrash ? "trash" : "animal") as "trash" | "animal", 
+          type: (isTrash ? "trash" : "animal") as "trash" | "animal",
           emoji: pool[Math.floor(Math.random() * pool.length)],
           speed: (0.3 + Math.random() * 0.2) * speedMultiplier,
           wobble: Math.random() * Math.PI * 2,
         }
       ].slice(-25));
-    }, spawnRateMs); 
-    
+    }, spawnRateMs);
+
     return () => clearInterval(interval);
   }, [gameOver]);
 
@@ -167,7 +172,7 @@ export default function OceanoLimpoSideScroller({ onExit, onXP }: Props) {
     if (gameOver) return;
     const interval = setInterval(() => {
       setBubbles(prev => [
-        ...prev, 
+        ...prev,
         { id: Math.random(), x: Math.random() * 100, size: Math.random() * 10 + 5 }
       ].slice(-15));
     }, 400);
@@ -185,13 +190,13 @@ export default function OceanoLimpoSideScroller({ onExit, onXP }: Props) {
 
   return (
     <div className="min-h-screen bg-[#020617] text-white p-4 font-sans select-none overflow-hidden flex flex-col items-center">
-      
+
       {/* HUD Superior */}
       <div className="w-full max-w-4xl flex justify-between items-center mb-4 bg-slate-900/60 backdrop-blur-xl px-8 py-4 rounded-full border border-cyan-900/50 shadow-[0_0_30px_rgba(6,182,212,0.1)] z-50">
         <button onClick={onExit} className="flex items-center gap-2 text-cyan-500 hover:text-cyan-300 uppercase text-sm font-black tracking-widest transition-all">
           <ArrowLeft className="h-5 w-5" /> Abandonar
         </button>
-        
+
         <div className="flex items-center gap-12">
           <div className="flex items-center gap-3">
             <Timer className={`h-6 w-6 ${timer <= 10 ? "text-red-500 animate-pulse" : "text-cyan-400"}`} />
@@ -199,14 +204,14 @@ export default function OceanoLimpoSideScroller({ onExit, onXP }: Props) {
               {timer}s
             </span>
           </div>
-          
+
           <div className="flex items-center gap-3 bg-slate-950/50 px-6 py-2 rounded-full border border-slate-800">
             <Trophy className="h-5 w-5 text-yellow-500" />
             <motion.span key={score} animate={{ scale: [1, 1.5, 1] }} className="font-mono text-2xl font-black text-yellow-400">
               {score.toString().padStart(3, '0')}
             </motion.span>
           </div>
-          
+
           <div className="flex gap-2">
             {[...Array(3)].map((_, i) => (
               <motion.div key={i} animate={i >= lives ? { scale: 0, opacity: 0 } : { scale: 1 }}>
@@ -217,19 +222,19 @@ export default function OceanoLimpoSideScroller({ onExit, onXP }: Props) {
         </div>
       </div>
 
-      <motion.div 
+      <motion.div
         animate={shake ? { x: [-15, 15, -15, 15, 0], transition: { duration: 0.3 } } : {}}
         className="w-full max-w-5xl relative"
       >
         <div className="relative rounded-[2rem] border-4 border-slate-800/80 h-[550px] overflow-hidden shadow-[0_0_100px_rgba(14,165,233,0.15)] bg-[#041d33]">
-          
+
           {/* Fundos Parallax */}
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,_#0e7490_0%,_#020617_100%)] opacity-80" />
-          <motion.div 
+          <motion.div
             animate={{ x: [0, -1000] }} transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
             className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, #38bdf8 2px, transparent 2px)', backgroundSize: '40px 40px' }}
           />
-          <motion.div 
+          <motion.div
             animate={{ x: [0, -1000] }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
             className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle, #7dd3fc 3px, transparent 3px)', backgroundSize: '100px 100px', backgroundPosition: '20px 20px' }}
           />
@@ -265,10 +270,10 @@ export default function OceanoLimpoSideScroller({ onExit, onXP }: Props) {
               <motion.div
                 key={obj.id}
                 className="absolute text-5xl pointer-events-none z-20 flex items-center justify-center"
-                style={{ 
-                  left: `${obj.x}%`, 
-                  top: `calc(${obj.y}% + ${Math.sin(obj.wobble) * 3}%)`, 
-                  transform: "translate(-50%, -50%)" 
+                style={{
+                  left: `${obj.x}%`,
+                  top: `calc(${obj.y}% + ${Math.sin(obj.wobble) * 3}%)`,
+                  transform: "translate(-50%, -50%)"
                 }}
                 animate={{ rotate: obj.type === 'trash' ? [0, 360] : Math.sin(obj.wobble) * 15 }}
                 transition={{ rotate: { duration: obj.type === 'trash' ? 5 : 0, repeat: Infinity, ease: "linear" } }}
@@ -285,7 +290,7 @@ export default function OceanoLimpoSideScroller({ onExit, onXP }: Props) {
           {!gameOver && (
             <motion.div
               className="absolute z-40"
-              style={{ 
+              style={{
                 left: "15%",
                 top: playerTop, // Usa a variável nativa sem forçar React render
                 rotate: playerRotation,
@@ -300,21 +305,21 @@ export default function OceanoLimpoSideScroller({ onExit, onXP }: Props) {
                 <span className="text-7xl block drop-shadow-[0_15px_15px_rgba(0,0,0,0.8)] filter transition-all">
                   🛥️
                 </span>
-                
+
                 <div className="absolute -left-8 top-[60%] -translate-y-1/2 flex gap-1">
-                   {[...Array(6)].map((_, i) => (
-                     <motion.div 
-                        key={i}
-                        animate={{ opacity: [0, 0.6, 0], scale: [0.2, 1.5, 0.5], x: [0, -30 - (i * 15)], y: [0, (Math.random() - 0.5) * 15] }}
-                        transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.08 }}
-                        className="w-3 h-3 bg-cyan-100 rounded-full blur-[2px]"
-                     />
-                   ))}
+                  {[...Array(6)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      animate={{ opacity: [0, 0.6, 0], scale: [0.2, 1.5, 0.5], x: [0, -30 - (i * 15)], y: [0, (Math.random() - 0.5) * 15] }}
+                      transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.08 }}
+                      className="w-3 h-3 bg-cyan-100 rounded-full blur-[2px]"
+                    />
+                  ))}
                 </div>
 
                 <AnimatePresence>
                   {lastAction && (
-                    <motion.div 
+                    <motion.div
                       initial={{ y: -20, opacity: 0, scale: 0 }}
                       animate={{ y: -60, opacity: 1, scale: 1.5 }}
                       exit={{ opacity: 0, y: -80 }}
@@ -332,50 +337,50 @@ export default function OceanoLimpoSideScroller({ onExit, onXP }: Props) {
           {/* Tela de Game Over */}
           <AnimatePresence>
             {gameOver && (
-               <motion.div 
+              <motion.div
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                 className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm"
-               >
-                 <motion.div 
+              >
+                <motion.div
                   initial={{ scale: 0.8, y: 50 }} animate={{ scale: 1, y: 0 }}
                   className="bg-slate-900/90 border-2 border-cyan-500/50 rounded-3xl p-10 text-center shadow-[0_0_80px_rgba(6,182,212,0.2)] max-w-md w-full"
-                 >
-                   <div className="bg-cyan-950/50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 border border-cyan-500/30">
-                     <Sparkles className="h-12 w-12 text-cyan-400" />
-                   </div>
-                   <h3 className="text-3xl font-black mb-1 text-white uppercase tracking-wider">
-                     {lives <= 0 ? "Missão Falhou" : "Tempo Esgotado!"}
-                   </h3>
-                   <p className="text-slate-400 text-sm mb-8">
-                     {lives <= 0 ? "Você colidiu com muitos animais marinhos." : "O turno de limpeza terminou."}
-                   </p>
-                   
-                   <div className="grid grid-cols-2 gap-4 mb-8">
-                      <div className="bg-slate-950/80 p-4 rounded-2xl border border-slate-800">
-                        <p className="text-[10px] font-black text-slate-500 uppercase mb-1">Lixo Coletado</p>
-                        <p className="text-4xl font-black text-cyan-400">{score}</p>
-                      </div>
-                      <div className="bg-slate-950/80 p-4 rounded-2xl border border-slate-800">
-                        <p className="text-[10px] font-black text-slate-500 uppercase mb-1">XP Ganho</p>
-                        <p className="text-4xl font-black text-green-400">+{score * 10}</p>
-                      </div>
-                   </div>
-                   
-                   <div className="flex gap-3">
-                     <Button variant="outline" onClick={onExit} className="flex-1 border-slate-700 hover:bg-slate-800 text-white">
-                        Sair
-                     </Button>
-                     <Button onClick={() => window.location.reload()} className="flex-1 bg-cyan-600 hover:bg-cyan-500 text-white font-bold">
-                        Jogar Novamente
-                     </Button>
-                   </div>
-                 </motion.div>
-               </motion.div>
+                >
+                  <div className="bg-cyan-950/50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 border border-cyan-500/30">
+                    <Sparkles className="h-12 w-12 text-cyan-400" />
+                  </div>
+                  <h3 className="text-3xl font-black mb-1 text-white uppercase tracking-wider">
+                    {lives <= 0 ? "Missão Falhou" : "Tempo Esgotado!"}
+                  </h3>
+                  <p className="text-slate-400 text-sm mb-8">
+                    {lives <= 0 ? "Você colidiu com muitos animais marinhos." : "O turno de limpeza terminou."}
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-4 mb-8">
+                    <div className="bg-slate-950/80 p-4 rounded-2xl border border-slate-800">
+                      <p className="text-[10px] font-black text-slate-500 uppercase mb-1">Lixo Coletado</p>
+                      <p className="text-4xl font-black text-cyan-400">{score}</p>
+                    </div>
+                    <div className="bg-slate-950/80 p-4 rounded-2xl border border-slate-800">
+                      <p className="text-[10px] font-black text-slate-500 uppercase mb-1">XP Ganho</p>
+                      <p className="text-4xl font-black text-green-400">+{score * 10}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <Button variant="outline" onClick={onExit} className="flex-1 border-slate-700 hover:bg-slate-800 text-white">
+                      Sair
+                    </Button>
+                    <Button onClick={() => window.location.reload()} className="flex-1 bg-cyan-600 hover:bg-cyan-500 text-white font-bold">
+                      Jogar Novamente
+                    </Button>
+                  </div>
+                </motion.div>
+              </motion.div>
             )}
           </AnimatePresence>
         </div>
       </motion.div>
-      
+
       <p className="mt-6 text-cyan-500/50 text-xs font-bold uppercase tracking-[0.3em] flex items-center gap-2">
         <span className="w-4 h-px bg-cyan-500/30"></span>
         Use [↑] e [↓] para limpar o oceano
