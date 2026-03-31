@@ -15,6 +15,8 @@ import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AuthRoute from "./components/AuthRoute";
 import { ChatProvider } from "./contexts/ChatContext";
+import { Report } from "./components/Report";
+import ReportD from "./pages/home/ReportD";
 
 const queryClient = new QueryClient();
 
@@ -46,7 +48,6 @@ const App = () => (
                 <Route path="games" element={<Games />} />
                 <Route path="profile" element={<Profile />} />
               </Route>
-
             <Route path="*" element={<NotFound />} />
           </Routes>
           </ChatProvider> 
