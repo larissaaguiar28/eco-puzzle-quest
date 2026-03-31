@@ -14,6 +14,9 @@ import Profile from "./pages/home/Profile";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AuthRoute from "./components/AuthRoute";
+import { ChatProvider } from "./contexts/ChatContext";
+import { Report } from "./components/Report";
+import ReportD from "./pages/home/ReportD";
 
 const queryClient = new QueryClient();
 
@@ -24,28 +27,30 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            <Route path="/" element={
-              <AuthProvider>
-                <Index />
-              </AuthProvider>
+          <ChatProvider>
+            <Routes>
+              <Route path="/" element={
+                <AuthProvider>
+                  <Index />
+                </AuthProvider>
 
-            } />
-            <Route path="/home" element={
-              <ProtectedRoute>
-                <HomeLayout />
-              </ProtectedRoute>
+              } />
+              <Route path="/home" element={
+                <ProtectedRoute>
+                  <HomeLayout />
+                </ProtectedRoute>
 
-            }>
+              }>
 
-              <Route index element={<Dashboard />} />
-              <Route path="feed" element={<NewsFeed />} />
-              <Route path="chatbot" element={<Chatbot />} />
-              <Route path="games" element={<Games />} />
-              <Route path="profile" element={<Profile />} />
-            </Route>
+                <Route index element={<Dashboard />} />
+                <Route path="feed" element={<NewsFeed />} />
+                <Route path="chatbot" element={<Chatbot />} />
+                <Route path="games" element={<Games />} />
+                <Route path="profile" element={<Profile />} />
+              </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </ChatProvider> 
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

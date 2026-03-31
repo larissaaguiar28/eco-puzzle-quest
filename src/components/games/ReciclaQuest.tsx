@@ -34,6 +34,11 @@ export default function ReciclaQuest({ onExit, onXP }: Props) {
   const [gameOver, setGameOver] = useState(false);
   const [hitEffect, setHitEffect] = useState<HitEffectState | null>(null);
 
+  const itemRef = useRef<ItemState | null>(null);
+  useEffect(() => {
+    itemRef.current = item;
+  }, [item]);
+
   const requestRef = useRef<number>();
   const lastTimeRef = useRef<number>();
 
@@ -48,30 +53,34 @@ export default function ReciclaQuest({ onExit, onXP }: Props) {
     if (lastTimeRef.current !== undefined) {
       const deltaTime = time - lastTimeRef.current;
 
-      setItem(prev => {
-        if (!prev) return null;
-        
-        // Movimento baseado no tempo (deltaTime) garante fluidez em qualquer monitor
-        // 0.045 por ms equivale à sua velocidade antiga de 0.7 por 16ms
-        const newY = prev.y + (0.045 * deltaTime); 
+      // Lê o item atual a partir da Ref (não quebra o React)
+      const currentItem = itemRef.current;
+
+      if (currentItem) {
+        const newY = currentItem.y + (0.045 * deltaTime);
 
         if (newY >= 85) {
-          const binIdx = Math.floor(prev.x / 25);
-          if (binIdx >= 0 && binIdx < BINS.length && BINS[binIdx].type === prev.type) {
+          // COLISÃO! Toda a lógica de pontuação agora roda FORA do setItem
+          const binIdx = Math.floor(currentItem.x / 25);
+          if (binIdx >= 0 && binIdx < BINS.length && BINS[binIdx].type === currentItem.type) {
             setScore(s => s + 1);
-            onXP(10);
+            onXP(10); // Chamada segura do estado do pai!
             setHitEffect({ text: "✨ +10 XP", id: Date.now() });
           } else {
             setMisses(m => m + 1);
             setHitEffect({ text: "❌ ERRO", id: Date.now() });
           }
           setTimeout(() => setHitEffect(null), 800);
-          return null;
+
+          // Destrói o item
+          setItem(null);
+        } else {
+          // Apenas atualiza a posição
+          setItem({ ...currentItem, y: newY });
         }
-        return { ...prev, y: newY };
-      });
+      }
     }
-    
+
     lastTimeRef.current = time;
     requestRef.current = requestAnimationFrame(updateGame);
   }, [onXP]);
@@ -114,7 +123,7 @@ export default function ReciclaQuest({ onExit, onXP }: Props) {
 
   return (
     <div className="min-h-screen bg-[#020617] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#0f172a] via-[#020617] to-[#000000] text-white flex flex-col items-center p-4 font-sans select-none relative overflow-hidden">
-      
+
       <div className="absolute inset-0 opacity-20 pointer-events-none">
         {[...Array(20)].map((_, i) => (
           <motion.div
@@ -128,11 +137,11 @@ export default function ReciclaQuest({ onExit, onXP }: Props) {
       </div>
 
       <div className="w-full max-w-md flex flex-col h-[90vh] z-10">
-        
+
         <div className="flex justify-between items-center bg-slate-900 border-2 border-slate-800 p-4 rounded-2xl mb-4 shadow-[0_0_30px_rgba(0,0,0,0.6)]">
           <div className="flex flex-col items-center">
-             <Timer className="h-4 w-4 text-cyan-400 mb-1" />
-             <span className="font-mono text-xl font-bold">{timer}s</span>
+            <Timer className="h-4 w-4 text-cyan-400 mb-1" />
+            <span className="font-mono text-xl font-bold">{timer}s</span>
           </div>
           <div className="text-center">
             <Trophy className="h-5 w-5 text-yellow-500 mx-auto mb-1" />
@@ -146,7 +155,7 @@ export default function ReciclaQuest({ onExit, onXP }: Props) {
         </div>
 
         <div className="relative flex-1 bg-slate-900/50 rounded-[2rem] border-2 border-slate-800 overflow-hidden shadow-[0_0_60px_rgba(0,0,0,0.8),_inset_0_0_20px_rgba(0,0,0,0.5)]">
-          
+
           <div className="absolute -inset-10 bg-[radial-gradient(closest-side,_var(--tw-gradient-stops))] from-cyan-950/20 via-transparent to-transparent animate-pulse-slow pointer-events-none z-0" />
 
           <div className="absolute inset-0 grid grid-cols-4 pointer-events-none z-0">
@@ -157,11 +166,11 @@ export default function ReciclaQuest({ onExit, onXP }: Props) {
 
           <AnimatePresence mode="popLayout">
             {hitEffect && (
-              <motion.div 
+              <motion.div
                 key={hitEffect.id} // Chave dinâmica para re-animar acertos sucessivos
-                initial={{ y: 150, scale: 0.5, opacity: 0 }} 
-                animate={{ y: 100, scale: 1.2, opacity: 1 }} 
-                exit={{ y: 50, scale: 0.8, opacity: 0 }} 
+                initial={{ y: 150, scale: 0.5, opacity: 0 }}
+                animate={{ y: 100, scale: 1.2, opacity: 1 }}
+                exit={{ y: 50, scale: 0.8, opacity: 0 }}
                 transition={{ type: "spring", stiffness: 400, damping: 15 }}
                 className="absolute w-full text-center z-50 font-black text-3xl drop-shadow-[0_0_20px_rgba(0,0,0,1)]"
               >
@@ -195,10 +204,10 @@ export default function ReciclaQuest({ onExit, onXP }: Props) {
                   initial={{ scale: 0, left: `${item.x}%` }}
                   // O left (movimento horizontal) é animado com mola para criar o deslize
                   animate={{ scale: 1, left: `${item.x}%`, rotate: 360 }}
-                  transition={{ 
+                  transition={{
                     scale: { type: "spring", stiffness: 300, damping: 20 },
                     left: { type: "spring", stiffness: 400, damping: 25 },
-                    rotate: { duration: 4, repeat: Infinity, ease: "linear" } 
+                    rotate: { duration: 4, repeat: Infinity, ease: "linear" }
                   }}
                 >
                   <span className={`text-6xl drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]`}>{item.emoji}</span>
@@ -210,10 +219,10 @@ export default function ReciclaQuest({ onExit, onXP }: Props) {
 
           {score === 0 && !item?.y && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-               <div className="bg-black/60 p-5 rounded-2xl border border-white/10 text-center animate-pulse backdrop-blur-sm">
-                  <MousePointer2 className="mx-auto mb-3 text-cyan-400 h-6 w-6" />
-                  <p className="text-xs font-bold uppercase tracking-widest leading-relaxed text-slate-200">Toque na lixeira certa<br/>ou use as setas</p>
-               </div>
+              <div className="bg-black/60 p-5 rounded-2xl border border-white/10 text-center animate-pulse backdrop-blur-sm">
+                <MousePointer2 className="mx-auto mb-3 text-cyan-400 h-6 w-6" />
+                <p className="text-xs font-bold uppercase tracking-widest leading-relaxed text-slate-200">Toque na lixeira certa<br />ou use as setas</p>
+              </div>
             </div>
           )}
 
