@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useQuiz } from "@/contexts/QuizContext";
 import { Navigate, useNavigate } from "react-router-dom";
 import supabase from '../../../utils/supabase'
-
+import { useToast, Toast } from "../../components/toast cta";
 
 
 export type User = {
@@ -24,6 +24,7 @@ export function CTASection() {
 
   const [user, setUser] = useState<User>();
   const [users, setUsers] = useState<User[]>([]);
+  const { message, showToast } = useToast();
 
 
   async function checkedLogin() { console.log('checkedLogin')
@@ -31,12 +32,12 @@ export function CTASection() {
       setTentativa(tentativa + 1); 
 
     } else {
-      alert('volte mais tarde');
+      showToast('volte mais tarde');
       return;
     }
 
     if (!user?.email || !user.pass) {
-        alert("Email e senha são obrigatórios");
+        showToast("Email e senha são obrigatórios");
         return;
       }
 
@@ -46,7 +47,7 @@ export function CTASection() {
     });
 
     if(error){
-      alert(error.message);
+      showToast(error.message);
       return;
     } 
     nav('/home', {replace: true})
@@ -63,11 +64,11 @@ export function CTASection() {
 
         })
 
-        if(error) alert("Deu ruim!")
-        else alert('Email Cadastrado com sucesso!')
+        if(error) showToast("Deu ruim!")
+        else showToast('Email Cadastrado com sucesso!')
 
       } else {
-        alert('Email e senha obrigatório!');
+        showToast('Email e senha obrigatório!');
       }
 
     }
@@ -84,6 +85,8 @@ export function CTASection() {
     const isGoalReached = completedCount >= GOAL_COUNT;
 
     return (
+      <>
+       <Toast message={message} />
       <section id="cta" className="relative py-24 overflow-hidden bg-[#F1F3EC]">
         <div className="absolute top-0 -left-20 w-96 h-96 bg-emerald-100 rounded-full blur-[120px] opacity-60" />
         <div className="absolute bottom-0 -right-20 w-96 h-96 bg-green-100 rounded-full blur-[120px] opacity-60" />
@@ -294,5 +297,6 @@ export function CTASection() {
           </div>
         </div>
       </section>
+      </>
     );
   }

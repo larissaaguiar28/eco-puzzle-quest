@@ -54,6 +54,7 @@ const App = () => (
                 <Route path="chatbot" element={<Chatbot />} />
                 <Route path="games" element={<Games />} />
                 <Route path="profile" element={<Profile />} />
+                <Route path="report" element={<ReportD />} />
               </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
