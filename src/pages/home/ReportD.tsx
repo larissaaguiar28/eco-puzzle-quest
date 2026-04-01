@@ -1,8 +1,4 @@
-
-
-
-
-    "use client";
+ "use client";
 
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -22,22 +18,10 @@ export default function DenunciasFeed() {
   const [reports, setReports] = useState<ReportData[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchReports();
-
-    // Opcional: Realtime para atualizar o feed assim que alguém denunciar
-    const channel = supabase
-      .channel("realtime_reports")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "reports" }, 
-      (payload) => {
-        setReports((prev) => [payload.new as ReportData, ...prev]);
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
+    useEffect(() => {
+        fetchReports()
+    }, []); 
+// Esse [] vazio é o que garante que o const funcione corretamente
 
   async function fetchReports() {
     try {

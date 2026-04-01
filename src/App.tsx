@@ -42,6 +42,13 @@ const App = () => (
 
               }>
 
+              <Route path="report" element={
+                <ProtectedRoute>
+                  <ReportD />
+                </ProtectedRoute>
+
+              }></Route>
+
                 <Route index element={<Dashboard />} />
                 <Route path="feed" element={<NewsFeed />} />
                 <Route path="chatbot" element={<Chatbot />} />
