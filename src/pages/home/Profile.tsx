@@ -117,7 +117,6 @@ export default function Profile() {
       ...profile,
        user_id: user?.id,
       email: user?.email,
-      level: 1,
       role: "user",
       bonus: false,
       active: true,

@@ -35,45 +35,45 @@ interface BadgeType {
 }
 
 const INITIAL_BADGES: BadgeType[] = [
-  { 
-    imageUrl: "/images/badges/guardiao.png", 
-    name: "Guardião", 
-    description: "10 missões de reflorestamento" 
+  {
+    imageUrl: "/images/badges/guardiao.png",
+    name: "Guardião",
+    description: "10 missões de reflorestamento"
   },
-  { 
-    imageUrl: "/images/badges/mestre.png", 
-    name: "Mestre", 
-    description: "Reciclou 500 itens" 
+  {
+    imageUrl: "/images/badges/mestre.png",
+    name: "Mestre",
+    description: "Reciclou 500 itens"
   },
-  { 
-    imageUrl: "/images/badges/protetor.png", 
-    name: "Protetor", 
-    description: "Limpou 3 oceanos" 
+  {
+    imageUrl: "/images/badges/protetor.png",
+    name: "Protetor",
+    description: "Limpou 3 oceanos"
   },
-  { 
-    imageUrl: "/images/badges/eco-iniciante.png", 
-    name: "Eco Iniciante", 
-    description: "Completou o tutorial" 
+  {
+    imageUrl: "/images/badges/eco-iniciante.png",
+    name: "Eco Iniciante",
+    description: "Completou o tutorial"
   },
-  { 
-    imageUrl: "/images/solar.png", 
-    name: "Solar Champion", 
-    description: "100 painéis solares" 
+  {
+    imageUrl: "/images/solar.png",
+    name: "Solar Champion",
+    description: "100 painéis solares"
   },
-  { 
-    imageUrl: "/images/badges/defensor.png", 
-    name: "Defensor", 
-    description: "Bloqueou 50 ameaças" 
+  {
+    imageUrl: "/images/badges/defensor.png",
+    name: "Defensor",
+    description: "Bloqueou 50 ameaças"
   },
-  { 
-    imageUrl: "/images/badges/energia-viva.png", 
-    name: "Energia Viva", 
-    description: "Gerou 1GW limpo" 
+  {
+    imageUrl: "/images/badges/energia-viva.png",
+    name: "Energia Viva",
+    description: "Gerou 1GW limpo"
   },
-  { 
-    imageUrl: "/images/badges/veterano.png", 
-    name: "Veterano", 
-    description: "30 dias seguidos" 
+  {
+    imageUrl: "/images/badges/veterano.png",
+    name: "Veterano",
+    description: "30 dias seguidos"
   }
 ];
 
@@ -404,11 +404,37 @@ export default function GamesPage() {
   const handleMissionXP = (amount: number) => setTotalXp(prev => prev + amount);
 
   const handleExitMission = async () => {
+    if (!user?.id) {
+      console.error("Usuário não autenticado!");
+      return;
+    }
+
     const newMatches = matches + 1;
+
+    // Atualiza localmente para o usuário não sentir lentidão
     setMatches(newMatches);
     setActiveMission(null);
-    const data = { totalXp, matches: newMatches, streakDays, user_id: user?.id };
-    await supabase.from("games").upsert(data, { onConflict: "user_id" });
+
+    // Envia para o Supabase
+    const { data, error } = await supabase
+      .from("games")
+      .upsert({
+        user_id: user.id,      // Pega do Auth do Supabase
+        totalXp: totalXp,      // XP acumulado no seu estado
+        matches: newMatches,
+        streakDays: streakDays,
+        last_played_at: new Date().toISOString()
+      }, {
+        onConflict: "user_id"
+      })
+      .select();
+
+    if (error) {
+      // ISSO AQUI VAI TE DIZER O MOTIVO REAL NO CONSOLE
+      console.error("Erro ao salvar no Supabase:", error.message);
+    } else {
+      console.log("Dados salvos com sucesso!", data);
+    }
   };
 
   useEffect(() => {
