@@ -198,7 +198,6 @@ export function CTASection() {
 
                   <Button className="w-full h-14 bg-[#4ADE80] hover:bg-[#3ecb72] text-[#0D3B2E] font-black rounded-2xl mt-6 text-base uppercase tracking-wider shadow-[0_10px_20px_rgba(74,222,128,0.2)] transition-transform active:scale-95"
                     onClick={() => { 
-                        console.log ('click')
                         formMode === "login" ? checkedLogin(): handleRegister();
                       }}
                   >

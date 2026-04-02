@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useChatContext } from "@/contexts/ChatContext";
+import { useToast, Toast } from "../../components/toast cta";
 
 // --- CONSTANTES DE CONTEÚDO ---
 const suggestions = ["Energia renovável", "Reciclagem", "Mudanças climáticas"];
@@ -19,6 +20,7 @@ export default function EcoChat() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { message, showToast } = useToast();
 
   // Scroll Automático
   useEffect(() => {
@@ -31,7 +33,7 @@ export default function EcoChat() {
     if (file.type === "application/pdf" || file.type.startsWith("image/")) {
       setSelectedFile(file);
     } else {
-      alert("Apenas PDF ou imagens são permitidos.");
+      showToast("Apenas PDF ou imagens são permitidos.");
     }
   };
 
@@ -231,6 +233,8 @@ export default function EcoChat() {
           )}
         </div>
       </motion.div>
+
+      <Toast message={message} />
 
       {/* FOOTER */}
       <footer className="mt-8 opacity-30 flex items-center gap-4 group">

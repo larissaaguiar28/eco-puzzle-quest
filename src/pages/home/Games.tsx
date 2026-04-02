@@ -18,6 +18,7 @@ import OceanoLimpo from "@/components/games/OceanoLimpo";
 import EnergiaVerde from "@/components/games/EnergiaVerde";
 import GuardiaoFloresta from "@/components/games/GuardiaoFloresta";
 import MemoriaSustentavel from "@/components/games/MemoriaSustentavel";
+import { useToast, Toast } from "../../components/toast cta";
 
 // --- DADOS DE CONFIGURAÇÃO ---
 const GAMES = [
@@ -343,6 +344,7 @@ export default function GamesPage() {
   const xpInCurrentLevel = totalXp % xpPerLevel;
   const { user } = useAuth();
   const [activeMission, setActiveMission] = useState<number | null>(null);
+  const { message, showToast } = useToast();
 
   useEffect(() => {
     const loadGameData = async () => {
@@ -356,7 +358,7 @@ export default function GamesPage() {
         .single<GameData>();
 
       if (error) {
-        alert(error.message)
+        showToast(error.message)
         return;
       }
 
@@ -386,7 +388,7 @@ export default function GamesPage() {
       .upsert(data, { onConflict: "user_id" });
 
     if (error) {
-      alert(error.message);
+      showToast(error.message);
       return;
     }
 
@@ -598,6 +600,8 @@ export default function GamesPage() {
           </Card>
         </section>
       </div>
+
+      <Toast message={message} />
     </div>
   );
 }

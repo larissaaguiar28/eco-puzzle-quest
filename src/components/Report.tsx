@@ -4,6 +4,7 @@ import { MapPin, Megaphone, Leaf, Camera, Send, Type } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import supabase from "../../utils/supabase";
 import { rejects } from "assert";
+import { useToast, Toast } from "./toast cta";
 
 
 export type Report = {
@@ -19,11 +20,12 @@ export function Report() {
   const [report, setReport] = useState<Report>();
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { message, showToast } = useToast();
 
 
   async function handleReport(): Promise<void> {
     if (!report?.message || report.message.trim() === "") {
-      alert("Escreva sua denúncia antes de enviar!");
+      showToast("Escreva sua denúncia antes de enviar!");
       return;
     }
 
@@ -39,18 +41,18 @@ export function Report() {
     const { error } = await supabase.from("reports").insert([reportData])
 
     if (error) {
-      alert(error.message)
+      showToast(error.message)
       return
     }
 
-    alert("recebemos sua denúcia")
+    showToast("Recebemos sua denúncia!")
     // Limpar o campo após enviar
     setReport({ message: "", name: "", address: "", url: "" });
   }
 
   async function handleLocation(): Promise<void> {
     if (!navigator.geolocation) {
-      alert("Seu navegador não suporta geolocalização!")
+      showToast("Seu navegador não suporta geolocalização!")
       return;
     }
 
@@ -71,7 +73,7 @@ export function Report() {
     };
 
     setReport(data)
-    alert("Localização autenticada!")
+    showToast("Localização autenticada!")
 
   };
 
@@ -140,6 +142,8 @@ export function Report() {
 
         <Leaf className="absolute -bottom-16 -left-16 w-64 h-64 text-emerald-500/[0.03] -rotate-12 pointer-events-none" />
       </div>
+
+      <Toast message={message} />
     </>
   )
 }
