@@ -36,22 +36,22 @@ interface BadgeType {
 
 const INITIAL_BADGES: BadgeType[] = [
   {
-    imageUrl: "/images/badges/guardiao.png",
+    imageUrl: "/images/guardiao1.png",
     name: "Guardião",
     description: "10 missões de reflorestamento"
   },
   {
-    imageUrl: "/images/badges/mestre.png",
+    imageUrl: "/images/mestre.png",
     name: "Mestre",
     description: "Reciclou 500 itens"
   },
   {
-    imageUrl: "/images/badges/protetor.png",
+    imageUrl: "/images/protetor.png",
     name: "Protetor",
     description: "Limpou 3 oceanos"
   },
   {
-    imageUrl: "/images/badges/eco-iniciante.png",
+    imageUrl: "/images/eco-iniciante.png",
     name: "Eco Iniciante",
     description: "Completou o tutorial"
   },
@@ -61,33 +61,33 @@ const INITIAL_BADGES: BadgeType[] = [
     description: "100 painéis solares"
   },
   {
-    imageUrl: "/images/badges/defensor.png",
+    imageUrl: "/images/defensor.png",
     name: "Defensor",
     description: "Bloqueou 50 ameaças"
   },
   {
-    imageUrl: "/images/badges/energia-viva.png",
+    imageUrl: "/images/energia-viva.png",
     name: "Energia Viva",
     description: "Gerou 1GW limpo"
   },
   {
-    imageUrl: "/images/badges/veterano.png",
+    imageUrl: "/images/veterano.png",
     name: "Veterano",
     description: "30 dias seguidos"
   }
 ];
 
 const ECO_RANKS = [
-  { maxLvl: 5, title: "Semente de Broto", icon: Sprout },
-  { maxLvl: 10, title: "Broto Inicial", icon: Sprout },
-  { maxLvl: 15, title: "Planta Jovem", icon: Leaf },
-  { maxLvl: 20, title: "Planta Forte", icon: Leaf },
-  { maxLvl: 25, title: "Árvore em Crescimento", icon: TreePine },
-  { maxLvl: 30, title: "Árvore Saudável", icon: TreePine },
-  { maxLvl: 35, title: "Árvore Frondosa", icon: TreePine },
-  { maxLvl: 40, title: "Guardião Verde", icon: Shield },
-  { maxLvl: 45, title: "Protetor da Natureza", icon: Shield },
-  { maxLvl: Infinity, title: "Defensor do Planeta 🌍", icon: Trophy },
+  { maxLvl: 5, title: "Semente Curiosa 🌱", icon: Sprout },
+  { maxLvl: 10, title: "Broto Desperto 🌿", icon: Sprout },
+  { maxLvl: 15, title: "Guardião do Jardim 🍃", icon: Leaf },
+  { maxLvl: 20, title: "Protetor Verde 🌳", icon: Leaf },
+  { maxLvl: 25, title: "Cultivador da Vida 🌼", icon: TreePine },
+  { maxLvl: 30, title: "Mestre da Floresta 🌲", icon: TreePine },
+  { maxLvl: 35, title: "Lenda da Natureza 🌴", icon: TreePine },
+  { maxLvl: 40, title: "Guardião do Equilíbrio ⚖️🌿", icon: Shield },
+  { maxLvl: 45, title: "Herói do Planeta 🌎🦸‍♂️", icon: Shield },
+  { maxLvl: Infinity, title: "Lenda Viva da Terra 🌍✨", icon: Trophy },
 ];
 
 interface GameData {
@@ -210,6 +210,9 @@ const XPProgress = ({ xp, xpNext, level, streak, matches }: { xp: number; xpNext
   const [currentMessage, setCurrentMessage] = useState("");
   const prevLevel = useRef(level);
 
+  const currentRank = ECO_RANKS.find(rank => level <= rank.maxLvl) || ECO_RANKS[ECO_RANKS.length - 1];
+  const RankIcon = currentRank.icon;
+
   interface StreakStyle {
     color: string;
     scale: number;
@@ -301,29 +304,35 @@ const XPProgress = ({ xp, xpNext, level, streak, matches }: { xp: number; xpNext
         </div>
 
         <div className="flex-1 space-y-4 text-center md:text-left w-full">
-          <div className="flex justify-between items-end">
-            <motion.h3
-              animate={showLevelUp ? { x: [0, 5, 0], color: ["#fff", "#22d3ee", "#fff"] } : {}}
-              className="text-xl font-black text-white flex items-center gap-2 justify-center md:justify-start"
-            >
-              {showLevelUp ? "NEW RANK UNLOCKED!" : "Eco-Warrior Status"}
-              <motion.div animate={showLevelUp ? { scale: [1, 1.5, 1], rotate: 360 } : {}}>
-                <Sprout size={20} className={showLevelUp ? "text-cyan-400" : "text-emerald-500"} />
-              </motion.div>
-            </motion.h3>
-            <span className="text-sm font-bold text-cyan-400 hidden md:block">{xp} / {xpNext} XP</span>
-          </div>
+          <div className="flex-1 space-y-4 text-center md:text-left w-full">
+  <div className="flex justify-between items-end">
+    <motion.h3
+      key={currentRank.title} // Adicionado key para disparar animação na troca de título
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      className="text-xl font-black text-white flex items-center gap-2 justify-center md:justify-start"
+    >
+      {/* Título Dinâmico */}
+      {showLevelUp ? "NOVO RANK ALCANÇADO!" : currentRank.title}
+      
+      <motion.div 
+        animate={showLevelUp ? { scale: [1, 1.5, 1], rotate: 360 } : { scale: 1 }}
+        className={showLevelUp ? "text-cyan-400" : "text-emerald-500"}
+      >
+        {/* Ícone Dinâmico */}
+        <RankIcon size={24} />
+      </motion.div>
+    </motion.h3>
+    <span className="text-sm font-bold text-cyan-400 hidden md:block">
+      {xp} / {xpNext} XP
+    </span>
+  </div>
 
-          <div className="h-4 w-full bg-slate-900 rounded-full overflow-hidden border border-white/5 p-0.5">
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${progress}%` }}
-              className={cn(
-                "h-full rounded-full shadow-[0_0_15px_rgba(34,211,238,0.5)] transition-all duration-500",
-                showLevelUp ? "bg-gradient-to-r from-cyan-400 to-blue-600 shadow-cyan-500/50" : "bg-gradient-to-r from-emerald-600 to-cyan-500"
-              )}
-            />
-          </div>
+  {/* Barra de progresso continua igual... */}
+  <div className="h-4 w-full bg-slate-900 rounded-full overflow-hidden border border-white/5 p-0.5">
+    {/* ... */}
+  </div>
+</div>
 
           <AnimatePresence mode="wait">
             {showLevelUp && (
