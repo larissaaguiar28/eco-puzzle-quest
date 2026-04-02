@@ -77,7 +77,7 @@ export default function OceanoLimpoSideScroller({ onExit, onXP }: Props) {
 
     const gameLoop = () => {
       // 1. ATUALIZA O BARCO (Sem travar o React)
-      const speed = 0.8;
+      const speed = 0.9;
       let currentY = playerY.get();
       let targetRot = 0;
 
@@ -303,7 +303,7 @@ export default function OceanoLimpoSideScroller({ onExit, onXP }: Props) {
             >
               <div className="relative">
                 <span className="text-7xl block drop-shadow-[0_15px_15px_rgba(0,0,0,0.8)] filter transition-all">
-                  🛥️
+                   🚣🏿
                 </span>
 
                 <div className="absolute -left-8 top-[60%] -translate-y-1/2 flex gap-1">
@@ -367,7 +367,7 @@ export default function OceanoLimpoSideScroller({ onExit, onXP }: Props) {
                   </div>
 
                   <div className="flex gap-3">
-                    <Button variant="outline" onClick={onExit} className="flex-1 border-slate-700 hover:bg-slate-800 text-white">
+                    <Button variant="outline" onClick={onExit} className="flex-1 border-slate-700 hover:bg-slate-800 text-black">
                       Sair
                     </Button>
                     <Button onClick={() => window.location.reload()} className="flex-1 bg-cyan-600 hover:bg-cyan-500 text-white font-bold">
