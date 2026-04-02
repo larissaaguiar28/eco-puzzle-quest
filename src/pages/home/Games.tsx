@@ -99,9 +99,12 @@ interface GameData {
   last_played_at?: string;
 }
 
-const XPCounter = ({ value }: { value: number }) => {
+const XPCounter = ({ value }: { value: number }) => { // value é o XP total do usuário
   const [isHovered, setIsHovered] = useState(false);
   const [isChanging, setIsChanging] = useState(false);
+
+  console.log("XP TOTAL do usuario: ", value);
+
 
   useEffect(() => {
     setIsChanging(true);
@@ -424,6 +427,10 @@ export default function GamesPage() {
     setMatches(newMatches);
     setActiveMission(null);
 
+    console.log("XP TOTAL: ", totalXp);
+    console.log("MATCHES: ", newMatches);
+    console.log("STREAK DAYS: ", streakDays);
+
     // Envia para o Supabase
     const { data, error } = await supabase
       .from("games")
@@ -432,6 +439,7 @@ export default function GamesPage() {
         totalXp: totalXp,      // XP acumulado no seu estado
         matches: newMatches,
         streakDays: streakDays,
+        level: currentLevel,  
         last_played_at: new Date().toISOString()
       }, {
         onConflict: "user_id"

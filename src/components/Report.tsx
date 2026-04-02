@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, Megaphone, Leaf, Camera, Send, Type } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import supabase from "../../utils/supabase";
 import { rejects } from "assert";
 
@@ -15,6 +16,7 @@ export type Report = {
 
 export function Report() {
   const { user, signOutUser } = useAuth();
+  const navigate = useNavigate();
   const [reports, setReports] = useState<Report[]>([]);
   const [report, setReport] = useState<Report>();
   const [uploading, setUploading] = useState(false);
@@ -46,6 +48,8 @@ export function Report() {
     alert("recebemos sua denúcia")
     // Limpar o campo após enviar
     setReport({ message: "", name: "", address: "", url: "" });
+    // Redirecionar para a página de denúncias
+    navigate("/home/report");
   }
 
   async function handleLocation(): Promise<void> {
