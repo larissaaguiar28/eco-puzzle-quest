@@ -27,7 +27,7 @@ export function Toast({ message }: { message: string }) {
           initial={{ opacity: 0, y: -20, x: "50%" }}
           animate={{ opacity: 1, y: 0, x: "50%" }}
           exit={{ opacity: 0, y: -20, x: "50%" }}
-          className="fixed top-7 left-1/2 z-[9999] w-[33%]"
+          className="fixed top-9 left-2/3 z-[99999] w-[21%]"
         >
           <div className={`flex items-center gap-3 p-4 rounded-2xl shadow-2xl border backdrop-blur-md ${
             type === "success" ? "bg-emerald-500/90 border-emerald-400 text-white" :
