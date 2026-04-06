@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, RefreshCw, Paperclip, Zap, Bot, ShieldCheck, Sparkles, FileText } from "lucide-react";
+import { Send, RefreshCw, Paperclip, Zap, ShieldCheck, Sparkles, FileText } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -179,7 +179,7 @@ async function loadChatFromStorage() {
             <div className="flex items-center gap-5">
               <div className="w-16 h-16 rounded-2xl border-2 border-cyan-400/50 p-1 bg-slate-900">
                 <div className="w-full h-full rounded-xl overflow-hidden bg-cyan-950 flex items-center justify-center">
-                   <Bot className="text-cyan-400" size={32} />
+                   <img src="/images/ecobot-avatar.webp" alt="EcoBot" className="w-full h-full object-cover" />
                 </div>
               </div>
               <div>
