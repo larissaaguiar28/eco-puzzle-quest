@@ -1,0 +1,162 @@
+/* Custom Properties - Centralização de Design */
+:root {
+  --eco-success: #4ade80;
+  --eco-success-dark: #0d3b2e;
+  --eco-error: #ef4444;
+  --eco-info: #10b981;
+  --eco-info-bg: #064e3b;
+  --eco-warning: #f59e0b;
+  --eco-warning-dark: #78350f;
+  --toast-radius: 12px; /* Bordas levemente menos arredondadas são mais modernas */
+  --shadow-eco: 0 10px 30px -5px rgba(13, 59, 46, 0.2);
+}
+
+.toast {
+
+  position: fixed;
+  top: 24px;   /* Superior */
+  right: 24px; /* Direito */
+  z-index: 9999;
+  /* ... resto do seu código ... */
+
+  
+  display: flex;
+  align-items: flex-start; /* Alinha ao topo se o texto for longo */
+  gap: 14px;
+  
+  min-width: 320px;
+  max-width: 420px;
+  padding: 16px;
+  border-radius: var(--toast-radius);
+  
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  box-shadow: var(--shadow-eco);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
+  animation: ecoSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Tipografia interna */
+.toast-content {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  
+}
+
+/* Estilização de Ícones (Usando Mask para manter a cor do texto) */
+.toast-icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  background-color: currentColor;
+  mask-size: contain;
+  -webkit-mask-size: contain;
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+}
+
+/* Variantes de Cores */
+.toast.success {
+  background: linear-gradient(135deg, var(--eco-success) 0%, #22c55e 100%);
+  color: var(--eco-success-dark);
+}
+.toast.success .toast-icon {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E");
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E");
+}
+
+.toast.error {
+  background: linear-gradient(135deg, var(--eco-error) 0%, #b91c1c 100%);
+  color: #fff;
+}
+.toast.error .toast-icon {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z'/%3E%3C/svg%3E");
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z'/%3E%3C/svg%3E");
+}
+
+.toast.info {
+  background: linear-gradient(135deg, var(--eco-info-bg) 0%, #065f46 100%);
+  color: var(--eco-success);
+}
+.toast.info .toast-icon {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z'/%3E%3C/svg%3E");
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z'/%3E%3C/svg%3E");
+}
+
+.toast.warning {
+  background: linear-gradient(135deg, var(--eco-warning) 0%, #d97706 100%);
+  color: var(--eco-warning-dark);
+}
+/* Ícone de alerta reutilizado da variante error via Mask */
+.toast.warning .toast-icon {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black'%3E%3Cpath d='M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z'/%3E%3C/svg%3E");
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black'%3E%3Cpath d='M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z'/%3E%3C/svg%3E");
+}
+
+/* Animações */
+@keyframes ecoSlideIn {
+  from {
+    transform: translateX(40px) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.toast.fade-out {
+  animation: ecoFadeOut 0.3s ease-in forwards;
+}
+
+@keyframes ecoFadeOut {
+  to {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+}
+
+/* Interação */
+.toast:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -10px rgba(13, 59, 46, 0.4);
+}
+
+.toast:active {
+  transform: translateY(-1px) scale(0.98);
+}
+
+/* Responsividade */
+@media (max-width: 640px) {
+  .toast {
+    top: auto;
+    bottom: 20px;
+    right: 50%;
+    transform: translateX(50%);
+    min-width: 90vw;
+    animation: ecoSlideUp 0.4s ease-out;
+  }
+  
+  @keyframes ecoSlideUp {
+    from { transform: translate(50%, 20px); opacity: 0; }
+    to { transform: translate(50%, 0); opacity: 1; }
+  }
+
+  .toast:hover {
+    transform: translateX(50%) translateY(-2px);
+  }
+}
+
+/* Acessibilidade: Respeito à redução de movimento */
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    animation: fadeIn 0.3s ease-in;
+  }
+}

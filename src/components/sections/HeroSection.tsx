@@ -96,20 +96,7 @@ export function HeroSection(): JSX.Element {
           ))}
         </div>
 
-        {/* Link para a Home */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.8 }}
-          className="mt-10"
-        >
-          <Link to="/home">
-            <Button size="lg" className="gap-2 rounded-full bg-gold text-gold-foreground hover:bg-gold/90 px-8 py-6 text-lg font-bold">
-              Acessar Plataforma <ArrowRight size={20} />
-            </Button>
-          </Link>
-        </motion.div>
+       
 
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
