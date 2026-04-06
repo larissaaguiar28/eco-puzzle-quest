@@ -12,6 +12,7 @@ interface ReportData {
   address: string;
   url?: string;
   created_at: string;
+  name?: string;
 }
 
 export default function DenunciasFeed() {
@@ -54,12 +55,12 @@ export default function DenunciasFeed() {
         <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-emerald-900/5 blur-[140px] rounded-full" />
       </div>
 
-      <header className="max-w-2xl mx-auto px-6 py-12">
+      <header className="max-w-7xl mx-auto px-6 py-12">
         <div className="flex items-center gap-3 mb-2">
           <div className="bg-emerald-500 p-2 rounded-xl">
             <Leaf size={20} className="text-black" />
           </div>
-          <h1 className="text-2xl font-black text-white uppercase italic tracking-tighter">
+          <h1 className="text-4xl font-black text-white uppercase italic tracking-tighter">
             Patrulha <span className="text-emerald-500">Ativa</span>
           </h1>
         </div>
@@ -68,7 +69,7 @@ export default function DenunciasFeed() {
         </p>
       </header>
 
-      <main className="max-w-2xl mx-auto px-6 space-y-6">
+      <main className="max-w-5xl mx-auto px-6 space-y-6">
         <AnimatePresence>
           {reports.map((report) => (
             <motion.div
@@ -109,7 +110,7 @@ export default function DenunciasFeed() {
                 
                 <div className="mt-6 pt-6 border-t border-white/5 flex justify-between items-center">
                   <span className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">
-                    {new Date(report.created_at).toLocaleDateString('pt-BR')} • ID: {report.id.slice(0, 8)}
+                    {new Date(report.created_at).toLocaleDateString('pt-BR')} • {report.name || "Anônimo"}
                   </span>
                   <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_10px_#10b981]" />
                 </div>
