@@ -180,19 +180,16 @@ export default function EcoNexus() {
                 </div>
 
                 <h2 className="text-5xl md:text-7xl font-black text-white italic leading-[0.85] tracking-tighter uppercase">
-                  OPERAÇÃO <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">CÉU<br />LIMPO</span>
+                  Missão <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400"><br />Engaje o feed</span>
                 </h2>
 
                 <p className="text-slate-400 font-medium max-w-lg text-lg leading-relaxed">
-                  Nesta temporada, cada foco de poluição reportado gera <span className="text-white font-bold italic underline decoration-emerald-500/50 decoration-4 underline-offset-4">2x XP</span>. O horizonte depende de você.
+                  Nesta missão, cada publicação relevante no feed de notícias gera <span className="text-white font-bold italic underline decoration-emerald-500/50 decoration-4 underline-offset-4">100 Xp</span>. O mundo precisa te ouvir! Compartilhe suas ações, inspire outros e suba no ranking da Patrulha Ativa. Quanto mais engajamento, mais XP para sua jornada ecológica!
                 </p>
 
                 <div className="flex flex-wrap gap-4">
                   <button className="bg-white text-[#020617] font-black px-8 py-5 rounded-2xl hover:bg-emerald-400 transition-all uppercase italic tracking-tighter flex items-center gap-3 group/btn shadow-xl shadow-white/5">
                     Engajar Agora <ChevronRight size={20} className="group-hover/btn:translate-x-1 transition-transform" />
-                  </button>
-                  <button className="bg-white/5 border border-white/10 text-white font-black px-8 py-5 rounded-2xl hover:bg-white/10 transition-all uppercase italic tracking-tighter flex items-center gap-3">
-                    Briefing <Info size={20} />
                   </button>
                 </div>
               </div>
