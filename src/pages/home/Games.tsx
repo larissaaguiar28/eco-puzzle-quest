@@ -36,32 +36,32 @@ interface BadgeType {
 
 const INITIAL_BADGES: BadgeType[] = [
   {
-    imageUrl: "/images/guardiao1.png",
+    imageUrl: "/images/ach_guardiao.png",
     name: "Guardião",
     description: "10 missões de reflorestamento"
   },
   {
-    imageUrl: "/images/mestre1.png",
+    imageUrl: "/images/ach_mestre.png",
     name: "Mestre",
     description: "Reciclou 500 itens"
   },
   {
-    imageUrl: "/images/protetor1.png",
+    imageUrl: "/images/ach_protetor.png",
     name: "Protetor",
     description: "Limpou 3 oceanos"
   },
   {
-    imageUrl: "/images/eco1.png",
+    imageUrl: "/images/ach_eco.png",
     name: "Eco Iniciante",
     description: "Completou o tutorial"
   },
   {
-    imageUrl: "/images/solar.png",
+    imageUrl: "/images/ach_solar.png",
     name: "Solar Champion",
     description: "100 painéis solares"
   },
   {
-    imageUrl: "/images/defensor.png",
+    imageUrl: "/images/ach_defensor.png",
     name: "Defensor",
     description: "Bloqueou 50 ameaças"
   },
@@ -599,9 +599,9 @@ export default function GamesPage() {
               </div>
             </div>
 
-            <div className="relative h-32 flex items-center overflow-visible">
+            <div className="relative h-40 flex items-center overflow-visible mt-4">
               <TooltipProvider delayDuration={0}>
-                <div className="flex gap-5 items-center justify-center w-full">
+                <div className="flex gap-6 items-center justify-center w-full">
                   <AnimatePresence mode="popLayout">
                     {badges.slice(0, 4).map((badge) => (
                       <motion.div
@@ -611,16 +611,17 @@ export default function GamesPage() {
                         animate={{ opacity: 1, x: 0, scale: 1 }}
                         exit={{ opacity: 0, x: -50, scale: 0.8 }}
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                        whileHover={{ scale: 1.1, rotate: 2 }}
-                        className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-[2rem] bg-slate-900 border border-white/5 shadow-xl flex items-center justify-center cursor-pointer group relative overflow-hidden"
+                        whileHover={{ scale: 1.15, rotate: 3 }}
+                        className="flex-shrink-0 w-24 h-24 md:w-28 md:h-28 rounded-[2.5rem] bg-slate-900 border border-white/10 shadow-2xl flex items-center justify-center cursor-pointer group relative overflow-hidden"
                       >
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <div className="w-full h-full flex items-center justify-center p-3">
+                            <div className="w-full h-full flex items-center justify-center p-3 relative">
+                              <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                               <img
                                 src={badge.imageUrl}
                                 alt={badge.name}
-                                className="w-full h-full object-contain transition-all duration-300 group-hover:scale-110 drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]"
+                                className="w-full h-full object-contain transition-all duration-300 group-hover:scale-110 drop-shadow-[0_0_15px_rgba(34,211,238,0.3)] mix-blend-screen"
                                 loading="eager"
                                 onError={(e) => { (e.currentTarget as HTMLImageElement).src = "https://placehold.co/100x100/0f172a/22d3ee?text=Eco"; }}
                               />
@@ -634,8 +635,8 @@ export default function GamesPage() {
                       </motion.div>
                     ))}
                   </AnimatePresence>
-                  <div className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-[2rem] border-2 border-dashed border-white/10 flex items-center justify-center bg-white/5 opacity-50">
-                    <Star size={24} className="text-white/10 animate-pulse" />
+                  <div className="flex-shrink-0 w-24 h-24 md:w-28 md:h-28 rounded-[2.5rem] border-2 border-dashed border-white/10 flex items-center justify-center bg-white/5 opacity-50">
+                    <Star size={32} className="text-white/20 animate-pulse" />
                   </div>
                 </div>
               </TooltipProvider>
