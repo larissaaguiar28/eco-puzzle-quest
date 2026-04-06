@@ -42,7 +42,7 @@ const newsData: NewsItem[] = [
     id: "17002176-f5e8-4c29-86ae-784ca93f72af",
     title: "Brasil bate recorde histórico em geração de energia solar e eólica",
     summary: "O país alcançou a marca de 90% da matriz elétrica renovável neste mês, impulsionando a economia verde.",
-    content: "O Brasil atingiu um marco histórico ao registrar que 90% de sua matriz elétrica é proveniente de fontes renováveis...",
+    content: "O Brasil atingiu um marco histórico ao registrar que 90% de sua matriz elétrica é proveniente de fontes renováveis. O avanço é impulsionado principalmente pela expansão acelerada de novos parques eólicos na região Nordeste e pela proliferação de grandes fazendas solares no Sudeste, consolidando o país como líder global em transição energética. Dados recentes indicam que essa transição permitiu uma redução de 15% nas emissões de carbono apenas no último trimestre, devido à menor dependência de usinas termelétricas fósseis. Além do benefício ambiental, a expansão do setor injetou dinamismo na economia nacional, resultando na criação de mais de 50 mil novos empregos diretos em áreas de engenharia, instalação e manutenção tecnológica. Especialistas destacam que a complementaridade entre o potencial eólico do Nordeste e o solar do Sudeste tem garantido maior segurança e estabilidade ao sistema elétrico brasileiro. O uso de tecnologias de monitoramento e a atração de investimentos internacionais foram fundamentais para acelerar a implementação dessas infraestruturas de energia limpa. A expectativa é que, com a continuidade dos leilões de energia e o barateamento das tecnologias fotovoltaicas e eólicas, o Brasil fortaleça ainda mais sua posição na economia de baixo carbono. O fortalecimento dessa matriz sustentável é visto como essencial para o cumprimento das metas climáticas globais e para a promoção de um desenvolvimento econômico que respeite os limites ambientais do planeta.",
     category: "Energia Solar",
     author: "EcoS",
     date: new Date().toISOString(),
@@ -54,7 +54,7 @@ const newsData: NewsItem[] = [
     id: "2",
     title: "Amazônia registra queda no desmatamento",
     summary: "Dados mostram redução significativa e avanço nas políticas de conservação.",
-    content: "A Amazônia registrou uma queda expressiva nos índices de desmatamento...",
+    content: "A Amazônia registrou uma queda expressiva nos índices de desmatamento nos últimos meses, segundo dados recentes de monitoramento ambiental por satélite. A redução é atribuída principalmente ao aumento das operações de fiscalização, uso de tecnologia avançada e maior rigor na aplicação de multas e sanções.\n\nÓrgãos ambientais intensificaram ações em áreas críticas, combatendo atividades ilegais como extração de madeira, garimpo clandestino e expansão irregular da agropecuária. Além disso, parcerias entre governos, organizações ambientais e comunidades locais têm fortalecido estratégias de preservação e uso sustentável dos recursos naturais.\n\nEspecialistas destacam que, apesar do avanço positivo, o cenário ainda exige atenção contínua. A floresta amazônica desempenha um papel fundamental na regulação do clima global, na preservação da biodiversidade e no equilíbrio dos ciclos hídricos.\n\nOutro fator importante para a redução foi a pressão internacional por práticas mais sustentáveis, incentivando políticas públicas voltadas à conservação e ao desenvolvimento sustentável da região.\n\nA expectativa é que, com a manutenção dessas ações e o fortalecimento das políticas ambientais, o Brasil consiga consolidar uma trajetória de queda contínua no desmatamento, garantindo a proteção de um dos ecossistemas mais importantes do planeta.",
     category: "Conservação",
     author: "EcoS",
     date: new Date().toISOString(),
@@ -66,7 +66,7 @@ const newsData: NewsItem[] = [
     id: "3",
     title: "Chuvas intensas no Sudeste",
     summary: "Eventos extremos estão mais frequentes e preocupam especialistas.",
-    content: "As chuvas intensas registradas nos últimos meses na região Sudeste...",
+    content: "As chuvas intensas registradas nos últimos meses na região Sudeste do Brasil têm acendido um alerta entre meteorologistas e autoridades. Cidades enfrentam alagamentos recorrentes, deslizamentos de terra e impactos diretos na mobilidade urbana e na economia local.\n\nSegundo especialistas, esses eventos estão diretamente ligados às mudanças climáticas, que aumentam a frequência e a intensidade de fenômenos extremos. O aquecimento global contribui para uma maior evaporação da água, resultando em tempestades mais fortes e concentradas em curtos períodos de tempo.\n\nAlém disso, fatores como urbanização desordenada, impermeabilização do solo e falta de infraestrutura adequada de drenagem agravam ainda mais os impactos das chuvas.\n\nEspecialistas reforçam a necessidade de políticas públicas voltadas para adaptação climática, incluindo investimentos em infraestrutura resiliente, planejamento urbano sustentável e sistemas de alerta antecipado para reduzir riscos à população.\n\nA tendência é que esses eventos se tornem cada vez mais comuns, exigindo ação imediata tanto do poder público quanto da sociedade.",
     category: "Clima",
     author: "EcoS",
     date: new Date().toISOString(),
@@ -295,7 +295,7 @@ export default function SustainableNewsFeed() {
           <div className="flex items-center gap-4 cursor-pointer" onClick={() => setSelectedCategory(null)}>
             <div className="bg-emerald-500 p-2.5 rounded-2xl"><Leaf size={24} className="text-black" /></div>
             <div>
-              <h1 className="text-2xl font-black text-white uppercase italic tracking-tighter leading-none">Eco'S <span className="text-emerald-500">FEED+</span></h1>
+              <h1 className="text-4xl font-black text-white uppercase italic tracking-tighter leading-none">Eco'S <span className="text-emerald-500">FEED+</span></h1>
               <p className="text-[10px] font-black text-emerald-500/60 uppercase tracking-[0.3em]">Ecoando Noticias</p>
             </div>
           </div>
