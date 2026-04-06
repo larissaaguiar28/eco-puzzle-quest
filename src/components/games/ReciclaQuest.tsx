@@ -16,10 +16,10 @@ const BINS = [
 ];
 
 const ITEMS = [
-  { type: "metal", emoji: "🥫", color: "text-yellow-400" },
-  { type: "plastic", emoji: "🧴", color: "text-red-400" },
-  { type: "paper", emoji: "📦", color: "text-blue-400" },
-  { type: "glass", emoji: "🍾", color: "text-green-400" },
+  { type: "metal", emoji: "📎", color: "text-yellow-400" },
+  { type: "plastic", emoji: "🥤", color: "text-red-400" },
+  { type: "paper", emoji: "📄", color: "text-blue-400" },
+  { type: "glass", emoji: "🫙", color: "text-green-400" },
 ];
 
 // Tipagem aprimorada para controle de re-renderização das animações
