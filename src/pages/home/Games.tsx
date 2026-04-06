@@ -41,12 +41,12 @@ const INITIAL_BADGES: BadgeType[] = [
     description: "10 missões de reflorestamento"
   },
   {
-    imageUrl: "/images/mestre.png",
+    imageUrl: "/images/mestre1.png",
     name: "Mestre",
     description: "Reciclou 500 itens"
   },
   {
-    imageUrl: "/images/protetor.png",
+    imageUrl: "/images/protetor1.png",
     name: "Protetor",
     description: "Limpou 3 oceanos"
   },
@@ -328,9 +328,19 @@ const XPProgress = ({ xp, xpNext, level, streak, matches }: { xp: number; xpNext
     </span>
   </div>
 
-  {/* Barra de progresso continua igual... */}
+   {/* Barra de progresso de experiência */}
   <div className="h-4 w-full bg-slate-900 rounded-full overflow-hidden border border-white/5 p-0.5">
-    {/* ... */}
+    <motion.div 
+      initial={{ width: 0 }}
+      animate={{ width: `${progress}%` }}
+      transition={{ duration: 1, ease: "easeOut" }}
+      className={cn(
+        "h-full rounded-full transition-colors duration-500",
+        showLevelUp 
+          ? "bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.5)]" 
+          : "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"
+      )}
+    />
   </div>
 </div>
 
