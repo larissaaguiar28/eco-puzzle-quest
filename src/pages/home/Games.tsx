@@ -51,7 +51,7 @@ const INITIAL_BADGES: BadgeType[] = [
     description: "Limpou 3 oceanos"
   },
   {
-    imageUrl: "/images/eco-iniciante.png",
+    imageUrl: "/images/eco1.png",
     name: "Eco Iniciante",
     description: "Completou o tutorial"
   },
@@ -66,7 +66,7 @@ const INITIAL_BADGES: BadgeType[] = [
     description: "Bloqueou 50 ameaças"
   },
   {
-    imageUrl: "/images/energia-viva.png",
+    imageUrl: "/images/eneviva1.png",
     name: "Energia Viva",
     description: "Gerou 1GW limpo"
   },
