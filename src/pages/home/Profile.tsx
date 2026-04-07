@@ -24,7 +24,7 @@ const FormField = ({ label, icon, children }: { label: string; icon: React.React
 );
 
 const Input = ({ className, ...props }: React.InputHTMLAttributes<HTMLInputElement>) => (
-  <input
+  <input 
     {...props}
     className={cn(
       "w-full px-4 py-3 bg-black/40 border border-emerald-500/20 rounded-xl",
@@ -42,7 +42,7 @@ interface UserProfile {
   email?: string;
   location?: string;
   bio?: string;
-  avatarUrl?: string;
+  image?: string;
   interests: string[];
 }
 
@@ -126,7 +126,7 @@ export default function Profile() {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => setProfile((prev) => ({ ...prev, avatarUrl: reader.result as string }));
+      reader.onloadend = () => setProfile((prev) => ({ ...prev, image: reader.result as string }));
       reader.readAsDataURL(file);
     }
   };
@@ -224,8 +224,8 @@ export default function Profile() {
               className="w-32 h-32 rounded-3xl bg-gradient-to-br from-emerald-300 via-emerald-500 to-teal-600 p-[3px] shadow-lg shadow-emerald-500/30"
             >
               <div className="w-full h-full rounded-[1.3rem] bg-[#020617] flex items-center justify-center overflow-hidden">
-                {profile.avatarUrl ? (
-                  <img src={profile.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                {profile.image ? (
+                  <img src={profile.image} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
                   <User size={48} className="text-emerald-400/30" />
                 )}

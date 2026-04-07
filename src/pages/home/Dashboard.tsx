@@ -15,6 +15,7 @@ import supabase from "../../../utils/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
+
 type Game = {
   name?: string;
   level?: number;
@@ -45,6 +46,8 @@ export default function EcoNexus() {
   const { user, signOutUser } = useAuth();
   const [game, setGame] = useState<Game>();
   const [eco, setEco] = useState<User>();
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [profileName, setProfileName] = useState<string>("");
 
   const xpNoNivelAtual = (game?.totalXp ?? 0) % 1000;
   const porcentagemProgresso = (xpNoNivelAtual / 1000) * 100;
@@ -60,7 +63,7 @@ export default function EcoNexus() {
 
   async function syncEcos(user_id: string): Promise<void> {
     const { data, error } = await supabase.from('profiles')
-      .select('eco').eq("user_id", user_id)
+      .select('eco, image, name').eq("user_id", user_id)
       .maybeSingle();
 
     if (error) {
@@ -73,6 +76,8 @@ export default function EcoNexus() {
     }
     if (data) {
       setEco(data);
+      if (data.image) setProfileImage(data.image);
+      if (data.name) setProfileName(data.name);
     }
   }
 
@@ -121,7 +126,11 @@ export default function EcoNexus() {
                 className="w-28 h-28 rounded-3xl bg-gradient-to-br from-emerald-400 via-cyan-500 to-blue-600 p-[3px] shadow-lg shadow-emerald-500/20"
               >
                 <div className="w-full h-full rounded-[1.3rem] bg-[#020617] flex items-center justify-center overflow-hidden">
-                  <User size={48} className="text-emerald-500/40" />
+                  {profileImage ? (
+                    <img src={profileImage} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <User size={48} className="text-emerald-500/40" />
+                  )}
                 </div>
               </motion.div>
               <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-black text-[11px] font-black px-2.5 py-1 rounded-lg shadow-xl ring-4 ring-[#020617]">
