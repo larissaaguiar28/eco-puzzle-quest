@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { LogIn, UserPlus, Trophy, Check, Sparkles, GraduationCap, ArrowRight, Lock, Unlock, User } from "lucide-react";
+import { LogIn, UserPlus, Trophy, Check, Sparkles, GraduationCap, ArrowRight, Lock, Unlock, User, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useQuiz } from "@/contexts/QuizContext";
@@ -21,6 +21,7 @@ export function CTASection() {
   const { isCompleted } = useQuiz();
 
   const [tentativa, setTentativa] = useState(0);
+  const [showPassword, setShowPassword] = useState(false);
 
   const [user, setUser] = useState<User>();
   const [users, setUsers] = useState<User[]>([]);
@@ -171,17 +172,26 @@ export function CTASection() {
 
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-emerald-400/80 ml-2 uppercase tracking-widest">Senha</label>
-                    <Input
-                      type="password"
-                      placeholder="••••••••"
-                      className="bg-white/5 border-white/10 text-white placeholder:text-gray-600 h-14 rounded-2xl focus:ring-[#4ADE80] transition-all"
-                      onChange={(e) => setUser(
-                        {
-                          ...user, pass: e.target.value
-                        }
-                      )}
-
-                    />
+                    <div className="relative">
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="••••••••"
+                        className="bg-white/5 border-white/10 text-white placeholder:text-gray-600 h-14 rounded-2xl focus:ring-[#4ADE80] transition-all pr-14"
+                        onChange={(e) => setUser(
+                          {
+                            ...user, pass: e.target.value
+                          }
+                        )}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors p-1"
+                        aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                      >
+                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                      </button>
+                    </div>
                   </div>
 
                   <Button className="w-full h-14 bg-[#4ADE80] hover:bg-[#3ecb72] text-[#0D3B2E] font-black rounded-2xl mt-6 text-base uppercase tracking-wider shadow-[0_10px_20px_rgba(74,222,128,0.2)] transition-transform active:scale-95"
