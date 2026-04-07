@@ -117,9 +117,13 @@ export function CTASection() {
     });
 
     if(error){
-      showToast(error.message);
+      console.error("Erro no login:", error.message);
+      const errorMessage = error.message === "Invalid login credentials" 
+        ? "E-mail ou senha incorretos." 
+        : error.message;
+      showToast(errorMessage);
       return;
-    } 
+    }
     nav('/home', {replace: true})
   }
 

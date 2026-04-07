@@ -101,10 +101,11 @@ export default function Profile() {
     .maybeSingle();
 
     if(error){
+      console.error("Erro ao carregar perfil:", error);
       toast({
         variant: "destructive",
-        title: "Erro",
-        description: error.message
+        title: "Erro ao carregar",
+        description: "Não foi possível carregar os dados do seu perfil no momento."
       });
       return
     }
@@ -156,10 +157,11 @@ export default function Profile() {
       .upsert(data); // Upsert atualiza se já existir ou insere se for novo
 
     if (error) {
+      console.error("Erro ao salvar perfil:", error);
       toast({
         variant: "destructive",
-        title: "Erro",
-        description: error.message
+        title: "Erro de Sincronia",
+        description: "Não foi possível encontrar a coluna 'avatarUrl' no banco de dados. Por favor, verifique a estrutura da tabela 'profiles'."
       });
       setIsSaving(false);
       return;
