@@ -79,6 +79,22 @@ export default function Profile() {
     if(user) syncprofile(user.id);
   }, []);
 
+  // Auto-detectar cidade e estado por IP
+  useEffect(() => {
+    async function fetchLocation() {
+      try {
+        const res = await fetch('https://ip-api.com/json/?fields=city,region,regionName&lang=pt-BR');
+        const data = await res.json();
+        if (data.city && data.region) {
+          setProfile(prev => ({ ...prev, location: `${data.city}, ${data.region}` }));
+        }
+      } catch (err) {
+        console.error('Erro ao detectar localização:', err);
+      }
+    }
+    fetchLocation();
+  }, []);
+
   async function syncprofile(user_id: string): Promise < void> {
     const { data, error } = await supabase.from('profiles')
     .select('*').eq("user_id", user_id)
@@ -266,8 +282,9 @@ export default function Profile() {
                 <FormField label="Localização" icon={<MapPin size={14} />}>
                   <Input
                     value={profile.location}
-                    onChange={(e) => setProfile({ ...profile, location: e.target.value })}
-                    placeholder="Ex: São Paulo, SP"
+                    readOnly
+                    className="opacity-60 cursor-not-allowed border-slate-700"
+                    placeholder="Detectando..."
                   />
                 </FormField>
 

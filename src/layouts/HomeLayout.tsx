@@ -3,6 +3,7 @@ import { Outlet } from "react-router-dom";
 import { HomeSidebar } from "@/components/home/HomeSidebar";
 import { FloatingChatbot } from "@/components/home/FloatingChatbot";
 import { ChatProvider } from "@/contexts/ChatContext";
+import { AccessibilityMenu } from "@/components/AccessibilityMenu";
 
 export default function HomeLayout() {
   return (
@@ -13,6 +14,7 @@ export default function HomeLayout() {
           <Outlet />
         </main>
         <FloatingChatbot />
+        <AccessibilityMenu />
       </div>
     </ChatProvider>
   );
