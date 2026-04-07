@@ -12,6 +12,7 @@ import { Link } from 'react-router-dom';
 import { Report } from "@/components/Report";
 import supabase from "../../../utils/supabase";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 type Game = {
   name?: string;
@@ -26,6 +27,7 @@ type User = {
 
 
 export default function EcoNexus() {
+  const { toast } = useToast();
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const { user, signOutUser } = useAuth();
   const [game, setGame] = useState<Game>();
@@ -47,7 +49,11 @@ export default function EcoNexus() {
       .maybeSingle();
 
     if (error) {
-      alert(error.message)
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: error.message
+      });
       return
     }
     if (data) {
@@ -61,7 +67,11 @@ export default function EcoNexus() {
       .maybeSingle();
 
     if (error) {
-      alert(error.message)
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: error.message
+      });
       return
     }
     if (data) {

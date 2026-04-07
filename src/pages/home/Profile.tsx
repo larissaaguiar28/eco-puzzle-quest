@@ -9,6 +9,7 @@ import {
 import { cn } from "@/lib/utils";
 import supabase from "../../../utils/supabase";
 import { useAuth } from "../../contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 // --- COMPONENTES AUXILIARES (Para evitar erros de importação) ---
 
@@ -51,6 +52,7 @@ const INTEREST_OPTIONS = [
 ] as const;
 
 export default function Profile() {
+  const { toast } = useToast();
   const randomNumber = Math.floor(1000 + Math.random() * 9000);
 
   const {user, signOutUser}=useAuth();
@@ -83,7 +85,11 @@ export default function Profile() {
     .maybeSingle();
 
     if(error){
-      alert(error.message)
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: error.message
+      });
       return
     }
     if(data){
@@ -110,7 +116,14 @@ export default function Profile() {
   };
 
   const handleSave = async () => {
-    if (!user) return alert("Você precisa estar logado!");
+    if (!user) {
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Você precisa estar logado!"
+      });
+      return;
+    }
     setIsSaving(true);
 
     const data = {
@@ -127,7 +140,11 @@ export default function Profile() {
       .upsert(data); // Upsert atualiza se já existir ou insere se for novo
 
     if (error) {
-      alert(`Erro: ${error.message}`);
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: error.message
+      });
       setIsSaving(false);
       return;
     }
