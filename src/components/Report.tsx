@@ -4,8 +4,7 @@ import { MapPin, Megaphone, Leaf, Camera, Send, Type } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import supabase from "../../utils/supabase";
-import { rejects } from "assert";
-
+import { useToast } from "@/hooks/use-toast";
 
 export type Report = {
   name?: string,
@@ -15,6 +14,7 @@ export type Report = {
 };
 
 export function Report() {
+  const { toast } = useToast();
   const { user, signOutUser } = useAuth();
   const navigate = useNavigate();
   const [reports, setReports] = useState<Report[]>([]);
@@ -25,7 +25,11 @@ export function Report() {
 
   async function handleReport(): Promise<void> {
     if (!report?.message || report.message.trim() === "") {
-      alert("Escreva sua denúncia antes de enviar!");
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Escreva sua denúncia antes de enviar!"
+      });
       return;
     }
 
@@ -41,11 +45,19 @@ export function Report() {
     const { error } = await supabase.from("reports").insert([reportData])
 
     if (error) {
-      alert(error.message)
+      console.error("Erro ao enviar denúncia:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro no Envio",
+        description: "Não foi possível enviar sua denúncia no momento."
+      });
       return
     }
 
-    alert("recebemos sua denúcia")
+    toast({
+      title: "Sucesso",
+      description: "Recebemos sua denúcia"
+    });
     // Limpar o campo após enviar
     setReport({ message: "", name: "", address: "", url: "" });
     // Redirecionar para a página de denúncias
@@ -54,7 +66,11 @@ export function Report() {
 
   async function handleLocation(): Promise<void> {
     if (!navigator.geolocation) {
-      alert("Seu navegador não suporta geolocalização!")
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Seu navegador não suporta geolocalização!"
+      });
       return;
     }
 
@@ -75,7 +91,10 @@ export function Report() {
     };
 
     setReport(data)
-    alert("Localização autenticada!")
+    toast({
+      title: "Sucesso",
+      description: "Localização autenticada!"
+    });
 
   };
 

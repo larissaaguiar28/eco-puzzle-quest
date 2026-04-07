@@ -133,7 +133,7 @@ async function loadChatFromStorage() {
     if (file && (file.type === "application/pdf" || file.type.startsWith("image/"))) {
       setSelectedFile(file);
     } else if (file) {
-      alert("Apenas PDF ou imagens são permitidos.");
+      showToast("Apenas PDF ou imagens são permitidos.");
     }
   };
 

@@ -14,6 +14,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import supabase from "../../../utils/supabase";
 import { useAuth } from "../../contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 // --- INTERFACES ---
 interface NewsItem {
@@ -93,6 +94,7 @@ const NewsCard = ({ item }: { item: NewsItem; }) => {
   const [newComment, setNewComment] = useState("");
   const [expanded, setExpanded] = useState(false);
   const { user } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
     loadReactions();
@@ -109,7 +111,14 @@ const NewsCard = ({ item }: { item: NewsItem; }) => {
   }
 
   async function handleReaction(type: "like" | "heart" | "idea") {
-    if (!user) { alert("Você precisa estar logado!"); return; }
+    if (!user) {
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Você precisa estar logado!"
+      });
+      return;
+    }
     const { error } = await supabase.from("reactions").insert({ user_id: user.id, news_id: item.id, type: type });
     if (error && error.code === "23505") {
       await supabase.from("reactions").delete().match({ user_id: user.id, news_id: item.id, type: type });

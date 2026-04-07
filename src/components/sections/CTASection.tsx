@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { LogIn, UserPlus, Trophy, Check, Sparkles, GraduationCap, ArrowRight, Lock, Unlock, User } from "lucide-react";
+import { LogIn, UserPlus, Trophy, Check, Sparkles, GraduationCap, ArrowRight, Lock, Unlock, User, Eye, EyeOff, Gift, X, ShieldCheck, PartyPopper } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useQuiz } from "@/contexts/QuizContext";
@@ -21,10 +21,80 @@ export function CTASection() {
   const { isCompleted } = useQuiz();
 
   const [tentativa, setTentativa] = useState(0);
+  const [showPassword, setShowPassword] = useState(false);
 
   const [user, setUser] = useState<User>();
   const [users, setUsers] = useState<User[]>([]);
   const { message, showToast } = useToast();
+
+  // --- BONUS STATES ---
+  const [showBonusModal, setShowBonusModal] = useState(false);
+  const [bonusRedeemed, setBonusRedeemed] = useState(false);
+  const [bonusLoading, setBonusLoading] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [bonusEmail, setBonusEmail] = useState("");
+
+  async function handleRedeemBonus() {
+    const email = bonusEmail.trim().toLowerCase();
+    if (!email) {
+      showToast("Informe seu e-mail para resgatar!");
+      return;
+    }
+    if (!acceptedTerms) {
+      showToast("Aceite os termos para continuar.");
+      return;
+    }
+
+    setBonusLoading(true);
+
+    // 1. Verificar se já existe um perfil com esse email
+    const { data: profile, error: fetchError } = await supabase
+      .from('profiles')
+      .select('bonus, user_id')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error("Erro ao buscar perfil:", fetchError.message);
+      showToast("Erro ao verificar: " + fetchError.message);
+      setBonusLoading(false);
+      return;
+    }
+
+    // 2. Se já resgatou antes
+    if (profile?.bonus === true) {
+      setBonusRedeemed(true);
+      setBonusLoading(false);
+      showToast("Este e-mail já resgatou o bônus anteriormente!");
+      setShowBonusModal(false);
+      return;
+    }
+
+    // 3. Se perfil existe mas bonus é false → atualizar
+    if (profile) {
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ bonus: true })
+        .eq('email', email);
+
+      if (updateError) {
+        console.error("Erro ao atualizar bônus:", updateError.message);
+        showToast("Erro: " + updateError.message);
+        setBonusLoading(false);
+        return;
+      }
+    } else {
+      // 4. Perfil ainda não existe (pessoa não se cadastrou ainda)
+      // Salvar no localStorage para aplicar quando se registrar
+      localStorage.setItem('eco_bonus_email', email);
+    }
+
+    setBonusLoading(false);
+    setBonusRedeemed(true);
+    setShowBonusModal(false);
+    setUser(prev => ({ ...prev, email }));
+    showToast("🎉 Bônus de 30 dias resgatado com sucesso!");
+  }
 
 
   async function checkedLogin() { console.log('checkedLogin')
@@ -47,9 +117,13 @@ export function CTASection() {
     });
 
     if(error){
-      showToast(error.message);
+      console.error("Erro no login:", error.message);
+      const errorMessage = error.message === "Invalid login credentials" 
+        ? "E-mail ou senha incorretos." 
+        : error.message;
+      showToast(errorMessage);
       return;
-    } 
+    }
     nav('/home', {replace: true})
   }
 
@@ -61,11 +135,25 @@ export function CTASection() {
         const {data, error} = await supabase.auth.signUp({
           email: user.email,
           password: user.pass
-
         })
 
-        if(error) showToast("Deu ruim!")
-        else showToast('Email Cadastrado com sucesso!')
+        if(error) {
+          showToast("Deu ruim!")
+        } else {
+          // Verificar se tem bônus pendente no localStorage
+          const bonusEmail = localStorage.getItem('eco_bonus_email');
+          if (bonusEmail && bonusEmail === user.email.trim().toLowerCase() && data?.user) {
+            await supabase.from('profiles').upsert({
+              user_id: data.user.id,
+              email: user.email,
+              bonus: true,
+              role: "user",
+              active: true,
+            }, { onConflict: 'user_id' });
+            localStorage.removeItem('eco_bonus_email');
+          }
+          showToast('Email Cadastrado com sucesso!')
+        }
 
       } else {
         showToast('Email e senha obrigatório!');
@@ -155,6 +243,7 @@ export function CTASection() {
                     <Input
                       type="email"
                       placeholder="seu@email.com"
+                      value={user?.email || ""}
                       className="bg-white/5 border-white/10 text-white placeholder:text-gray-600 h-14 rounded-2xl focus:ring-[#4ADE80] transition-all"
 
                       onChange={(e) => setUser(
@@ -171,17 +260,26 @@ export function CTASection() {
 
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-emerald-400/80 ml-2 uppercase tracking-widest">Senha</label>
-                    <Input
-                      type="password"
-                      placeholder="••••••••"
-                      className="bg-white/5 border-white/10 text-white placeholder:text-gray-600 h-14 rounded-2xl focus:ring-[#4ADE80] transition-all"
-                      onChange={(e) => setUser(
-                        {
-                          ...user, pass: e.target.value
-                        }
-                      )}
-
-                    />
+                    <div className="relative">
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="••••••••"
+                        className="bg-white/5 border-white/10 text-white placeholder:text-gray-600 h-14 rounded-2xl focus:ring-[#4ADE80] transition-all pr-14"
+                        onChange={(e) => setUser(
+                          {
+                            ...user, pass: e.target.value
+                          }
+                        )}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors p-1"
+                        aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                      >
+                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                      </button>
+                    </div>
                   </div>
 
                   <Button className="w-full h-14 bg-[#4ADE80] hover:bg-[#3ecb72] text-[#0D3B2E] font-black rounded-2xl mt-6 text-base uppercase tracking-wider shadow-[0_10px_20px_rgba(74,222,128,0.2)] transition-transform active:scale-95"
@@ -228,23 +326,34 @@ export function CTASection() {
                 </div>
 
                 <motion.div
-                  animate={isGoalReached ? { scale: [1, 1.01, 1] } : {}}
+                  animate={isGoalReached && !bonusRedeemed ? { scale: [1, 1.01, 1] } : {}}
                   transition={{ repeat: Infinity, duration: 2 }}
                 >
                   <Button
-                    disabled={!isGoalReached}
-                    className={`w-full h-16 rounded-2xl font-bold transition-all duration-500 flex items-center justify-center gap-3 ${isGoalReached
-                      ? "bg-gradient-to-r from-emerald-500 to-green-400 text-white shadow-xl cursor-pointer hover:brightness-110 opacity-100"
-                      : "bg-slate-100 text-slate-400 cursor-not-allowed opacity-70 border-2 border-dashed border-slate-200 shadow-none"
+                    disabled={!isGoalReached || bonusRedeemed}
+                    onClick={() => {
+                      if (bonusRedeemed) {
+                        showToast("Você já resgatou este bônus!");
+                        return;
+                      }
+                      setShowBonusModal(true);
+                    }}
+                    className={`w-full h-16 rounded-2xl font-bold transition-all duration-500 flex items-center justify-center gap-3 ${bonusRedeemed
+                      ? "bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-xl opacity-90 cursor-not-allowed"
+                      : isGoalReached
+                        ? "bg-gradient-to-r from-emerald-500 to-green-400 text-white shadow-xl cursor-pointer hover:brightness-110 opacity-100"
+                        : "bg-slate-100 text-slate-400 cursor-not-allowed opacity-70 border-2 border-dashed border-slate-200 shadow-none"
                       }`}
                   >
-                    {isGoalReached ? (
-                      <><Unlock className="h-5 w-5" /> RESGATAR 30 DIAS GRÁTIS!</>
+                    {bonusRedeemed ? (
+                      <><Check className="h-5 w-5" /> BÔNUS JÁ RESGATADO ✓</>
+                    ) : isGoalReached ? (
+                      <><Gift className="h-5 w-5" /> RESGATAR 30 DIAS GRÁTIS!</>
                     ) : (
                       <><Lock className="h-5 w-5" /> COMPLETE 4 QUIZZES PARA GANHAR 30 DIAS</>
                     )}
                   </Button>
-                  {!isGoalReached && (
+                  {!isGoalReached && !bonusRedeemed && (
                     <p className="text-center text-[10px] text-slate-400 mt-3 font-bold uppercase tracking-widest">
                       Faltam {GOAL_COUNT - completedCount} módulos para liberar o acesso gratuito
                     </p>
@@ -297,6 +406,114 @@ export function CTASection() {
           </div>
         </div>
       </section>
+
+      {/* MODAL DE CONFIRMAÇÃO DO BÔNUS */}
+      <AnimatePresence>
+        {showBonusModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+            onClick={() => setShowBonusModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative bg-[#0D3B2E] border border-emerald-500/30 rounded-[2.5rem] p-8 md:p-10 max-w-md w-full shadow-[0_0_80px_rgba(16,185,129,0.2)]"
+            >
+              {/* Close */}
+              <button
+                onClick={() => setShowBonusModal(false)}
+                className="absolute top-5 right-5 text-white/40 hover:text-white transition-colors p-1"
+              >
+                <X className="h-5 w-5" />
+              </button>
+
+              {/* Icon */}
+              <div className="flex justify-center mb-6">
+                <div className="p-5 rounded-3xl bg-emerald-500/20 border border-emerald-500/30">
+                  <Gift className="h-10 w-10 text-emerald-400" />
+                </div>
+              </div>
+
+              {/* Title */}
+              <h3 className="text-2xl font-black text-white text-center mb-2">
+                Resgatar Bônus
+              </h3>
+              <p className="text-emerald-100/60 text-sm text-center mb-8">
+                Você desbloqueou <span className="text-emerald-400 font-bold">30 dias grátis</span> ao completar os quizzes!
+              </p>
+
+              {/* Email Input */}
+              <div className="space-y-2 mb-6">
+                <label className="text-xs font-bold text-emerald-400/80 ml-2 uppercase tracking-widest">Seu E-mail</label>
+                <Input
+                  type="email"
+                  placeholder="seu@email.com"
+                  value={bonusEmail}
+                  onChange={(e) => setBonusEmail(e.target.value)}
+                  className="bg-white/5 border-white/10 text-white placeholder:text-gray-600 h-14 rounded-2xl focus:ring-[#4ADE80] transition-all"
+                />
+              </div>
+
+              {/* Rules */}
+              <div className="bg-black/30 rounded-2xl p-5 mb-6 space-y-3 border border-white/5">
+                <div className="flex items-center gap-3 text-sm text-white/80">
+                  <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0" />
+                  <span>O bônus só pode ser resgatado <strong className="text-white">1 vez por e-mail</strong></span>
+                </div>
+                <div className="flex items-center gap-3 text-sm text-white/80">
+                  <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0" />
+                  <span>Os 30 dias serão ativados <strong className="text-white">imediatamente</strong></span>
+                </div>
+                <div className="flex items-center gap-3 text-sm text-white/80">
+                  <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0" />
+                  <span>Não é possível transferir para outra conta</span>
+                </div>
+              </div>
+
+              {/* Checkbox Terms */}
+              <label className="flex items-start gap-3 cursor-pointer mb-8 group">
+                <div
+                  onClick={() => setAcceptedTerms(!acceptedTerms)}
+                  className={`mt-0.5 flex items-center justify-center w-5 h-5 rounded-md border-2 transition-all duration-300 shrink-0 ${
+                    acceptedTerms
+                      ? "bg-emerald-500 border-emerald-500"
+                      : "border-white/30 group-hover:border-emerald-400/60"
+                  }`}
+                >
+                  {acceptedTerms && <Check className="h-3 w-3 text-white" strokeWidth={4} />}
+                </div>
+                <span className="text-sm text-white/70 group-hover:text-white/90 transition-colors leading-snug">
+                  Li e concordo com as regras de resgate do bônus
+                </span>
+              </label>
+
+              {/* Action Button */}
+              <Button
+                disabled={!acceptedTerms || bonusLoading || !bonusEmail.trim()}
+                onClick={handleRedeemBonus}
+                className={`w-full h-14 rounded-2xl font-black uppercase tracking-wider text-base transition-all duration-300 flex items-center justify-center gap-3 ${
+                  acceptedTerms
+                    ? "bg-[#4ADE80] hover:bg-[#3ecb72] text-[#0D3B2E] shadow-[0_10px_30px_rgba(74,222,128,0.3)]"
+                    : "bg-white/10 text-white/30 cursor-not-allowed"
+                }`}
+              >
+                {bonusLoading ? (
+                  <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}>
+                    <Sparkles className="h-5 w-5" />
+                  </motion.div>
+                ) : (
+                  <>Confirmar Resgate <PartyPopper className="h-5 w-5" /></>
+                )}
+              </Button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       </>
     );
   }

@@ -9,6 +9,7 @@ import {
 import { cn } from "@/lib/utils";
 import supabase from "../../../utils/supabase";
 import { useAuth } from "../../contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 // --- COMPONENTES AUXILIARES (Para evitar erros de importação) ---
 
@@ -23,7 +24,7 @@ const FormField = ({ label, icon, children }: { label: string; icon: React.React
 );
 
 const Input = ({ className, ...props }: React.InputHTMLAttributes<HTMLInputElement>) => (
-  <input
+  <input 
     {...props}
     className={cn(
       "w-full px-4 py-3 bg-black/40 border border-emerald-500/20 rounded-xl",
@@ -41,7 +42,7 @@ interface UserProfile {
   email?: string;
   location?: string;
   bio?: string;
-  avatarUrl?: string;
+  image?: string;
   interests: string[];
 }
 
@@ -51,6 +52,7 @@ const INTEREST_OPTIONS = [
 ] as const;
 
 export default function Profile() {
+  const { toast } = useToast();
   const randomNumber = Math.floor(1000 + Math.random() * 9000);
 
   const {user, signOutUser}=useAuth();
@@ -77,13 +79,34 @@ export default function Profile() {
     if(user) syncprofile(user.id);
   }, []);
 
+  // Auto-detectar cidade e estado por IP
+  useEffect(() => {
+    async function fetchLocation() {
+      try {
+        const res = await fetch('https://ip-api.com/json/?fields=city,region,regionName&lang=pt-BR');
+        const data = await res.json();
+        if (data.city && data.region) {
+          setProfile(prev => ({ ...prev, location: `${data.city}, ${data.region}` }));
+        }
+      } catch (err) {
+        console.error('Erro ao detectar localização:', err);
+      }
+    }
+    fetchLocation();
+  }, []);
+
   async function syncprofile(user_id: string): Promise < void> {
     const { data, error } = await supabase.from('profiles')
     .select('*').eq("user_id", user_id)
     .maybeSingle();
 
     if(error){
-      alert(error.message)
+      console.error("Erro ao carregar perfil:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao carregar",
+        description: "Não foi possível carregar os dados do seu perfil no momento."
+      });
       return
     }
     if(data){
@@ -104,13 +127,20 @@ export default function Profile() {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => setProfile((prev) => ({ ...prev, avatarUrl: reader.result as string }));
+      reader.onloadend = () => setProfile((prev) => ({ ...prev, image: reader.result as string }));
       reader.readAsDataURL(file);
     }
   };
 
   const handleSave = async () => {
-    if (!user) return alert("Você precisa estar logado!");
+    if (!user) {
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Você precisa estar logado!"
+      });
+      return;
+    }
     setIsSaving(true);
 
     const data = {
@@ -127,7 +157,12 @@ export default function Profile() {
       .upsert(data); // Upsert atualiza se já existir ou insere se for novo
 
     if (error) {
-      alert(`Erro: ${error.message}`);
+      console.error("Erro ao salvar perfil:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro de Sincronia",
+        description: "Não foi possível encontrar a coluna 'avatarUrl' no banco de dados. Por favor, verifique a estrutura da tabela 'profiles'."
+      });
       setIsSaving(false);
       return;
     }
@@ -191,8 +226,8 @@ export default function Profile() {
               className="w-32 h-32 rounded-3xl bg-gradient-to-br from-emerald-300 via-emerald-500 to-teal-600 p-[3px] shadow-lg shadow-emerald-500/30"
             >
               <div className="w-full h-full rounded-[1.3rem] bg-[#020617] flex items-center justify-center overflow-hidden">
-                {profile.avatarUrl ? (
-                  <img src={profile.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                {profile.image ? (
+                  <img src={profile.image} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
                   <User size={48} className="text-emerald-400/30" />
                 )}
@@ -249,8 +284,9 @@ export default function Profile() {
                 <FormField label="Localização" icon={<MapPin size={14} />}>
                   <Input
                     value={profile.location}
-                    onChange={(e) => setProfile({ ...profile, location: e.target.value })}
-                    placeholder="Ex: São Paulo, SP"
+                    readOnly
+                    className="opacity-60 cursor-not-allowed border-slate-700"
+                    placeholder="Detectando..."
                   />
                 </FormField>
 

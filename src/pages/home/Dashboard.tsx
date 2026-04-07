@@ -6,12 +6,15 @@ import {
   Gamepad2, Megaphone, ChevronRight,
   Target, Zap, MapPin, Camera, Send,
   Trophy, User, ArrowUpRight, Leaf,
-  Activity, Info, CheckCircle2
+  Activity, Info, CheckCircle2,
+  Sprout, TreePine, Shield
 } from "lucide-react";
 import { Link } from 'react-router-dom';
 import { Report } from "@/components/Report";
 import supabase from "../../../utils/supabase";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+
 
 type Game = {
   name?: string;
@@ -24,15 +27,32 @@ type User = {
   eco?: number;
 }
 
+const ECO_RANKS = [
+  { maxLvl: 5, title: "Semente Curiosa 🌱", icon: Sprout },
+  { maxLvl: 10, title: "Broto Desperto 🌿", icon: Sprout },
+  { maxLvl: 15, title: "Guardião do Jardim 🍃", icon: Leaf },
+  { maxLvl: 20, title: "Protetor Verde 🌳", icon: Leaf },
+  { maxLvl: 25, title: "Cultivador da Vida 🌼", icon: TreePine },
+  { maxLvl: 30, title: "Mestre da Floresta 🌲", icon: TreePine },
+  { maxLvl: 35, title: "Lenda da Natureza 🌴", icon: TreePine },
+  { maxLvl: 40, title: "Guardião do Equilíbrio ⚖️🌿", icon: Shield },
+  { maxLvl: 45, title: "Herói do Planeta 🌎🦸‍♂️", icon: Shield },
+  { maxLvl: Infinity, title: "Lenda Viva da Terra 🌍✨", icon: Trophy },
+];
 
 export default function EcoNexus() {
+  const { toast } = useToast();
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const { user, signOutUser } = useAuth();
   const [game, setGame] = useState<Game>();
   const [eco, setEco] = useState<User>();
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [profileName, setProfileName] = useState<string>("");
 
   const xpNoNivelAtual = (game?.totalXp ?? 0) % 1000;
   const porcentagemProgresso = (xpNoNivelAtual / 1000) * 100;
+
+  const currentRank = ECO_RANKS.find((rank) => (game?.level ?? 1) <= rank.maxLvl) || ECO_RANKS[ECO_RANKS.length - 1];
 
   useEffect(() => {
     if (user) {
@@ -43,15 +63,22 @@ export default function EcoNexus() {
 
   async function syncEcos(user_id: string): Promise<void> {
     const { data, error } = await supabase.from('profiles')
-      .select('eco').eq("user_id", user_id)
+      .select('eco, image, name').eq("user_id", user_id)
       .maybeSingle();
 
     if (error) {
-      alert(error.message)
+      console.error("Erro na sincronização:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro de Sincronia",
+        description: "Não foi possível sincronizar os dados com o servidor."
+      });
       return
     }
     if (data) {
       setEco(data);
+      if (data.image) setProfileImage(data.image);
+      if (data.name) setProfileName(data.name);
     }
   }
 
@@ -61,7 +88,12 @@ export default function EcoNexus() {
       .maybeSingle();
 
     if (error) {
-      alert(error.message)
+      console.error("Erro na sincronização de progresso:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro de Progresso",
+        description: "Houve um problema ao carregar seu nível e XP."
+      });
       return
     }
     if (data) {
@@ -96,7 +128,11 @@ export default function EcoNexus() {
                 className="w-28 h-28 rounded-3xl bg-gradient-to-br from-emerald-400 via-cyan-500 to-blue-600 p-[3px] shadow-lg shadow-emerald-500/20"
               >
                 <div className="w-full h-full rounded-[1.3rem] bg-[#020617] flex items-center justify-center overflow-hidden">
-                  <User size={48} className="text-emerald-500/40" />
+                  {profileImage ? (
+                    <img src={profileImage} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <User size={48} className="text-emerald-500/40" />
+                  )}
                 </div>
               </motion.div>
               <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-black text-[11px] font-black px-2.5 py-1 rounded-lg shadow-xl ring-4 ring-[#020617]">
@@ -113,8 +149,9 @@ export default function EcoNexus() {
                     <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
                     <p className="text-emerald-500 text-[10px] font-black uppercase tracking-[0.3em]">Operador Online</p>
                   </div>
-                  <h2 className="text-4xl font-black tracking-tighter text-white uppercase italic leading-none drop-shadow-sm">
-                    {/* {PLAYER.rank} */}
+                  <h2 className="text-4xl md:text-3xl lg:text-4xl font-black tracking-tighter text-white uppercase italic leading-none drop-shadow-sm flex items-center gap-3">
+                    {currentRank.title}
+                    <currentRank.icon className="text-emerald-500 w-8 h-8" />
                   </h2>
                 </div>
                 <div className="bg-white/5 border border-white/10 rounded-2xl px-5 py-3 backdrop-blur-md">
