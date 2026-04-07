@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   TreePine, Recycle, Droplets, Wind, Leaf, Sun, Brain,
   ChevronLeft, ChevronRight, Shield, Zap, Award, Trophy, Star, Sprout,
-  Gamepad2, Flame
+  Gamepad2, Flame, Waves, Globe, ShieldCheck, Crown, Flower,
+  Droplet, Settings
 } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
@@ -29,49 +30,69 @@ const GAMES = [
 ];
 
 interface BadgeType {
-  imageUrl: string;
+  iconId: string;
+  theme: string;
   name: string;
   description: string;
 }
 
+const BADGE_THEMES: Record<string, { from: string; to: string; border1: string; border2: string }> = {
+  jade: { from: "#022c22", to: "#10b981", border1: "#34d399", border2: "#a7f3d0" }, // Verde Mutante/Jade
+  amethyst: { from: "#3b0764", to: "#c084fc", border1: "#e9d5ff", border2: "#faf5ff" }, // Roxo/Metatista Mestre
+  sapphire: { from: "#172554", to: "#3b82f6", border1: "#93c5fd", border2: "#dbeafe" }, // Azul Neon/Safira
+  bronze: { from: "#451a03", to: "#d97706", border1: "#fcd34d", border2: "#fef3c7" }, // Bronze de Iniciante
+  gold: { from: "#713f12", to: "#facc15", border1: "#fef08a", border2: "#fffbeb" }, // Ouro Brilhante
+  ruby: { from: "#450a0a", to: "#ef4444", border1: "#fca5a5", border2: "#fee2e2" }, // Vermelho Sangue/Rubi
+  teal: { from: "#042f2e", to: "#2dd4bf", border1: "#99f6e4", border2: "#ccfbf1" }, // Ciano Elétrico
+  platinum: { from: "#0f172a", to: "#cbd5e1", border1: "#f1f5f9", border2: "#ffffff" }, // Prata/Platina Superior
+};
+
 const INITIAL_BADGES: BadgeType[] = [
   {
-    imageUrl: "/images/ach_guardiao.png",
+    iconId: "arvore-sol", // Símbolo 11 da imagem (Árvores + Sol)
+    theme: "jade",
     name: "Guardião",
     description: "10 missões de reflorestamento"
   },
   {
-    imageUrl: "/images/ach_mestre.png",
+    iconId: "reciclagem", // Símbolo 8 da imagem (Triângulo de Reciclagem)
+    theme: "amethyst",
     name: "Mestre",
     description: "Reciclou 500 itens"
   },
   {
-    imageUrl: "/images/ach_protetor.png",
+    iconId: "gota-onda", // Símbolo 4 da imagem (Torneira/Gota + Onda)
+    theme: "sapphire",
     name: "Protetor",
     description: "Limpou 3 oceanos"
   },
   {
-    imageUrl: "/images/ach_eco.png",
-    name: "Eco Iniciante",
+    iconId: "broto", // Símbolo 6 da imagem (Broto crescendo)
+    theme: "bronze",
+    name: "Iniciante",
     description: "Completou o tutorial"
   },
   {
-    imageUrl: "/images/ach_solar.png",
-    name: "Solar Champion",
+    iconId: "sol-raio", // Símbolo 12 da imagem (Sol com Raio/Energia)
+    theme: "gold",
+    name: "Solar",
     description: "100 painéis solares"
   },
   {
-    imageUrl: "/images/ach_defensor.png",
+    iconId: "engrenagem-folha", // Símbolo 5 da imagem (Engrenagem com Folha)
+    theme: "ruby",
     name: "Defensor",
     description: "Bloqueou 50 ameaças"
   },
   {
-    imageUrl: "/images/eneviva1.png",
-    name: "Energia Viva",
+    iconId: "vento", 
+    theme: "teal",
+    name: "Energia",
     description: "Gerou 1GW limpo"
   },
   {
-    imageUrl: "/images/veterano.png",
+    iconId: "globo-broto", // Símbolo 2 da imagem (Planeta globo com Broto)
+    theme: "platinum",
     name: "Veterano",
     description: "30 dias seguidos"
   }
@@ -616,15 +637,104 @@ export default function GamesPage() {
                       >
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <div className="w-full h-full flex items-center justify-center p-3 relative">
-                              <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                              <img
-                                src={badge.imageUrl}
-                                alt={badge.name}
-                                className="w-full h-full object-contain transition-all duration-300 group-hover:scale-110 drop-shadow-[0_0_15px_rgba(34,211,238,0.3)] mix-blend-screen"
-                                loading="eager"
-                                onError={(e) => { (e.currentTarget as HTMLImageElement).src = "https://placehold.co/100x100/0f172a/22d3ee?text=Eco"; }}
-                              />
+                            <div className="w-full h-full flex items-center justify-center relative group-hover:scale-105 transition-transform duration-300">
+                              {(() => {
+                                const theme = BADGE_THEMES[badge.theme] || BADGE_THEMES.emerald;
+                                const uid = badge.name.replace(/\s+/g, '');
+                                return (
+                                  <>
+                                    <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full z-10 transition-transform duration-500">
+                                      <defs>
+                                        <linearGradient id={`bg-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                                          <stop offset="0%" stopColor={theme.from} />
+                                          <stop offset="100%" stopColor={theme.to} />
+                                        </linearGradient>
+                                        
+                                        {/* Path inferior para texto curvado */}
+                                        <path id={`curve-bottom-${uid}`} d="M 16 50 A 34 34 0 0 0 84 50" fill="transparent" />
+                                      </defs>
+                                      
+                                      {/* Fundo Full - Ocupará o botão inteiro */}
+                                      <rect width="100" height="100" fill={`url(#bg-${uid})`} />
+                                      
+                                      {/* Outer dashed ring (stamp feeling) acompanhando a borda do botão */}
+                                      <circle cx="50" cy="50" r="46" fill="none" stroke={theme.border1} strokeWidth="1.5" strokeDasharray="3 4" opacity="0.6" />
+                                      
+                                      {/* Outer solid border para selar o design orgânico */}
+                                      <circle cx="50" cy="50" r="40" fill="none" stroke={theme.border2} strokeWidth="2" opacity="0.7" />
+
+                                      {/* Ramos de Folhas Gigantes tocando as laterais */}
+                                      <path d="M 10 90 Q -2 50 15 10" fill="none" stroke={theme.border2} strokeWidth="1.5" opacity="0.6" />
+                                      <path d="M 5 68 Q 12 66 15 60 Q 9 62 5 68 M 4 54 Q 11 52 14 46 Q 8 48 4 54 M 6 40 Q 12 36 17 30 Q 11 34 6 40 M 13 25 Q 19 21 24 15 Q 18 19 13 25" fill={theme.border1} opacity="0.5" />
+                                      
+                                      <path d="M 90 90 Q 102 50 85 10" fill="none" stroke={theme.border2} strokeWidth="1.5" opacity="0.6" />
+                                      <path d="M 95 68 Q 88 66 85 60 Q 91 62 95 68 M 96 54 Q 89 52 86 46 Q 92 48 96 54 M 94 40 Q 88 36 83 30 Q 89 34 94 40 M 87 25 Q 81 21 76 15 Q 82 19 87 25" fill={theme.border1} opacity="0.5" />
+
+                                      {/* Curved Texts - Fonte ampliada acompanhando a silhueta circular */}
+                                      <text className="text-[9.5px] font-extrabold tracking-widest uppercase drop-shadow-lg" fill={theme.border1}>
+                                        <textPath href={`#curve-bottom-${uid}`} startOffset="50%" textAnchor="middle">
+                                          {badge.name}
+                                        </textPath>
+                                      </text>
+                                    </svg>
+
+                                    {/* Componente Modular Extraído das Referências de Ícones */}
+                                    <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none drop-shadow-[0_4px_6px_rgba(0,0,0,0.8)] mix-blend-screen">
+                                      <div className="relative w-[50px] h-[50px] flex items-center justify-center">
+                                        {(() => {
+                                          switch (badge.iconId) {
+                                            case "arvore-sol":
+                                              return (
+                                                <>
+                                                  <TreePine size={28} strokeWidth={2.5} style={{ color: theme.border1 }} className="absolute -left-1 bottom-1 drop-shadow" />
+                                                  <TreePine size={40} strokeWidth={2.5} className="text-white absolute left-3 top-2 z-10" />
+                                                  <Sun size={22} strokeWidth={3} style={{ color: theme.border2 }} className="absolute -top-1 right-0 animate-[spin_12s_linear_infinite] drop-shadow" />
+                                                </>
+                                              );
+                                            case "reciclagem":
+                                              return <Recycle size={46} strokeWidth={2.5} className="text-white absolute" />;
+                                            case "gota-onda":
+                                              return (
+                                                <>
+                                                  <Droplet size={18} strokeWidth={2.5} style={{ color: theme.border2, fill: theme.border2 }} className="absolute -top-2 animate-bounce drop-shadow" />
+                                                  <Waves size={42} strokeWidth={2.5} className="text-white absolute bottom-1" />
+                                                </>
+                                              );
+                                            case "broto":
+                                              return <Sprout size={46} strokeWidth={2.5} className="text-white absolute" />;
+                                            case "sol-raio":
+                                              return (
+                                                <>
+                                                  <Sun size={48} strokeWidth={2.5} className="text-white absolute" />
+                                                  <Zap size={22} style={{ color: theme.border2, fill: theme.border2 }} className="absolute drop-shadow-lg" />
+                                                </>
+                                              );
+                                            case "engrenagem-folha":
+                                              return (
+                                                <>
+                                                  <Settings size={44} strokeWidth={2.5} className="text-white absolute animate-[spin_20s_linear_infinite]" />
+                                                  <Leaf size={22} style={{ color: theme.border2, fill: theme.border2 }} className="absolute drop-shadow-lg" />
+                                                </>
+                                              );
+                                            case "vento":
+                                              return <Wind size={46} strokeWidth={2.5} className="text-white absolute" />;
+                                            case "globo-broto":
+                                              return (
+                                                <>
+                                                  <Sprout size={24} strokeWidth={3} style={{ color: theme.border2 }} className="absolute -top-3 z-20 drop-shadow" />
+                                                  <Globe size={40} strokeWidth={2.5} className="text-white absolute bottom-1" />
+                                                </>
+                                              );
+                                            default:
+                                              return null;
+                                          }
+                                        })()}
+                                      </div>
+                                    </div>
+                                    
+                                  </>
+                                );
+                              })()}
                             </div>
                           </TooltipTrigger>
                           <TooltipContent side="top" className="bg-cyan-500 text-slate-950 font-black p-3 rounded-xl border-none shadow-[0_0_20px_rgba(34,211,238,0.5)]">
