@@ -64,10 +64,11 @@ export default function EcoNexus() {
       .maybeSingle();
 
     if (error) {
+      console.error("Erro na sincronização:", error);
       toast({
         variant: "destructive",
-        title: "Erro",
-        description: error.message
+        title: "Erro de Sincronia",
+        description: "Não foi possível sincronizar os dados com o servidor."
       });
       return
     }
@@ -82,10 +83,11 @@ export default function EcoNexus() {
       .maybeSingle();
 
     if (error) {
+      console.error("Erro na sincronização de progresso:", error);
       toast({
         variant: "destructive",
-        title: "Erro",
-        description: error.message
+        title: "Erro de Progresso",
+        description: "Houve um problema ao carregar seu nível e XP."
       });
       return
     }

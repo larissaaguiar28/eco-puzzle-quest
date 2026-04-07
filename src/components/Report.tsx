@@ -45,10 +45,11 @@ export function Report() {
     const { error } = await supabase.from("reports").insert([reportData])
 
     if (error) {
+      console.error("Erro ao enviar denúncia:", error);
       toast({
         variant: "destructive",
-        title: "Erro",
-        description: error.message
+        title: "Erro no Envio",
+        description: "Não foi possível enviar sua denúncia no momento."
       });
       return
     }
