@@ -6,7 +6,8 @@ import {
   Gamepad2, Megaphone, ChevronRight,
   Target, Zap, MapPin, Camera, Send,
   Trophy, User, ArrowUpRight, Leaf,
-  Activity, Info, CheckCircle2
+  Activity, Info, CheckCircle2,
+  Sprout, TreePine, Shield
 } from "lucide-react";
 import { Link } from 'react-router-dom';
 import { Report } from "@/components/Report";
@@ -24,6 +25,18 @@ type User = {
   eco?: number;
 }
 
+const ECO_RANKS = [
+  { maxLvl: 5, title: "Semente Curiosa 🌱", icon: Sprout },
+  { maxLvl: 10, title: "Broto Desperto 🌿", icon: Sprout },
+  { maxLvl: 15, title: "Guardião do Jardim 🍃", icon: Leaf },
+  { maxLvl: 20, title: "Protetor Verde 🌳", icon: Leaf },
+  { maxLvl: 25, title: "Cultivador da Vida 🌼", icon: TreePine },
+  { maxLvl: 30, title: "Mestre da Floresta 🌲", icon: TreePine },
+  { maxLvl: 35, title: "Lenda da Natureza 🌴", icon: TreePine },
+  { maxLvl: 40, title: "Guardião do Equilíbrio ⚖️🌿", icon: Shield },
+  { maxLvl: 45, title: "Herói do Planeta 🌎🦸‍♂️", icon: Shield },
+  { maxLvl: Infinity, title: "Lenda Viva da Terra 🌍✨", icon: Trophy },
+];
 
 export default function EcoNexus() {
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
@@ -33,6 +46,8 @@ export default function EcoNexus() {
 
   const xpNoNivelAtual = (game?.totalXp ?? 0) % 1000;
   const porcentagemProgresso = (xpNoNivelAtual / 1000) * 100;
+
+  const currentRank = ECO_RANKS.find((rank) => (game?.level ?? 1) <= rank.maxLvl) || ECO_RANKS[ECO_RANKS.length - 1];
 
   useEffect(() => {
     if (user) {
@@ -113,8 +128,9 @@ export default function EcoNexus() {
                     <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
                     <p className="text-emerald-500 text-[10px] font-black uppercase tracking-[0.3em]">Operador Online</p>
                   </div>
-                  <h2 className="text-4xl font-black tracking-tighter text-white uppercase italic leading-none drop-shadow-sm">
-                    {/* {PLAYER.rank} */}
+                  <h2 className="text-4xl md:text-3xl lg:text-4xl font-black tracking-tighter text-white uppercase italic leading-none drop-shadow-sm flex items-center gap-3">
+                    {currentRank.title}
+                    <currentRank.icon className="text-emerald-500 w-8 h-8" />
                   </h2>
                 </div>
                 <div className="bg-white/5 border border-white/10 rounded-2xl px-5 py-3 backdrop-blur-md">
