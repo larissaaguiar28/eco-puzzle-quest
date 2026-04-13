@@ -245,31 +245,10 @@ export default function EcoNexus() {
           </section>
         </Link>
 
-        {/* --- 3. PATRULHA & TASKS --- */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* --- 3. PATRULHA ATIVA --- */}
+        <div className="grid grid-cols-1 gap-6">
 
           <Report />
-
-          {/* QUADRO DE MISSÕES (DAILIES) */}
-          <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 flex flex-col">
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="font-black text-white uppercase italic tracking-tighter text-xl text-emerald-500">Dailies</h3>
-              <div className="bg-emerald-500/20 px-3 py-1 rounded-full text-emerald-400 text-[10px] font-black uppercase tracking-widest border border-emerald-500/20">
-                Refresh em 12h
-              </div>
-            </div>
-
-            <div className="space-y-3 flex-1">
-              <MissionItem label="Validar 3 Denúncias" xp="+150" done={true} />
-              <MissionItem label="Eco Quiz Semanal" xp="+300" done={false} />
-              <MissionItem label="Coleta Seletiva (Foto)" xp="+80" done={false} />
-              <MissionItem label="Convide um Amigo" xp="+500" done={false} />
-            </div>
-
-            <button className="mt-8 w-full py-4 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-emerald-400 transition-all group">
-              Acessar Log de Missões
-            </button>
-          </div>
 
         </div>
       </motion.div>
