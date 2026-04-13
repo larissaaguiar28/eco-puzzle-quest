@@ -93,7 +93,7 @@ export function CTASection() {
     setBonusRedeemed(true);
     setShowBonusModal(false);
     setUser(prev => ({ ...prev, email }));
-    showToast("🎉 Bônus de 30 dias resgatado com sucesso!");
+    showToast("🎉 Bônus de 7 dias resgatado com sucesso!");
   }
 
 
@@ -348,9 +348,9 @@ export function CTASection() {
                     {bonusRedeemed ? (
                       <><Check className="h-5 w-5" /> BÔNUS JÁ RESGATADO ✓</>
                     ) : isGoalReached ? (
-                      <><Gift className="h-5 w-5" /> RESGATAR 30 DIAS GRÁTIS!</>
+                      <><Gift className="h-5 w-5" /> RESGATAR 7 DIAS GRÁTIS!</>
                     ) : (
-                      <><Lock className="h-5 w-5" /> COMPLETE 4 QUIZZES PARA GANHAR 30 DIAS</>
+                      <><Lock className="h-5 w-5" /> COMPLETE 4 QUIZZES PARA GANHAR 7 DIAS</>
                     )}
                   </Button>
                   {!isGoalReached && !bonusRedeemed && (
@@ -444,7 +444,7 @@ export function CTASection() {
                 Resgatar Bônus
               </h3>
               <p className="text-emerald-100/60 text-sm text-center mb-8">
-                Você desbloqueou <span className="text-emerald-400 font-bold">30 dias grátis</span> ao completar os quizzes!
+                Você desbloqueou <span className="text-emerald-400 font-bold">7 dias grátis</span> ao completar os quizzes!
               </p>
 
               {/* Email Input */}
@@ -467,7 +467,7 @@ export function CTASection() {
                 </div>
                 <div className="flex items-center gap-3 text-sm text-white/80">
                   <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0" />
-                  <span>Os 30 dias serão ativados <strong className="text-white">imediatamente</strong></span>
+                  <span>Os 7 dias serão ativados <strong className="text-white">imediatamente</strong></span>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-white/80">
                   <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0" />
