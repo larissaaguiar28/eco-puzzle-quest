@@ -92,6 +92,7 @@ export function CTASection() {
     setBonusLoading(false);
     setBonusRedeemed(true);
     setShowBonusModal(false);
+    setFormMode("register");
     setUser(prev => ({ ...prev, email }));
     showToast("🎉 Bônus de 30 dias resgatado com sucesso!");
   }
