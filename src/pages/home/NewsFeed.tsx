@@ -231,6 +231,8 @@ export default function SustainableNewsFeed() {
   const [expandedCarousel, setExpandedCarousel] = useState(false);
   const [newNews, setNewNews] = useState({ title: "", summary: "", content: "", category: "", location: "" });
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [ecoBalance, setEcoBalance] = useState(0);
+  const { toast } = useToast();
 
   useEffect(() => { loadNewsFeed(); }, []);
   useEffect(() => {
@@ -240,12 +242,53 @@ export default function SustainableNewsFeed() {
   }, [isPaused, expandedCarousel]);
 
   async function loadNewsFeed() {
+    if (user?.id) {
+       const { data: profile } = await supabase.from('profiles').select('eco').eq('user_id', user.id).single();
+       if (profile) setEcoBalance(profile.eco || 0);
+    }
     const { data, error } = await supabase.from("newsfeed").select("*").order("date", { ascending: false });
     if (!error && data) setNewsfeed(data);
   }
 
   async function handlePublish() {
-    if (!user) return;
+    if (!user) {
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Usuário não logado."
+      });
+      return;
+    }
+
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('eco')
+      .eq('user_id', user.id)
+      .single();
+
+    if (profileError || !profileData || profileData.eco < 50) {
+      toast({
+        variant: "destructive",
+        title: "Saldo Insuficiente",
+        description: "Você não possui EcoS suficientes (50) para publicar uma notícia."
+      });
+      return;
+    }
+
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ eco: profileData.eco - 50 })
+      .eq('user_id', user.id);
+
+    if (updateError) {
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Não foi possível deduzir EcoS no momento."
+      });
+      return;
+    }
+
     let imageUrl = null;
     if (imageFile) {
       const fileName = `${Date.now()}-${imageFile.name}`;
@@ -312,7 +355,15 @@ export default function SustainableNewsFeed() {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-500/50" size={16} />
             <Input placeholder="PESQUISAR..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-11 rounded-xl border-white/10 bg-white/5 text-white uppercase text-xs font-black tracking-widest" />
           </div>
-          <Button onClick={() => setShowForm(true)} className="bg-emerald-500 text-black font-black uppercase text-[10px] tracking-widest rounded-xl px-6">Publicar Notícia</Button>
+          <div className="flex items-center gap-4 ml-auto">
+             <div className="bg-white/5 border border-white/10 rounded-2xl px-4 py-2 backdrop-blur-md hidden md:flex text-center shadow-inner items-center">
+               <p className="text-emerald-400 font-black text-lg italic tracking-tighter leading-none">{ecoBalance} <span className="text-[10px] text-slate-400 not-italic">EcoS</span></p>
+             </div>
+             <Button onClick={() => setShowForm(true)} className="bg-emerald-500 hover:bg-emerald-400 text-black font-black uppercase text-[11px] md:text-sm tracking-widest rounded-xl px-6 h-12 flex gap-3 items-center shadow-lg">
+                Publicar Notícia
+                <span className="bg-black/20 px-3 py-1 rounded-md text-xs font-black text-white">-50 EcoS</span>
+             </Button>
+          </div>
         </div>
       </header>
 
@@ -367,7 +418,10 @@ export default function SustainableNewsFeed() {
                 <textarea placeholder="Conteúdo..." className="w-full p-4 rounded-2xl bg-black/30 text-white border border-white/10 min-h-[120px] focus:outline-none" value={newNews.content} onChange={(e) => setNewNews({ ...newNews, content: e.target.value })} />
                 <div className="flex justify-end gap-3 pt-4">
                   <Button variant="ghost" onClick={() => setShowForm(false)} className="text-slate-400">Cancelar</Button>
-                  <Button onClick={handlePublish} className="bg-emerald-500 hover:bg-emerald-400 text-black font-black uppercase px-8 rounded-xl italic">Publicar</Button>
+                  <Button onClick={handlePublish} className="bg-emerald-500 hover:bg-emerald-400 text-black font-black uppercase px-8 py-6 rounded-xl italic flex items-center gap-3 shadow-xl">
+                    Publicar
+                    <span className="bg-black/20 px-3 py-1.5 rounded-md text-sm font-black text-white not-italic">-50 EcoS</span>
+                  </Button>
                 </div>
               </div>
             </motion.div>

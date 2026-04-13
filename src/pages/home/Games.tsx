@@ -13,6 +13,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { cn } from "@/lib/utils";
 import supabase from "../../../utils/supabase";
 import { useAuth } from "../../contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 import ReciclaQuest from "@/components/games/ReciclaQuest";
 import OceanoLimpo from "@/components/games/OceanoLimpo";
@@ -414,6 +415,7 @@ export default function GamesPage() {
   const [index, setIndex] = useState(0);
   const [badges, setBadges] = useState(INITIAL_BADGES);
   const [totalXp, setTotalXp] = useState(0);
+  const [ecoBalance, setEcoBalance] = useState(0);
   const [matches, setMatches] = useState(0);
   const [streakDays, setStreakDays] = useState<number>(0);
   const [activeMission, setActiveMission] = useState<number | null>(null);
@@ -424,6 +426,7 @@ export default function GamesPage() {
   const currentLevel = Math.floor(totalXp / xpPerLevel) + 1;
   const xpInCurrentLevel = totalXp % xpPerLevel;
   const { user } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
     const loadGameData = async () => {
@@ -439,11 +442,59 @@ export default function GamesPage() {
         setMatches(Number(data.matches) || 0);
         setStreakDays(Number(data.streakDays) || 0);
       }
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("eco")
+        .eq("user_id", user.id)
+        .single();
+      
+      if (profile) setEcoBalance(profile.eco || 0);
     };
     loadGameData();
   }, [user?.id]);
 
-  const handleStartMission = () => setActiveMission(index);
+  const handleStartMission = async () => {
+    if (!user?.id) {
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Usuário não autenticado."
+      });
+      return;
+    }
+
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('eco')
+      .eq('user_id', user.id)
+      .single();
+
+    if (profileError || !profileData || profileData.eco < 60) {
+      toast({
+        variant: "destructive",
+        title: "Saldo Insuficiente",
+        description: "Você não possui EcoS suficientes (60) para iniciar uma missão."
+      });
+      return;
+    }
+
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ eco: profileData.eco - 60 })
+      .eq('user_id', user.id);
+
+    if (updateError) {
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Não foi possível deduzir EcoS no momento."
+      });
+      return;
+    }
+
+    setActiveMission(index);
+  };
   const handleMissionXP = (amount: number) => setTotalXp(prev => prev + amount);
 
   const handleExitMission = async () => {
@@ -527,7 +578,12 @@ export default function GamesPage() {
             <h1 className="text-4xl font-black tracking-tighter text-white">ECO<span className="text-cyan-500">PLAY</span></h1>
             <p className="text-slate-500 font-bold uppercase text-xs tracking-[0.3em]">Save the world. Level up.</p>
           </div>
-          <XPCounter value={totalXp} />
+          <div className="flex items-center gap-4">
+            <div className="bg-white/5 border border-white/10 rounded-2xl px-5 py-3 backdrop-blur-md hidden md:block">
+              <p className="text-emerald-400 font-black text-2xl italic tracking-tighter leading-none">{ecoBalance} <span className="text-[10px] text-slate-400 not-italic">EcoS</span></p>
+            </div>
+            <XPCounter value={totalXp} />
+          </div>
         </header>
 
         <section className="grid lg:grid-cols-12 gap-8 relative">
@@ -570,8 +626,8 @@ export default function GamesPage() {
                       <div className="px-12 py-5 bg-cyan-500 group-hover:bg-cyan-400 text-slate-950 font-black rounded-2xl transition-all shadow-[0_0_50px_rgba(34,211,238,0.4)] uppercase tracking-widest">
                         Start Mission
                       </div>
-                      <div className="absolute -top-4 -right-4 bg-emerald-400 text-emerald-950 text-xs font-black px-3 py-1.5 rounded-full border-2 border-slate-950 shadow-xl animate-bounce">
-                        +{REWARD_XP} XP
+                      <div className="absolute -top-4 -right-4 bg-rose-500 text-white text-sm font-black px-4 py-2 rounded-full border-2 border-slate-950 shadow-xl animate-bounce">
+                        - 60 EcoS
                       </div>
                     </motion.button>
                   </div>

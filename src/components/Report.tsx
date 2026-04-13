@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, Megaphone, Leaf, Camera, Send, Type } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
@@ -20,7 +20,17 @@ export function Report() {
   const [reports, setReports] = useState<Report[]>([]);
   const [report, setReport] = useState<Report>();
   const [uploading, setUploading] = useState(false);
+  const [ecoBalance, setEcoBalance] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    async function loadBalance() {
+      if (!user?.id) return;
+      const { data } = await supabase.from('profiles').select('eco').eq('user_id', user.id).single();
+      if (data) setEcoBalance(data.eco || 0);
+    }
+    loadBalance();
+  }, [user]);
 
 
   async function handleReport(): Promise<void> {
@@ -29,6 +39,44 @@ export function Report() {
         variant: "destructive",
         title: "Erro",
         description: "Escreva sua denúncia antes de enviar!"
+      });
+      return;
+    }
+
+    if (!user?.id) {
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Usuário não autenticado."
+      });
+      return;
+    }
+
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('eco')
+      .eq('user_id', user.id)
+      .single();
+
+    if (profileError || !profileData || profileData.eco < 80) {
+      toast({
+        variant: "destructive",
+        title: "Saldo Insuficiente",
+        description: "Você não possui EcoS suficientes (80) para enviar uma denúncia."
+      });
+      return;
+    }
+
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ eco: profileData.eco - 80 })
+      .eq('user_id', user.id);
+
+    if (updateError) {
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Não foi possível deduzir EcoS no momento."
       });
       return;
     }
@@ -145,15 +193,20 @@ export function Report() {
               <MapPin size={12} className="text-rose-500" /> Sincronização GPS: Estável
             </p>
           </div>
-          <div className="p-4 bg-rose-500/10 rounded-3xl border border-rose-500/20">
-            <Megaphone className="text-rose-500" size={32} />
+          <div className="flex gap-4 items-center">
+            <div className="bg-white/5 border border-white/10 rounded-2xl px-4 py-2 backdrop-blur-md hidden sm:flex items-center">
+              <p className="text-emerald-400 font-black text-xl italic tracking-tighter leading-none">{ecoBalance} <span className="text-[10px] text-slate-400 not-italic">EcoS</span></p>
+            </div>
+            <div className="p-4 bg-rose-500/10 rounded-3xl border border-rose-500/20">
+              <Megaphone className="text-rose-500" size={32} />
+            </div>
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <ReportAction icon={MapPin} label="Localização" onClick={() => handleLocation()} highlight />
           <ReportAction icon={Camera} label="Evidência" onClick={(e) => fileInputRef.current.click()} highlight />
-          <ReportAction icon={Send} label="Emitir Alerta" onClick={() => handleReport()} highlight />
+          <ReportAction icon={Send} label="Emitir Alerta" onClick={() => handleReport()} highlight cost="-80 EcoS" />
           <input value={report?.message || ""} placeholder="descreva sua denúncia" onChange={(e) => setReport({ ...report, message: e.target.value })}
             className="sm:col-span-3 bg-white/5 border border-white/10 rounded-2xl p-4 text-[10px] font-black uppercase tracking-[0.2em] text-white placeholder:text-slate-600 focus:outline-none focus:border-emerald-500/50 transition-all mt-2"
           />
@@ -169,7 +222,7 @@ export function Report() {
 
 // --- SUB-COMPONENTES REFINADOS ---
 
-function ReportAction({ icon: Icon, label, highlight, onClick }: any) {
+function ReportAction({ icon: Icon, label, highlight, cost, onClick }: any) {
   return (
     <motion.button
       onClick={onClick}
@@ -182,8 +235,11 @@ function ReportAction({ icon: Icon, label, highlight, onClick }: any) {
           : "bg-white/5 text-slate-400 border-white/5 hover:bg-white/10 hover:border-white/20 hover:text-white"}
       `}
     >
-      <Icon size={28} strokeWidth={highlight ? 3 : 2} className="relative z-10" />
-      <span className="text-[10px] font-black uppercase tracking-[0.2em] relative z-10 leading-none">{label}</span>
+      <Icon size={32} strokeWidth={highlight ? 3 : 2} className="relative z-10" />
+      <div className="flex flex-col items-center relative z-10 gap-2 mt-2">
+        <span className="text-xs font-black uppercase tracking-[0.2em] leading-none mb-1 text-center">{label}</span>
+        {cost && <span className="text-xs font-black bg-black/20 text-white px-3 py-1 rounded-md shadow-sm border border-black/10">{cost}</span>}
+      </div>
 
       {highlight && (
         <motion.div
