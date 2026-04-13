@@ -15,15 +15,68 @@ const BINS = [
   { type: "glass", label: "Vidro", color: "bg-green-500", light: "bg-green-400/20", border: "border-green-400", emoji: "🟢" },
 ];
 
+const MetalItem = () => (
+  <svg viewBox="0 0 100 100" className="w-[60px] h-[60px] drop-shadow-[0_0_15px_rgba(250,204,21,0.6)]" fill="none">
+    <g transform="rotate(45 50 50)">
+      <path d="M40,80 L40,30 A15,15 0 0,1 70,30 L70,65 A10,10 0 0,1 50,65 L50,40" stroke="#64748B" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M40,80 L40,30 A15,15 0 0,1 70,30 L70,65 A10,10 0 0,1 50,65 L50,40" stroke="#E2E8F0" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+    </g>
+  </svg>
+);
+
+const PlasticItem = () => (
+  <svg viewBox="0 0 100 100" className="w-[60px] h-[60px] drop-shadow-[0_0_15px_rgba(239,68,68,0.6)]">
+    <path d="M25,20 L35,85 A5,5 0 0,0 40,90 L60,90 A5,5 0 0,0 65,85 L75,20 Z" fill="#EF4444" />
+    <path d="M32,20 L40,85" stroke="#F87171" strokeWidth="4" fill="none" />
+    <ellipse cx="50" cy="20" rx="27" ry="5" fill="#DC2626" />
+    <ellipse cx="50" cy="19" rx="27" ry="5" fill="#EF4444" />
+    <path d="M23,20 C23,23 35,25 50,25 C65,25 77,23 77,20" fill="none" stroke="#FCA5A5" strokeWidth="2" />
+    <line x1="28" y1="40" x2="72" y2="40" stroke="#DC2626" strokeWidth="3" />
+    <line x1="30" y1="55" x2="70" y2="55" stroke="#DC2626" strokeWidth="3" />
+    <line x1="32" y1="70" x2="68" y2="70" stroke="#DC2626" strokeWidth="3" />
+  </svg>
+);
+
+const PaperItem = () => (
+  <svg viewBox="0 0 100 100" className="w-[60px] h-[60px] drop-shadow-[0_0_15px_rgba(59,130,246,0.6)]">
+    <rect x="25" y="15" width="50" height="70" rx="3" fill="#E2E8F0" />
+    <rect x="25" y="15" width="50" height="70" rx="3" fill="#F8FAFC" transform="rotate(-5 50 50)" />
+    <path d="M60,10 L75,25 L60,25 Z" fill="#CBD5E1" transform="rotate(-5 50 50)" />
+    <g transform="rotate(-5 50 50)">
+      <line x1="35" y1="35" x2="65" y2="35" stroke="#94A3B8" strokeWidth="4" strokeLinecap="round" />
+      <line x1="35" y1="45" x2="60" y2="45" stroke="#94A3B8" strokeWidth="4" strokeLinecap="round" />
+      <line x1="35" y1="55" x2="65" y2="55" stroke="#94A3B8" strokeWidth="4" strokeLinecap="round" />
+      <line x1="35" y1="65" x2="50" y2="65" stroke="#38BDF8" strokeWidth="4" strokeLinecap="round" />
+    </g>
+  </svg>
+);
+
+const GlassItem = () => (
+  <svg viewBox="0 0 100 100" className="w-[60px] h-[60px] drop-shadow-[0_0_15px_rgba(34,197,94,0.6)]">
+    <path d="M30,40 L30,85 A10,10 0 0,0 40,95 L60,95 A10,10 0 0,0 70,85 L70,40 Z" fill="#86EFAC" opacity="0.4" />
+    <path d="M30,40 L30,85 A10,10 0 0,0 40,95 L60,95 A10,10 0 0,0 70,85 L70,40 Z" fill="none" stroke="#4ADE80" strokeWidth="4" />
+    <path d="M35,45 L35,80" stroke="#BBF7D0" strokeWidth="4" strokeLinecap="round" fill="none" opacity="0.8" />
+    <rect x="35" y="25" width="30" height="15" fill="#86EFAC" opacity="0.4" />
+    <rect x="35" y="25" width="30" height="15" fill="none" stroke="#4ADE80" strokeWidth="4" />
+    <rect x="32" y="15" width="36" height="10" rx="2" fill="#FCD34D" />
+    <rect x="32" y="15" width="36" height="10" rx="2" fill="none" stroke="#D97706" strokeWidth="2" />
+    <line x1="38" y1="15" x2="38" y2="25" stroke="#D97706" strokeWidth="2" />
+    <line x1="44" y1="15" x2="44" y2="25" stroke="#D97706" strokeWidth="2" />
+    <line x1="50" y1="15" x2="50" y2="25" stroke="#D97706" strokeWidth="2" />
+    <line x1="56" y1="15" x2="56" y2="25" stroke="#D97706" strokeWidth="2" />
+    <line x1="62" y1="15" x2="62" y2="25" stroke="#D97706" strokeWidth="2" />
+  </svg>
+);
+
 const ITEMS = [
-  { type: "metal", emoji: "📎", color: "text-yellow-400" },
-  { type: "plastic", emoji: "🥤", color: "text-red-400" },
-  { type: "paper", emoji: "📄", color: "text-blue-400" },
-  { type: "glass", emoji: "🫙", color: "text-green-400" },
+  { type: "metal", color: "text-yellow-400" },
+  { type: "plastic", color: "text-red-400" },
+  { type: "paper", color: "text-blue-400" },
+  { type: "glass", color: "text-green-400" },
 ];
 
 // Tipagem aprimorada para controle de re-renderização das animações
-type ItemState = { id: number; x: number; y: number; type: string; emoji: string; color: string };
+type ItemState = { id: number; x: number; y: number; type: string; color: string };
 type HitEffectState = { text: string; id: number };
 
 export default function ReciclaQuest({ onExit, onXP }: Props) {
@@ -45,7 +98,7 @@ export default function ReciclaQuest({ onExit, onXP }: Props) {
   const spawn = useCallback(() => {
     const t = ITEMS[Math.floor(Math.random() * ITEMS.length)];
     // Centralizado perfeitamente nas colunas (12.5, 37.5, 62.5, 87.5) e ID único para animação de pop
-    setItem({ id: Date.now(), x: 37.5, y: -10, type: t.type, emoji: t.emoji, color: t.color });
+    setItem({ id: Date.now(), x: 37.5, y: -10, type: t.type, color: t.color });
   }, []);
 
   // Game Loop de Alta Performance usando requestAnimationFrame
@@ -210,7 +263,12 @@ export default function ReciclaQuest({ onExit, onXP }: Props) {
                     rotate: { duration: 4, repeat: Infinity, ease: "linear" }
                   }}
                 >
-                  <span className={`text-6xl drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]`}>{item.emoji}</span>
+                  <div className="flex items-center justify-center">
+                    {item.type === "metal" && <MetalItem />}
+                    {item.type === "plastic" && <PlasticItem />}
+                    {item.type === "paper" && <PaperItem />}
+                    {item.type === "glass" && <GlassItem />}
+                  </div>
                   <div className="mt-2 h-4 w-4 border-l-4 border-b-4 border-white/20 rotate-[-45deg]" />
                 </motion.div>
               )

@@ -13,7 +13,7 @@ interface OceanObject {
   x: number;
   y: number;
   type: "trash" | "animal";
-  emoji: string;
+  iconIndex: number;
   speed: number;
   wobble: number;
 }
@@ -25,8 +25,145 @@ interface Particle {
   color: string;
 }
 
-const TRASH = ["🥤", "🛍️", "🧴", "📦", "🥡", "🪣", "🥫", "👟", "🔋", "🛢️"];
-const ANIMALS = ["🐟", "🐢", "🐠", "🦈", "🐙", "🦀", "🐬", "🐳", "🐡", "🦑"];
+const PlasticCup = () => (
+  <svg viewBox="0 0 100 100" className="w-[50px] h-[50px] drop-shadow-[0_4px_6px_rgba(0,0,0,0.3)]">
+    <path d="M25,20 L35,85 A5,5 0 0,0 40,90 L60,90 A5,5 0 0,0 65,85 L75,20 Z" fill="#EF4444" />
+    <ellipse cx="50" cy="20" rx="27" ry="5" fill="#DC2626" />
+    <ellipse cx="50" cy="19" rx="27" ry="5" fill="#EF4444" />
+    <line x1="30" y1="55" x2="70" y2="55" stroke="#DC2626" strokeWidth="3" />
+  </svg>
+);
+
+const PlasticBag = () => (
+  <svg viewBox="0 0 100 100" className="w-[50px] h-[50px] drop-shadow-[0_4px_6px_rgba(0,0,0,0.3)]">
+    <path d="M30,40 C10,90 90,90 70,40 Z" fill="#cbd5e1" opacity="0.9" />
+    <path d="M40,40 Q30,10 50,40" fill="none" stroke="#cbd5e1" strokeWidth="6" />
+    <path d="M60,40 Q70,10 50,40" fill="none" stroke="#cbd5e1" strokeWidth="6" />
+    <path d="M30,40 C10,90 90,90 70,40 Z" fill="none" stroke="#94a3b8" strokeWidth="2" opacity="0.5" />
+  </svg>
+);
+
+const CanItem = () => (
+  <svg viewBox="0 0 100 100" className="w-[50px] h-[50px] drop-shadow-[0_4px_6px_rgba(0,0,0,0.3)]">
+    <rect x="25" y="25" width="50" height="50" rx="2" fill="#94a3b8" />
+    <rect x="25" y="35" width="50" height="25" fill="#ef4444" />
+    <ellipse cx="50" cy="25" rx="25" ry="6" fill="#cbd5e1" />
+    <ellipse cx="50" cy="75" rx="25" ry="6" fill="#94a3b8" />
+    <ellipse cx="50" cy="25" rx="12" ry="3" fill="#64748b" />
+  </svg>
+);
+
+const FishItem = () => (
+  <svg viewBox="0 0 100 100" className="w-[55px] h-[55px] drop-shadow-[0_4px_6px_rgba(0,0,0,0.3)]">
+    <path d="M 80,50 L 95,30 L 95,70 Z" fill="#fb923c" />
+    <path d="M 80,50 C 40,20 10,40 20,50 C 10,60 40,80 80,50 Z" fill="#fb923c" />
+    <circle cx="35" cy="45" r="4" fill="#1e293b" />
+    <path d="M 50,45 Q 60,35 70,45 Z" fill="#ea580c" />
+  </svg>
+);
+
+const TurtleItem = () => (
+  <svg viewBox="0 0 100 100" className="w-[55px] h-[55px] drop-shadow-[0_4px_6px_rgba(0,0,0,0.3)]">
+    <path d="M 30,30 Q 10,20 20,40 Z" fill="#22c55e" />
+    <path d="M 70,30 Q 90,20 80,40 Z" fill="#22c55e" />
+    <path d="M 35,70 Q 20,80 30,85 Z" fill="#22c55e" />
+    <path d="M 65,70 Q 80,80 70,85 Z" fill="#22c55e" />
+    <circle cx="50" cy="15" r="10" fill="#22c55e" />
+    <ellipse cx="50" cy="50" rx="25" ry="35" fill="#16a34a" />
+    <path d="M 50,15 C 30,15 30,85 50,85 C 70,85 70,15 50,15 Z" fill="none" stroke="#15803d" strokeWidth="4" />
+  </svg>
+);
+
+const CrabItem = () => (
+  <svg viewBox="0 0 100 100" className="w-[55px] h-[55px] drop-shadow-[0_4px_6px_rgba(0,0,0,0.3)]">
+    <path d="M 30,50 Q 15,30 25,20 C 35,10 15,10 10,25 Q 10,40 25,55" fill="#ef4444" />
+    <path d="M 70,50 Q 85,30 75,20 C 65,10 85,10 90,25 Q 90,40 75,55" fill="#ef4444" />
+    <path d="M 30,65 Q 15,75 20,85" fill="none" stroke="#ef4444" strokeWidth="4" strokeLinecap="round" />
+    <path d="M 40,68 Q 30,80 35,90" fill="none" stroke="#ef4444" strokeWidth="4" strokeLinecap="round" />
+    <path d="M 70,65 Q 85,75 80,85" fill="none" stroke="#ef4444" strokeWidth="4" strokeLinecap="round" />
+    <path d="M 60,68 Q 70,80 65,90" fill="none" stroke="#ef4444" strokeWidth="4" strokeLinecap="round" />
+    <ellipse cx="50" cy="55" rx="25" ry="15" fill="#dc2626" />
+    <circle cx="40" cy="35" r="4" fill="#ef4444" />
+    <circle cx="40" cy="35" r="2" fill="#000" />
+    <circle cx="60" cy="35" r="4" fill="#ef4444" />
+    <circle cx="60" cy="35" r="2" fill="#000" />
+  </svg>
+);
+
+const TRASH_ICONS = [PlasticCup, PlasticBag, CanItem];
+
+const WhaleItem = () => (
+  <svg viewBox="0 0 100 100" className="w-[65px] h-[65px] drop-shadow-[0_4px_6px_rgba(0,0,0,0.3)]">
+    <path d="M 85,30 Q 95,20 100,30 L 100,50 Q 80,60 70,50 Z" fill="#0284c7" />
+    <path d="M 70,50 C 70,20 20,20 10,50 C 0,80 70,80 70,50 Z" fill="#0284c7" />
+    <path d="M 10,55 C 30,80 60,70 65,55 Z" fill="#e0f2fe" />
+    <circle cx="25" cy="45" r="3" fill="#0f172a" />
+    <path d="M 40,55 Q 50,75 60,65 Z" fill="#0ea5e9" />
+    <path d="M 30,25 Q 30,10 20,5 M 35,25 Q 35,5 45,5" fill="none" stroke="#bae6fd" strokeWidth="3" strokeLinecap="round" />
+  </svg>
+);
+
+const JellyfishItem = () => (
+  <svg viewBox="0 0 100 100" className="w-[50px] h-[50px] drop-shadow-[0_4px_6px_rgba(0,0,0,0.3)]">
+    <path d="M 20,40 C 20,10 80,10 80,40 Q 80,50 50,50 Q 20,50 20,40 Z" fill="#d946ef" opacity="0.8" />
+    <path d="M 30,45 C 30,20 70,20 70,45" fill="none" stroke="#fdf4ff" strokeWidth="4" opacity="0.5" />
+    <path d="M 35,50 Q 30,70 40,90" fill="none" stroke="#e879f9" strokeWidth="4" strokeLinecap="round" />
+    <path d="M 50,50 Q 60,70 50,90" fill="none" stroke="#e879f9" strokeWidth="4" strokeLinecap="round" />
+    <path d="M 65,50 Q 70,70 60,90" fill="none" stroke="#e879f9" strokeWidth="4" strokeLinecap="round" />
+  </svg>
+);
+
+const OctopusItem = () => (
+  <svg viewBox="0 0 100 100" className="w-[55px] h-[55px] drop-shadow-[0_4px_6px_rgba(0,0,0,0.3)]">
+    <ellipse cx="50" cy="35" rx="25" ry="25" fill="#ec4899" />
+    <circle cx="40" cy="35" r="4" fill="#fbcfe8" />
+    <circle cx="40" cy="35" r="2" fill="#0f172a" />
+    <circle cx="60" cy="35" r="4" fill="#fbcfe8" />
+    <circle cx="60" cy="35" r="2" fill="#0f172a" />
+    <path d="M 30,50 Q 10,70 20,90" fill="none" stroke="#db2777" strokeWidth="8" strokeLinecap="round" />
+    <path d="M 45,55 Q 35,75 40,95" fill="none" stroke="#db2777" strokeWidth="8" strokeLinecap="round" />
+    <path d="M 55,55 Q 65,75 60,95" fill="none" stroke="#db2777" strokeWidth="8" strokeLinecap="round" />
+    <path d="M 70,50 Q 90,70 80,90" fill="none" stroke="#db2777" strokeWidth="8" strokeLinecap="round" />
+  </svg>
+);
+
+const ANIMAL_ICONS = [FishItem, TurtleItem, CrabItem, WhaleItem, JellyfishItem, OctopusItem];
+
+const FishingBoat = () => (
+  <svg viewBox="0 0 180 140" className="w-[170px] h-[130px] drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)] transform -translate-y-4">
+    {/* Boat translated left so it has room to hold the pole */}
+    <g transform="translate(0, 0)">
+      {/* Cabin & Smokestack */}
+      <rect x="30" y="25" width="40" height="25" rx="5" fill="#f8fafc" />
+      <rect x="35" y="30" width="12" height="12" fill="#38bdf8" />
+      <rect x="52" y="30" width="12" height="12" fill="#38bdf8" />
+      <path d="M 25,25 L 75,25 L 70,20 L 30,20 Z" fill="#94a3b8" />
+      <rect x="80" y="20" width="10" height="30" fill="#64748b" />
+      <path d="M 78,25 L 92,25 L 92,30 L 78,30 Z" fill="#f1f5f9" />
+      
+      {/* The Hull */}
+      <path d="M 10,80 L 120,80 L 140,50 L 0,50 Z" fill="#b91c1c" />
+      <path d="M 0,50 L 140,50 L 130,55 L 5,55 Z" fill="#f87171" />
+      <path d="M 5,80 Q 20,90 40,80 T 80,80 T 120,80" fill="none" stroke="#cbd5e1" strokeWidth="2" opacity="0.3" />
+    </g>
+
+    {/* Bob Esponja Jellyfishing Net */}
+    <g>
+      {/* Stick held from inside the front of the hull */}
+      <line x1="80" y1="45" x2="150" y2="85" stroke="#b45309" strokeWidth="6" strokeLinecap="round" />
+      <line x1="80" y1="44" x2="150" y2="84" stroke="#d97706" strokeWidth="2" strokeLinecap="round" />
+
+      {/* Pink Net Bag (Trailing back towards boat) */}
+      <path d="M 165,70 C 145,45 110,65 115,90 C 117,110 130,110 135,100 Z" fill="#f472b6" opacity="0.85" />
+      <path d="M 165,70 C 145,45 110,65 115,90 C 117,110 130,110 135,100 Z" fill="none" stroke="#db2777" strokeWidth="2" strokeDasharray="3 3"/>
+      
+      {/* Metal Hoop */}
+      <ellipse cx="150" cy="85" rx="6" ry="22" fill="none" stroke="#94a3b8" strokeWidth="4" transform="rotate(-45 150 85)" />
+      {/* Highlight on hoop */}
+      <ellipse cx="150" cy="85" rx="4" ry="20" fill="none" stroke="#e2e8f0" strokeWidth="1" transform="rotate(-45 150 85)" />
+    </g>
+  </svg>
+);
 
 export default function OceanoLimpoSideScroller({ onExit, onXP }: Props) {
   // A MÁGICA CONTRA O LAG ESTÁ AQUI: useMotionValue ignora o ciclo de renderização do React!
@@ -147,7 +284,7 @@ export default function OceanoLimpoSideScroller({ onExit, onXP }: Props) {
 
     const interval = setInterval(() => {
       const isTrash = Math.random() > 0.4;
-      const pool = isTrash ? TRASH : ANIMALS;
+      const pool = isTrash ? TRASH_ICONS : ANIMAL_ICONS;
       const speedMultiplier = 1 + ((60 - timerRef.current) / 100);
 
       setObjects((prev) => [
@@ -157,7 +294,7 @@ export default function OceanoLimpoSideScroller({ onExit, onXP }: Props) {
           x: 110,
           y: 10 + Math.random() * 80,
           type: (isTrash ? "trash" : "animal") as "trash" | "animal",
-          emoji: pool[Math.floor(Math.random() * pool.length)],
+          iconIndex: Math.floor(Math.random() * pool.length),
           speed: (0.3 + Math.random() * 0.2) * speedMultiplier,
           wobble: Math.random() * Math.PI * 2,
         }
@@ -280,7 +417,7 @@ export default function OceanoLimpoSideScroller({ onExit, onXP }: Props) {
                 exit={{ scale: 0, opacity: 0, filter: "brightness(2)" }}
               >
                 <div className={`drop-shadow-[0_0_20px_rgba(255,255,255,0.2)] ${obj.type === 'animal' && obj.speed > 0.8 ? 'scale-x-[-1]' : ''}`}>
-                  {obj.emoji}
+                  {React.createElement(obj.type === 'trash' ? TRASH_ICONS[obj.iconIndex] : ANIMAL_ICONS[obj.iconIndex])}
                 </div>
               </motion.div>
             ))}
@@ -302,8 +439,8 @@ export default function OceanoLimpoSideScroller({ onExit, onXP }: Props) {
               transition={{ scale: { duration: 0.2 } }}
             >
               <div className="relative">
-                <span className="text-7xl block drop-shadow-[0_15px_15px_rgba(0,0,0,0.8)] filter transition-all">
-                   🚣🏿
+                <span className="block drop-shadow-[0_15px_15px_rgba(0,0,0,0.8)] filter transition-all">
+                   <FishingBoat />
                 </span>
 
                 <div className="absolute -left-8 top-[60%] -translate-y-1/2 flex gap-1">
