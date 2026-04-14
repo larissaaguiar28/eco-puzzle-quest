@@ -436,7 +436,7 @@ export function CTASection() {
               {/* Icon */}
               <div className="flex justify-center mb-6">
                 <div className="p-5 rounded-3xl bg-emerald-500/20 border border-emerald-500/30">
-                  <Gift className="h-10 w-10 text-emerald-400" />
+                  <Gift className="h-10 w-10 text-emerald-400" />t
                 </div>
               </div>
 
