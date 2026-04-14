@@ -355,7 +355,7 @@ export function CTASection() {
                     ) : isGoalReached ? (
                       <><Gift className="h-5 w-5" /> RESGATAR 7 DIAS GRÁTIS!</>
                     ) : (
-                      <><Lock className="h-5 w-5" /> COMPLETE 4 QUIZZES PARA GANHAR 7 DIAS</>
+                      <><Lock className="h-5 w-5" /> COMPLETE 6 QUIZZES PARA GANHAR 7 DIAS</>
                     )}
                   </Button>
                   {!isGoalReached && !bonusRedeemed && (
