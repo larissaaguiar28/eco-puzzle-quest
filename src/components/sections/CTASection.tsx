@@ -94,7 +94,10 @@ export function CTASection() {
     setShowBonusModal(false);
     setFormMode("register");
     setUser(prev => ({ ...prev, email }));
-    showToast("🎉 Bônus de 30 dias resgatado com sucesso!");
+    showToast("🎉 Bônus de 7 dias resgatado com sucesso!");
+    setTimeout(() => {
+      document.getElementById("auth-form")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 100);
   }
 
 
@@ -337,6 +340,7 @@ export function CTASection() {
                         showToast("Você já resgatou este bônus!");
                         return;
                       }
+                      setFormMode("register");
                       setShowBonusModal(true);
                     }}
                     className={`w-full h-16 rounded-2xl font-bold transition-all duration-500 flex items-center justify-center gap-3 ${bonusRedeemed
@@ -349,9 +353,9 @@ export function CTASection() {
                     {bonusRedeemed ? (
                       <><Check className="h-5 w-5" /> BÔNUS JÁ RESGATADO ✓</>
                     ) : isGoalReached ? (
-                      <><Gift className="h-5 w-5" /> RESGATAR 30 DIAS GRÁTIS!</>
+                      <><Gift className="h-5 w-5" /> RESGATAR 7 DIAS GRÁTIS!</>
                     ) : (
-                      <><Lock className="h-5 w-5" /> COMPLETE 4 QUIZZES PARA GANHAR 30 DIAS</>
+                      <><Lock className="h-5 w-5" /> COMPLETE 4 QUIZZES PARA GANHAR 7 DIAS</>
                     )}
                   </Button>
                   {!isGoalReached && !bonusRedeemed && (
@@ -468,7 +472,7 @@ export function CTASection() {
                 </div>
                 <div className="flex items-center gap-3 text-sm text-white/80">
                   <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0" />
-                  <span>Os 30 dias serão ativados <strong className="text-white">imediatamente</strong></span>
+                  <span>Os 7 dias serão ativados <strong className="text-white">imediatamente</strong></span>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-white/80">
                   <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0" />
