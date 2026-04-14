@@ -173,7 +173,7 @@ export function CTASection() {
     const completedCount = quizSections.filter((_, i) => isCompleted(i)).length;
     const progressPercentage = (completedCount / 6) * 100;
 
-    const GOAL_COUNT = 4;
+    const GOAL_COUNT = 6;
     const isGoalReached = completedCount >= GOAL_COUNT;
 
     return (
