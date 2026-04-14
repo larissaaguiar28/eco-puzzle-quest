@@ -445,7 +445,7 @@ export function CTASection() {
                 Resgatar Bônus
               </h3>
               <p className="text-emerald-100/60 text-sm text-center mb-8">
-                Você desbloqueou <span className="text-emerald-400 font-bold">30 dias grátis</span> ao completar os quizzes!
+                Você desbloqueou <span className="text-emerald-400 font-bold">7 dias grátis</span> ao completar os quizzes!
               </p>
 
               {/* Email Input */}
